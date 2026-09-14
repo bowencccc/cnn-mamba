@@ -1,0 +1,6 @@
+cell	window_bp	old_uniann_sn	old_uniann_pr	old_uniann_f1	old_uniann_pred	old_uniann_matched	old_uniann_missed	old_uniann_novel	new_uniann_sn	new_uniann_pr	new_uniann_f1	new_uniann_pred	new_uniann_matched	new_uniann_missed	new_uniann_novel	old_combined_sn	old_combined_pr	old_combined_f1	old_combined_pred	old_combined_matched	old_combined_missed	old_combined_novel	new_combined_sn	new_combined_pr	new_combined_f1	new_combined_pred	new_combined_matched	new_combined_missed	new_combined_novel
+w5	5000	73.9	80.2	76.92122	986	791	86	13	74.2	80.4	77.1756792	988	794	85	13	89.2	91.2	90.1889135	1026	954	47	20	89.3	91.3	90.2889258	1027	955	47	20
+w10	10000	74.8	79.6	77.1253886	1005	800	72	18	75.0	79.8	77.3255814	1005	802	72	18	89.7	90.7	90.1972284	1038	960	39	23	89.8	90.8	90.2972315	1038	961	39	23
+w20	20000	68.4	77.9	72.8415584	940	732	108	10	68.6	78.0	72.9986357	941	734	108	10	88.1	91.4	89.7196657	1004	943	51	17	88.2	91.5	89.8196995	1005	944	51	17
+w30	30000	68.0	77.6	72.4835165	938	728	116	13	68.4	77.9	72.8415584	940	732	114	13	87.2	90.9	89.0115665	996	933	60	20	87.3	91.0	89.1116096	996	934	60	20
+w40	40000	69.6	78.0	73.5609756	955	745	108	10	70.0	78.5	74.006734	954	749	109	10	88.6	91.3	89.9297387	1012	948	51	15	88.7	91.4	90.0297612	1012	949	51	15

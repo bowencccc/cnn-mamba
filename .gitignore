@@ -1,0 +1,30 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+
+# Large inputs, generated windows, checkpoints and raw score arrays stay outside Git.
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+artifacts/checkpoints/*
+!artifacts/checkpoints/.gitkeep
+artifacts/scores/*
+!artifacts/scores/.gitkeep
+/runs/
+/work/
+*.pt
+*.npy
+*.npz
+*.fa
+*.fna
+*.fai
+*.gff
+*.gtf
+*.csv
+*.tsv.gz
+
+# Curated result tables under results/ are intentionally versioned.
+!results/**/*.tsv.gz

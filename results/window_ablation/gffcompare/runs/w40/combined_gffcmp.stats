@@ -1,0 +1,30 @@
+# gffcompare v0.12.10 | Command line was:
+#/home/bowencccc/UniAnn/bin/gffcompare --strict-match -e 0 -r /home/bowencccc/uniann_droso_all_models_strict_20260824/shared/NC_004354.4.p.CDS.uniq.gtf /home/bowencccc/ssm_splice_site/droso_window_grid_legacy_recipe_20260906/uniann_commit_91477a6/runs/w40/EviAnn_UniAnn.merged.gff -o /home/bowencccc/ssm_splice_site/droso_window_grid_legacy_recipe_20260906/uniann_commit_91477a6/runs/w40/combined_gffcmp
+#
+
+#= Summary for dataset: /home/bowencccc/ssm_splice_site/droso_window_grid_legacy_recipe_20260906/uniann_commit_91477a6/runs/w40/EviAnn_UniAnn.merged.gff 
+#     Query mRNAs :    1729 in    1012 loci  (1513 multi-exon transcripts)
+#            (318 multi-transcript loci, ~1.7 transcripts per locus)
+# Reference mRNAs :    1783 in    1070 loci  (1552 multi-exon)
+# Super-loci w/ reference transcripts:      990
+#-----------------| Sensitivity | Precision  |
+        Base level:    94.7     |    97.8    |
+        Exon level:    88.7     |    91.3    |
+      Intron level:    90.9     |    93.5    |
+Intron chain level:    69.3     |    71.1    |
+  Transcript level:    66.2     |    68.3    |
+       Locus level:    88.7     |    91.4    |
+
+     Matching intron chains:    1076
+       Matching transcripts:    1181
+              Matching loci:     949
+
+          Missed exons:     201/4939	(  4.1%)
+           Novel exons:      76/4801	(  1.6%)
+        Missed introns:      70/3778	(  1.9%)
+         Novel introns:      26/3670	(  0.7%)
+           Missed loci:      51/1070	(  4.8%)
+            Novel loci:      15/1012	(  1.5%)
+
+ Total union super-loci across all input datasets: 1005 
+1729 out of 1729 consensus transcripts written in /home/bowencccc/ssm_splice_site/droso_window_grid_legacy_recipe_20260906/uniann_commit_91477a6/runs/w40/combined_gffcmp.annotated.gtf (0 discarded as redundant)
