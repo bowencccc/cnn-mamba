@@ -1,0 +1,149 @@
+{
+  "eviann_annotation": "/home/bowencccc/ssm_splice_site/data_human_EviAnn/Hsap_NC_000001.11/GCF_000001405.40_GRCh38.p14_genomic.noalpsnopatches.fna.pseudo_label.gff",
+  "chess_annotation": "/home/bowencccc/ssm_splice_site/chess3.1.3.GRCh38.gtf",
+  "fasta": "/home/bowencccc/ssm_splice_site/GCF_000001405.40_GRCh38.p14_genomic.fna",
+  "seed": 42,
+  "window_size": 10000,
+  "stride": 5000,
+  "region_policy": "full_10kb_intersects_EviAnn_transcript_span_with_CDS",
+  "region_overlap_bp": 10000,
+  "max_windows_per_chrom_strand": 0,
+  "splits": {
+    "train": [
+      "chr3",
+      "chr4",
+      "chr6",
+      "chr7",
+      "chr8",
+      "chr11",
+      "chr12",
+      "chr13",
+      "chr14",
+      "chr15",
+      "chr16",
+      "chr17",
+      "chr18",
+      "chr19",
+      "chr20",
+      "chr21",
+      "chrX",
+      "chrY"
+    ],
+    "val": [
+      "chr2",
+      "chr5",
+      "chr9",
+      "chr10",
+      "chr22"
+    ],
+    "test": [
+      "chr1"
+    ]
+  },
+  "summary": {
+    "train": {
+      "windows": 195072,
+      "eviann_positive_positions": {
+        "donor": 251126,
+        "acceptor": 256886,
+        "start": 58590,
+        "stop": 53408
+      },
+      "chess_positive_positions": {
+        "donor": 241025,
+        "acceptor": 247544,
+        "start": 46811,
+        "stop": 46228
+      },
+      "ignored_chess_only_positions": {
+        "donor": 7971,
+        "acceptor": 11709,
+        "start": 12469,
+        "stop": 13272
+      },
+      "by_chrom": {
+        "chr3": 19876,
+        "chr4": 15320,
+        "chr6": 16439,
+        "chr7": 17805,
+        "chr8": 12807,
+        "chr11": 14621,
+        "chr12": 14433,
+        "chr13": 7296,
+        "chr14": 9004,
+        "chr15": 9740,
+        "chr16": 9344,
+        "chr17": 11514,
+        "chr18": 6186,
+        "chr19": 8496,
+        "chr20": 6690,
+        "chr21": 3328,
+        "chrX": 11363,
+        "chrY": 810
+      }
+    },
+    "val": {
+      "windows": 68555,
+      "eviann_positive_positions": {
+        "donor": 84070,
+        "acceptor": 85943,
+        "start": 18642,
+        "stop": 17197
+      },
+      "chess_positive_positions": {
+        "donor": 81047,
+        "acceptor": 83078,
+        "start": 14976,
+        "stop": 14590
+      },
+      "ignored_chess_only_positions": {
+        "donor": 3138,
+        "acceptor": 4283,
+        "start": 4283,
+        "stop": 4395
+      },
+      "by_chrom": {
+        "chr2": 22895,
+        "chr5": 15313,
+        "chr9": 11698,
+        "chr10": 13689,
+        "chr22": 4960
+      }
+    },
+    "test": {
+      "windows": 26252,
+      "eviann_positive_positions": {
+        "donor": 37863,
+        "acceptor": 38811,
+        "start": 8776,
+        "stop": 8025
+      },
+      "chess_positive_positions": {
+        "donor": 36914,
+        "acceptor": 37944,
+        "start": 7080,
+        "stop": 6931
+      },
+      "ignored_chess_only_positions": {
+        "donor": 1728,
+        "acceptor": 2229,
+        "start": 1951,
+        "stop": 1940
+      },
+      "by_chrom": {
+        "chr1": 26252
+      }
+    }
+  },
+  "eviann_rejected": {
+    "splice": 9068,
+    "start": 91,
+    "stop": 141
+  },
+  "chess_rejected": {
+    "splice": 8788,
+    "stop": 1333,
+    "start": 641
+  },
+  "elapsed_seconds": 473.9309067726135
+}

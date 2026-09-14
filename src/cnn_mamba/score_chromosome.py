@@ -163,7 +163,8 @@ def main() -> None:
         "ownership": "midpoint partition of 50%-overlap windows; chromosome edges retained",
         "position_convention": "zero-based genomic start of motif",
         "candidate_counts": counts, "written_counts": offsets,
-        "regime": checkpoint["config"]["regime"], "elapsed_seconds": time.time() - started,
+        "regime": checkpoint["config"].get("regime", "unspecified"),
+        "elapsed_seconds": time.time() - started,
     }
     atomic_json(args.output_dir / "metadata.json", metadata)
     atomic_json(args.output_dir / ".complete.json", {"schema": "droso_score_complete_v1", "counts": offsets})

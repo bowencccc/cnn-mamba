@@ -18,13 +18,21 @@ def sha256(path):
 def main():
     root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser()
-    parser.add_argument("--group", choices=("raw", "checkpoint", "all"), default="all")
+    parser.add_argument(
+        "--group", choices=("raw", "checkpoint", "human", "drosophila", "all"),
+        default="all",
+    )
     parser.add_argument("--fast", action="store_true", help="check existence and size but skip SHA256")
     args = parser.parse_args()
     failures = 0
     with (root / "external_manifest.tsv").open() as handle:
         for row in csv.DictReader(handle, delimiter="\t"):
-            if args.group != "all" and row["group"] != args.group:
+            selected = (
+                args.group == "all"
+                or row["group"] == args.group
+                or (args.group == "drosophila" and row["group"] in {"raw", "checkpoint"})
+            )
+            if not selected:
                 continue
             path = root / row["logical_path"]
             if not path.is_file():

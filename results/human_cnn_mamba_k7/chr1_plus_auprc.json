@@ -1,0 +1,48 @@
+{
+  "score_directory": "/home/bowencccc/ssm_splice_site/scores_human_chr1_plus_10kb_overlap_cnn_mamba_k7",
+  "checkpoint": "/home/bowencccc/ssm_splice_site/checkpoints_hsap_eviann_gene_regions_10kb_overlap_chr1train_cnn_mamba_k7_fp32/best_model.pt",
+  "checkpoint_epoch": 5,
+  "species": "human",
+  "chromosome": "chr1",
+  "strand": "+",
+  "reference": "CHESS 3.1.3",
+  "candidate_scope": "all canonical candidates on the complete plus strand",
+  "metric": "exact sklearn average_precision_score",
+  "mean_AUPRC": 0.5762249490124579,
+  "reference_rejected": {
+    "splice": 8788,
+    "stop": 1333,
+    "start": 641
+  },
+  "elapsed_seconds": 12.986209392547607,
+  "tasks": [
+    {
+      "task": "donor",
+      "candidates": 11629291,
+      "reference_sites": 9526,
+      "matched_positives": 9526,
+      "AUPRC": 0.8751139320380323
+    },
+    {
+      "task": "acceptor",
+      "candidates": 16448644,
+      "reference_sites": 9793,
+      "matched_positives": 9793,
+      "AUPRC": 0.8437403675476347
+    },
+    {
+      "task": "start",
+      "candidates": 4110209,
+      "reference_sites": 1884,
+      "matched_positives": 1884,
+      "AUPRC": 0.3828202925427574
+    },
+    {
+      "task": "stop",
+      "candidates": 12025506,
+      "reference_sites": 1843,
+      "matched_positives": 1843,
+      "AUPRC": 0.20322520392140705
+    }
+  ]
+}

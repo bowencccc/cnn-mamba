@@ -92,12 +92,18 @@ def quarantine_stale_sentinel(path):
     print(f"moved stale completion marker aside: {path} -> {target}", flush=True)
 
 
-def reference_sites(reference_gtf, fasta_path, chrom_key):
-    from . import prepare_droso
+def reference_sites(species, reference_gtf, fasta_path, chrom_key):
+    if species == "human":
+        from .human_annotations import extract_sites, parse_chess
 
-    prepare_droso.FASTA = Path(fasta_path).resolve()
-    meta, exons, cds, explicit = prepare_droso.parse_reference(Path(reference_gtf))
-    sites, rejected = prepare_droso.extract_sites(meta, exons, cds, explicit)
+        meta, exons, cds = parse_chess(Path(reference_gtf))
+        sites, rejected = extract_sites(meta, exons, cds, Path(fasta_path))
+    else:
+        from . import prepare_droso
+
+        prepare_droso.FASTA = Path(fasta_path).resolve()
+        meta, exons, cds, explicit = prepare_droso.parse_reference(Path(reference_gtf))
+        sites, rejected = prepare_droso.extract_sites(meta, exons, cds, explicit)
     reference = str(Path(reference_gtf).resolve())
 
     truth = {
@@ -114,9 +120,11 @@ def reference_sites(reference_gtf, fasta_path, chrom_key):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--score-dir", type=Path, required=True)
+    parser.add_argument("--species", choices=("drosophila", "human"), default="drosophila")
     parser.add_argument("--reference-gtf", type=Path, required=True)
     parser.add_argument("--fasta", type=Path, required=True)
     parser.add_argument("--chrom", required=True, help="FASTA accession used in the reference")
+    parser.add_argument("--reference-chrom", help="chromosome key in annotation, e.g. chr1")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument(
         "--logical-score-dir", type=Path,
@@ -138,7 +146,10 @@ def main():
 
     started = time.time()
     metadata = json.loads((args.score_dir / "metadata.json").read_text())
-    truth, reference, rejected = reference_sites(args.reference_gtf, args.fasta, args.chrom)
+    truth, reference, rejected = reference_sites(
+        args.species, args.reference_gtf, args.fasta,
+        args.reference_chrom or args.chrom,
+    )
     rows = []
     for name in SITE_TYPES:
         positions = np.load(
@@ -175,7 +186,7 @@ def main():
         ),
         "checkpoint": metadata["checkpoint"],
         "checkpoint_epoch": metadata.get("checkpoint_epoch"),
-        "species": "drosophila",
+        "species": args.species,
         "chromosome": metadata["chromosome"],
         "strand": "+",
         "reference": reference,

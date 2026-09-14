@@ -68,7 +68,8 @@ export UNIANN_ROOT="$PWD"
 ## 2. Stage large inputs
 
 See `data/README.md` and `external_manifest.tsv`. On the original server, this
-creates local symlinks without copying roughly 1.18 GiB of source/checkpoint data:
+creates local symlinks without copying files. The complete Drosophila + Human
+inventory is about 7.11 GiB; individual groups can be materialized separately:
 
 ```bash
 bash scripts/link_current_server.sh
@@ -79,6 +80,13 @@ python scripts/check_external.py             # full SHA256 verification
 On another server, copy or symlink your files to the same logical paths. The
 `original_path` column records where each exact file came from; it is provenance,
 not a path that must exist on the new server.
+
+Materialize only the Human group (about 5.93 GiB, including full Human
+PSAURON) with:
+
+```bash
+bash scripts/materialize_external.sh /path/to/human_external_bundle human
+```
 
 ## 3. Generate training windows
 
@@ -148,6 +156,37 @@ legacy grid was 20 kb (0.7949); the best UniAnn-only locus F1 was 10 kb
 (77.33 using the latest UniAnn), and EviAnn+UniAnn at 10 kb was Sn 89.8 / Pr
 90.8 / F1 90.30. See `results/window_ablation/README.md` for provenance and
 file routing.
+
+## Human pipeline
+
+The Human external group contains GRCh38, CHESS 3.1.3, the Human EviAnn
+pseudo-label GFF, full Human PSAURON scores, and the current 10 kb
+CNN--Mamba-k7 chr1-in-training checkpoint. Generated NPZ windows and chr1 score
+arrays are omitted and can be rebuilt.
+
+```bash
+cnn-mamba-prepare-human \
+  --fasta data/raw/human_grch38.fa \
+  --eviann-gff data/raw/human_eviann_pseudo_label.gff \
+  --chess-gtf data/raw/human_chess3.1.3.gtf \
+  --output-dir data/processed/human_w10_chr1held \
+  --max-windows-per-chrom-strand 0 \
+  --region-overlap-bp 10000
+```
+
+Train an honest chr1-held-out model:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python scripts/run_human.py \
+  --regime chr1held --stages train,score,auprc
+```
+
+Reuse and evaluate the existing chr1-in-training checkpoint:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python scripts/run_human.py \
+  --regime chr1train --stages score,auprc
+```
 
 ## Repository map
 

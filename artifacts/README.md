@@ -6,3 +6,7 @@ They are listed with hashes in `external_manifest.tsv` and are not tracked by
 Git. `heldout` models are the honest chrX candidate-AUPRC models. `chrxtrain`
 models intentionally include chrX and are the models used for the UniAnn
 positive-control/window-size downstream experiment.
+
+The current Human checkpoint is staged at
+`artifacts/checkpoints/human/chr1train_cnn_mamba_k7/best_model.pt`. It is a
+10 kb/5 kb-stride model trained for five epochs with chr1 included in training.

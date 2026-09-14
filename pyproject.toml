@@ -10,6 +10,7 @@ requires-python = ">=3.10,<3.13"
 dependencies = [
   "numpy==2.2.6",
   "pandas==2.3.3",
+  "matplotlib==3.10.8",
   "pysam==0.23.3",
   "scikit-learn==1.7.2",
   "torch==2.6.0",
@@ -19,6 +20,7 @@ dependencies = [
 
 [project.scripts]
 cnn-mamba-prepare-droso = "cnn_mamba.prepare_droso:main"
+cnn-mamba-prepare-human = "cnn_mamba.prepare_human:main"
 cnn-mamba-train = "cnn_mamba.train:main"
 cnn-mamba-score = "cnn_mamba.score_chromosome:main"
 cnn-mamba-auprc = "cnn_mamba.evaluate_candidates:main"

@@ -2,13 +2,13 @@
 set -euo pipefail
 
 if [[ $# -lt 1 || $# -gt 2 ]]; then
-  echo "usage: $0 DESTINATION [raw|checkpoint|all]" >&2
+  echo "usage: $0 DESTINATION [raw|checkpoint|human|drosophila|all]" >&2
   exit 2
 fi
 
 destination=$1
 selected_group=${2:-all}
-case "$selected_group" in raw|checkpoint|all) ;; *) echo "invalid group: $selected_group" >&2; exit 2 ;; esac
+case "$selected_group" in raw|checkpoint|human|drosophila|all) ;; *) echo "invalid group: $selected_group" >&2; exit 2 ;; esac
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 mkdir -p "$destination"
@@ -17,7 +17,9 @@ cd "$repo_root"
 
 while IFS=$'\t' read -r group required logical bytes digest original description; do
   [[ "$group" == "group" ]] && continue
-  [[ "$selected_group" != "all" && "$group" != "$selected_group" ]] && continue
+  if [[ "$selected_group" != "all" && "$group" != "$selected_group" ]]; then
+    [[ "$selected_group" == "drosophila" && ("$group" == "raw" || "$group" == "checkpoint") ]] || continue
+  fi
   if [[ ! -f "$logical" ]]; then
     echo "missing: $logical" >&2
     exit 1

@@ -11,6 +11,9 @@
    rsync -avh --info=progress2 /path/to/external_bundle/ newserver:/path/to/repo/
    ```
 
+   Available groups are `drosophila` (about 1.18 GiB), `human` (about
+   5.93 GiB, including full Human PSAURON), or `all` (about 7.11 GiB).
+
 4. On the destination, run `python scripts/check_external.py` to verify all
    files byte-for-byte.
 5. Generate `data/processed` locally on the destination. Generated NPZ windows
