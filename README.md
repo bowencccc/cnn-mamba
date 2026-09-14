@@ -29,8 +29,10 @@ comparison: larger windows receive fewer optimizer updates in five epochs.
 
 ## 1. Install
 
-The recorded environment used Python 3.10, PyTorch 2.6.0+cu124 and
-`mamba-ssm==2.3.1`.
+The recorded environment used Python 3.10, PyTorch 2.6.0+cu124 and a Git build
+of Mamba at commit `be0303b971cd79a4fbbcfc411a01b33f6b0e3602`. Its package
+metadata says `mamba-ssm==2.3.1`, but the PyPI 2.3.1 source is not equivalent:
+the pinned Git commit is required because it contains `Mamba3`.
 
 ```bash
 conda env create -f environment.yml
@@ -42,6 +44,14 @@ python scripts/smoke_model.py
 For a newer CUDA stack, install a matching PyTorch build first, then compile or
 install `causal-conv1d` and `mamba-ssm` against it. Do not assume a wheel built
 for a different PyTorch/CUDA combination is compatible.
+
+If installing into an already-created environment, install the exact Mamba3
+source with:
+
+```bash
+pip install --no-build-isolation \
+  "mamba-ssm @ git+https://github.com/state-spaces/mamba.git@be0303b971cd79a4fbbcfc411a01b33f6b0e3602"
+```
 
 UniAnn is a separate dependency. The recorded downstream results use commit
 `91477a69e1a949fed082c4662b348d9a7a91ca2b`:

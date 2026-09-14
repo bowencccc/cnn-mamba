@@ -15,4 +15,10 @@ dependencies:
       - --extra-index-url https://download.pytorch.org/whl/cu124
       - torch==2.6.0+cu124
       - causal-conv1d==1.6.1
-      - mamba-ssm==2.3.1
+      - apache-tvm-ffi==0.1.9
+      - einops==0.8.2
+      - quack-kernels==0.3.10
+      - tilelang==0.1.8
+      - triton==3.6.0
+      - transformers==5.5.4
+      - mamba-ssm @ git+https://github.com/state-spaces/mamba.git@be0303b971cd79a4fbbcfc411a01b33f6b0e3602
