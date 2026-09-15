@@ -149,6 +149,17 @@ def main():
         help="Weight applied to splice loss; start/stop loss has weight 1.0.",
     )
     parser.add_argument(
+        "--early-stopping-patience", type=int, default=0,
+        help=(
+            "Stop after this many consecutive epochs without sufficient "
+            "validation mean-AP improvement; 0 disables early stopping."
+        ),
+    )
+    parser.add_argument(
+        "--early-stopping-min-delta", type=float, default=0.0,
+        help="Minimum validation mean-AP increase that resets early stopping.",
+    )
+    parser.add_argument(
         "--architecture", choices=("cnn_mamba", "mamba"), default="cnn_mamba"
     )
     parser.add_argument("--cnn-kernel-size", type=int, default=7)
@@ -183,6 +194,12 @@ def main():
         parser.error(
             "--all-splits-as-train and --include-test-in-train are mutually exclusive"
         )
+    if args.early_stopping_patience < 0:
+        parser.error("--early-stopping-patience must be non-negative")
+    if args.early_stopping_min_delta < 0:
+        parser.error("--early-stopping-min-delta must be non-negative")
+    if args.all_splits_as_train and args.early_stopping_patience:
+        parser.error("early stopping requires a held-out validation split")
     if args.stride != args.window_size // 2:
         parser.error("this experiment requires stride = window_size / 2")
     center_left = (args.window_size - args.stride) // 2
@@ -265,6 +282,7 @@ def main():
         return args.lr * (0.1 + 0.45 * (1 + math.cos(math.pi * progress)))
 
     history, best_score, optimizer_step, start_epoch = [], -1.0, 0, 1
+    epochs_without_improvement = 0
     last_checkpoint = output_dir / "last_model.pt"
     if args.resume and last_checkpoint.exists():
         saved = torch.load(last_checkpoint, map_location="cpu", weights_only=True)
@@ -275,10 +293,14 @@ def main():
         if "data_generator_state" in saved:
             generator.set_state(saved["data_generator_state"])
         history = saved.get("history", [])
-        best_score = max(
-            (row.get("mean_AP", -1.0) for row in history if row.get("mean_AP") is not None),
-            default=-1.0,
+        saved_best = saved.get("best_validation_mean_AP")
+        best_score = float(
+            saved_best if saved_best is not None else max(
+                (row.get("mean_AP", -1.0) for row in history if row.get("mean_AP") is not None),
+                default=-1.0,
+            )
         )
+        epochs_without_improvement = int(saved.get("epochs_without_improvement", 0))
         optimizer_step = int(saved.get("optimizer_step", saved["epoch"] * steps_per_epoch))
         start_epoch = int(saved["epoch"]) + 1
 
@@ -286,10 +308,22 @@ def main():
         f"mode={args.mode} device={torch.cuda.get_device_name(0)} train={len(train_data):,} "
         f"val={len(val_data) if val_data is not None else 0:,} "
         f"test={len(test_data) if test_data is not None else 0:,} epochs={args.epochs} "
-        f"start_epoch={start_epoch}"
+        f"start_epoch={start_epoch} early_stopping_patience={args.early_stopping_patience} "
+        f"early_stopping_min_delta={args.early_stopping_min_delta:g}"
     )
     run_start = time.time()
-    for epoch in range(start_epoch, args.epochs + 1):
+    early_stopped = (
+        args.early_stopping_patience > 0
+        and epochs_without_improvement >= args.early_stopping_patience
+    )
+    stopped_epoch = int(history[-1]["epoch"]) if early_stopped else None
+    if early_stopped:
+        logger.info(
+            f"Run already early-stopped at epoch {stopped_epoch}; "
+            "skipping additional training"
+        )
+    epoch_iterator = () if early_stopped else range(start_epoch, args.epochs + 1)
+    for epoch in epoch_iterator:
         model.train()
         optimizer.zero_grad(set_to_none=True)
         totals = {"loss": 0.0, "splice": 0.0, "ss": 0.0}
@@ -381,6 +415,16 @@ def main():
             "epoch_seconds": time.time() - epoch_start,
         }
         history.append(row)
+        improved = (
+            metrics is None
+            or mean_ap > best_score + args.early_stopping_min_delta
+        )
+        if metrics is not None:
+            if improved:
+                best_score = mean_ap
+                epochs_without_improvement = 0
+            else:
+                epochs_without_improvement += 1
         if metrics is None:
             logger.info(
                 f"Epoch {epoch}: train loss={row['train_loss']:.5f}; "
@@ -402,6 +446,8 @@ def main():
             "optimizer_step": optimizer_step,
             "history": history,
             "mean_AP": mean_ap,
+            "best_validation_mean_AP": None if metrics is None else best_score,
+            "epochs_without_improvement": epochs_without_improvement,
             "config": vars(args) | {
                 "data_root": str(args.data_root), "output_dir": str(output_dir),
                 "d_model": 192, "d_state": 64, "n_layers": 8, "dropout": 0.1,
@@ -413,9 +459,22 @@ def main():
         epoch_dir.mkdir(exist_ok=True)
         epoch_width = max(3, len(str(args.epochs)))
         torch.save(checkpoint, epoch_dir / f"epoch_{epoch:0{epoch_width}d}.pt")
-        if args.all_splits_as_train or mean_ap > best_score:
-            best_score = mean_ap
+        if improved:
             torch.save(checkpoint, output_dir / "best_model.pt")
+        if (
+            metrics is not None
+            and args.early_stopping_patience > 0
+            and epochs_without_improvement >= args.early_stopping_patience
+        ):
+            early_stopped = True
+            stopped_epoch = epoch
+            logger.info(
+                f"Early stopping at epoch {epoch}: no validation mean-AP "
+                f"improvement > {args.early_stopping_min_delta:g} for "
+                f"{epochs_without_improvement} consecutive epochs; "
+                f"best={best_score:.6f}"
+            )
+            break
 
     test_metrics = None
     test_losses = None
@@ -434,6 +493,9 @@ def main():
         "chr1_chess": test_metrics,
         "test_reference": test_metrics,
         "test_losses": test_losses,
+        "early_stopped": early_stopped,
+        "stopped_epoch": stopped_epoch,
+        "epochs_without_improvement": epochs_without_improvement,
         "elapsed_seconds": time.time() - run_start,
     }
     (output_dir / "results.json").write_text(json.dumps(result, indent=2) + "\n")

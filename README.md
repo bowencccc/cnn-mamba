@@ -142,6 +142,29 @@ start_stop_loss`. Controlled loss-weight runs can use
 `--splice-loss-weight 1.0`; the same weight is applied to both training and
 validation loss calculations and is recorded in each checkpoint's config.
 
+### Early-stopping window rerun
+
+The new 5/10/20/30/40/80 kb rerun has a separate configuration so it cannot
+silently resume or overwrite the legacy five-epoch experiment. It uses at most
+30 epochs and stops after three consecutive epochs without a validation mean-AP
+increase greater than `0.0001`. Validation mean AP is the arithmetic mean over
+donor, acceptor, start and stop; chromosome 3L remains the validation split.
+Every completed epoch is retained as a checkpoint.
+
+On Rockfish, first generate the window files if `data/processed/w*/` is absent,
+using the command in section 3. Then submit the 12-job array (six held-out
+models for chrX+ AUPRC and six chrX-in-training models for UniAnn):
+
+```bash
+cd ~/cnn_mamba_k7_portable
+sbatch --account=<PI_NAME>_gpu scripts/rockfish_droso_early_stopping.slurm
+```
+
+Set `CNN_MAMBA_PYTHON` to the fully qualified Python executable if `python` is
+not the prepared CNN--Mamba environment. Set `UNIANN_ROOT` if UniAnn is not at
+`~/UniAnn`. Outputs are namespaced under `early_stopping_v1` in `runs/`,
+`artifacts/scores/`, and `work/uniann/`.
+
 ## 5. Run UniAnn and combined strict evaluation
 
 This deliberately uses the `chrxtrain` checkpoint, exports the six-column

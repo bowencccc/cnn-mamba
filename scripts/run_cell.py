@@ -19,13 +19,18 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--cell", choices=("w5", "w10", "w20", "w30", "w40", "w80"), required=True)
     parser.add_argument("--regime", choices=("heldout", "chrxtrain"), required=True)
+    parser.add_argument("--config", type=Path,
+                        default=Path("configs/droso_window_grid.json"))
+    parser.add_argument("--experiment-tag", default="",
+                        help="Namespace new runs/scores/work without overwriting legacy outputs")
     parser.add_argument("--stages", default="train,score,auprc",
                         help="comma list: train,score,auprc,export,uniann")
     parser.add_argument("--uniann-root", type=Path,
                         default=Path(os.environ.get("UNIANN_ROOT", root.parent / "UniAnn")))
     parser.add_argument("--workers", type=int, default=4)
     args = parser.parse_args()
-    config = json.loads((root / "configs/droso_window_grid.json").read_text())
+    config_path = args.config if args.config.is_absolute() else root / args.config
+    config = json.loads(config_path.read_text())
     cell = next(row for row in config["cells"] if row["id"] == args.cell)
     stages = [x.strip() for x in args.stages.split(",") if x.strip()]
     unknown = set(stages) - {"train", "score", "auprc", "export", "uniann"}
@@ -33,9 +38,16 @@ def main():
         parser.error(f"unknown stages: {sorted(unknown)}")
 
     data = root / "data"
-    run_dir = root / "runs" / args.regime / args.cell
+    run_root = root / "runs"
+    score_root = root / "artifacts" / "scores"
+    uniann_work_root = root / "work" / "uniann"
+    if args.experiment_tag:
+        run_root /= args.experiment_tag
+        score_root /= args.experiment_tag
+        uniann_work_root /= args.experiment_tag
+    run_dir = run_root / args.regime / args.cell
     checkpoint = run_dir / "best_model.pt"
-    score_dir = root / "artifacts" / "scores" / args.regime / args.cell
+    score_dir = score_root / args.regime / args.cell
     raw = data / "raw"
 
     if "train" in stages:
@@ -46,6 +58,12 @@ def main():
                    "--grad-accum", str(cell["grad_accum"]), "--window-size", str(cell["window_bp"]),
                    "--stride", str(cell["stride_bp"]), "--workers", str(args.workers),
                    "--output-dir", run_dir, "--reference-name", "FlyBase", "--test-name", "chrX"]
+        early_stopping = config.get("early_stopping")
+        if early_stopping:
+            command.extend([
+                "--early-stopping-patience", str(early_stopping["patience"]),
+                "--early-stopping-min-delta", str(early_stopping.get("min_delta", 0.0)),
+            ])
         if args.regime == "chrxtrain":
             command.append("--include-test-in-train")
         if cell.get("gradient_checkpointing"):
@@ -79,7 +97,7 @@ def main():
               "--fasta", raw / "dmel_chrX.fa", "--psauron", raw / "psauron_score_droso.csv",
               "--scores", legacy, "--reference-gtf", raw / "dmel_chrX_plus_CDS_reference.gtf",
               "--eviann-gff", raw / "dmel_chrX_plus_EviAnn_CDS.gff",
-              "--output-dir", root / "work" / "uniann" / args.cell])
+              "--output-dir", uniann_work_root / args.cell])
 
 
 if __name__ == "__main__":

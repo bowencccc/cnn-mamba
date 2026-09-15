@@ -1,0 +1,33 @@
+{
+  "schema": "cnn_mamba_k7_droso_window_early_stopping_v1",
+  "seed": 42,
+  "epochs": 30,
+  "early_stopping": {
+    "monitor": "validation_mean_AP_donor_acceptor_start_stop",
+    "mode": "max",
+    "patience": 3,
+    "min_delta": 0.0001
+  },
+  "architecture": {
+    "name": "cnn_mamba",
+    "cnn_kernel_size": 7,
+    "d_model": 192,
+    "d_state": 64,
+    "n_layers": 8,
+    "dropout": 0.1
+  },
+  "training": {
+    "learning_rate": 0.0003,
+    "effective_batch_windows": 8,
+    "loss": "0.25 * splice_candidate_cross_entropy + start_stop_candidate_cross_entropy",
+    "model_selection": "validation arithmetic mean AP over donor/acceptor/start/stop"
+  },
+  "cells": [
+    {"id": "w5",  "window_bp": 5000,  "stride_bp": 2500,  "micro_batch": 4, "grad_accum": 2, "score_batch": 16},
+    {"id": "w10", "window_bp": 10000, "stride_bp": 5000,  "micro_batch": 4, "grad_accum": 2, "score_batch": 8},
+    {"id": "w20", "window_bp": 20000, "stride_bp": 10000, "micro_batch": 2, "grad_accum": 4, "score_batch": 4},
+    {"id": "w30", "window_bp": 30000, "stride_bp": 15000, "micro_batch": 1, "grad_accum": 8, "score_batch": 2},
+    {"id": "w40", "window_bp": 40000, "stride_bp": 20000, "micro_batch": 1, "grad_accum": 8, "score_batch": 2},
+    {"id": "w80", "window_bp": 80000, "stride_bp": 40000, "micro_batch": 1, "grad_accum": 8, "score_batch": 1, "gradient_checkpointing": true}
+  ]
+}
