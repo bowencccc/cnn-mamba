@@ -130,6 +130,18 @@ stop over every canonical chrX+ candidate. To reuse a staged checkpoint without
 training, omit `train`; `run_cell.py` automatically looks under
 `artifacts/checkpoints/<regime>/<cell>/best_model.pt`.
 
+Training writes per-epoch train and validation total/splice/start-stop losses to
+`results.json` and to the checkpoint history. Complete resumable checkpoints for
+every epoch are retained under `runs/<regime>/<cell>/epoch_checkpoints/`, while
+`best_model.pt` and `last_model.pt` keep their original meanings. Runs trained
+with all splits combined have no held-out validation set, so their validation
+loss fields are `null`.
+
+The historical loss remains the default: `0.25 * splice_loss +
+start_stop_loss`. Controlled loss-weight runs can use
+`--splice-loss-weight 1.0`; the same weight is applied to both training and
+validation loss calculations and is recorded in each checkpoint's config.
+
 ## 5. Run UniAnn and combined strict evaluation
 
 This deliberately uses the `chrxtrain` checkpoint, exports the six-column

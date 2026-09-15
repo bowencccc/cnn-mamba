@@ -87,15 +87,31 @@ def candidate_loss(logits, labels, sequence, task, ignore=None):
 
 
 @torch.no_grad()
-def evaluate(model, loader, device, use_amp, center_left=2500, center_right=7500):
+def evaluate(
+    model, loader, device, use_amp, center_left=2500, center_right=7500,
+    splice_loss_weight=0.25,
+):
     model.eval()
     curves = {name: BinnedPR() for name in ("donor", "acceptor", "start", "stop")}
+    totals = {"loss": 0.0, "splice": 0.0, "ss": 0.0}
+    batches = 0
     for batch in loader:
         sequence = batch[0].to(device, non_blocking=True)
         chess_splice = batch[5].to(device, non_blocking=True)
         chess_ss = batch[6].to(device, non_blocking=True)
         with autocast("cuda", enabled=use_amp):
             splice_logits, ss_logits = model(sequence)
+            splice_loss = candidate_loss(
+                splice_logits, chess_splice, sequence, "splice"
+            )
+            ss_loss = candidate_loss(
+                ss_logits, chess_ss, sequence, "start_stop"
+            )
+            loss = splice_loss_weight * splice_loss + ss_loss
+        totals["loss"] += float(loss.item())
+        totals["splice"] += float(splice_loss.item())
+        totals["ss"] += float(ss_loss.item())
+        batches += 1
         splice_probability = splice_logits.softmax(-1)
         ss_probability = ss_logits.softmax(-1)
         gt, ag = splice_candidate_masks(sequence)
@@ -109,7 +125,13 @@ def evaluate(model, loader, device, use_amp, center_left=2500, center_right=7500
             ("stop", ss_probability, chess_ss, stop & center, 2),
         ):
             curves[name].add(probability[..., cls][mask].float(), labels[mask] == cls)
-    return {name: curve.metrics() for name, curve in curves.items()}
+    metrics = {name: curve.metrics() for name, curve in curves.items()}
+    losses = {
+        "loss": totals["loss"] / batches,
+        "splice_loss": totals["splice"] / batches,
+        "start_stop_loss": totals["ss"] / batches,
+    }
+    return metrics, losses
 
 
 def main():
@@ -122,6 +144,10 @@ def main():
     parser.add_argument("--grad-accum", type=int, default=2)
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--lr", type=float, default=3e-4)
+    parser.add_argument(
+        "--splice-loss-weight", type=float, default=0.25,
+        help="Weight applied to splice loss; start/stop loss has weight 1.0.",
+    )
     parser.add_argument(
         "--architecture", choices=("cnn_mamba", "mamba"), default="cnn_mamba"
     )
@@ -287,7 +313,7 @@ def main():
                     ss_logits, ss_labels, sequence, "start_stop",
                     ss_ignore if use_ignore else None,
                 )
-                loss = 0.25 * splice_loss + ss_loss
+                loss = args.splice_loss_weight * splice_loss + ss_loss
             if not torch.isfinite(loss):
                 logger.warning(
                     f"non-finite loss at epoch={epoch} batch={batch_index}; "
@@ -329,15 +355,26 @@ def main():
             optimizer.zero_grad(set_to_none=True)
             optimizer_step += 1
 
-        metrics = None if args.all_splits_as_train else evaluate(
-            model, val_loader, device, args.amp, center_left, center_right
-        )
+        if args.all_splits_as_train:
+            metrics, validation_losses = None, None
+        else:
+            metrics, validation_losses = evaluate(
+                model, val_loader, device, args.amp, center_left, center_right,
+                args.splice_loss_weight,
+            )
         mean_ap = None if metrics is None else sum(metrics[name]["AP"] for name in metrics) / 4
         row = {
             "epoch": epoch,
             "train_loss": totals["loss"] / len(train_loader),
             "train_splice_loss": totals["splice"] / len(train_loader),
             "train_start_stop_loss": totals["ss"] / len(train_loader),
+            "validation_loss": None if validation_losses is None else validation_losses["loss"],
+            "validation_splice_loss": (
+                None if validation_losses is None else validation_losses["splice_loss"]
+            ),
+            "validation_start_stop_loss": (
+                None if validation_losses is None else validation_losses["start_stop_loss"]
+            ),
             "validation_chess": metrics,
             "validation_reference": metrics,
             "mean_AP": mean_ap,
@@ -351,7 +388,9 @@ def main():
             )
         else:
             logger.info(
-                f"Epoch {epoch}: mean {args.reference_name} AP={mean_ap:.4f}\n    "
+                f"Epoch {epoch}: train loss={row['train_loss']:.5f}; "
+                f"validation loss={row['validation_loss']:.5f}; "
+                f"mean {args.reference_name} AP={mean_ap:.4f}\n    "
                 + format_metrics(metrics).replace("\n", "\n    ")
             )
         checkpoint = {
@@ -370,22 +409,31 @@ def main():
             },
         }
         torch.save(checkpoint, output_dir / "last_model.pt")
+        epoch_dir = output_dir / "epoch_checkpoints"
+        epoch_dir.mkdir(exist_ok=True)
+        epoch_width = max(3, len(str(args.epochs)))
+        torch.save(checkpoint, epoch_dir / f"epoch_{epoch:0{epoch_width}d}.pt")
         if args.all_splits_as_train or mean_ap > best_score:
             best_score = mean_ap
             torch.save(checkpoint, output_dir / "best_model.pt")
 
     test_metrics = None
+    test_losses = None
     if test_loader is not None:
         saved = torch.load(output_dir / "best_model.pt", map_location="cpu", weights_only=True)
         model.load_state_dict(saved["model_state_dict"])
         model.to(device)
-        test_metrics = evaluate(model, test_loader, device, args.amp, center_left, center_right)
+        test_metrics, test_losses = evaluate(
+            model, test_loader, device, args.amp, center_left, center_right,
+            args.splice_loss_weight,
+        )
     result = {
         "mode": args.mode,
         "best_validation_mean_AP": None if args.all_splits_as_train else best_score,
         "history": history,
         "chr1_chess": test_metrics,
         "test_reference": test_metrics,
+        "test_losses": test_losses,
         "elapsed_seconds": time.time() - run_start,
     }
     (output_dir / "results.json").write_text(json.dumps(result, indent=2) + "\n")
