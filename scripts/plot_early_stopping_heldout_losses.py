@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Plot per-epoch train and validation loss for held-out chrX models."""
+"""Plot per-epoch train and validation loss for an early-stopping regime."""
 
+import argparse
 import json
 from pathlib import Path
 
@@ -12,8 +13,6 @@ import pandas as pd
 
 
 ROOT = Path(__file__).resolve().parents[1]
-RUNS = ROOT / "runs" / "early_stopping_v1" / "heldout"
-OUT = ROOT / "results" / "early_stopping_v1" / "plots" / "heldout_losses"
 WINDOWS = (5, 10, 20, 30, 40, 80)
 COLORS = {
     5: "#4C78A8",
@@ -25,10 +24,10 @@ COLORS = {
 }
 
 
-def load_histories():
+def load_histories(runs):
     rows = []
     for window in WINDOWS:
-        payload = json.loads((RUNS / f"w{window}" / "results.json").read_text())
+        payload = json.loads((runs / f"w{window}" / "results.json").read_text())
         for record in payload["history"]:
             rows.append({
                 "window_kb": window,
@@ -47,9 +46,17 @@ def load_histories():
 
 
 def main():
-    OUT.mkdir(parents=True, exist_ok=True)
-    frame = load_histories()
-    frame.to_csv(OUT / "heldout_train_validation_loss.tsv", sep="\t", index=False,
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--regime", choices=("heldout", "chrxtrain"), default="heldout")
+    args = parser.parse_args()
+    runs = ROOT / "runs" / "early_stopping_v1" / args.regime
+    output_name = "heldout_losses" if args.regime == "heldout" else "chrxtrain_losses"
+    output_root = ROOT / "results" / "early_stopping_v1" / "plots" / output_name
+    prefix = "heldout" if args.regime == "heldout" else "chrxtrain"
+
+    output_root.mkdir(parents=True, exist_ok=True)
+    frame = load_histories(runs)
+    frame.to_csv(output_root / f"{prefix}_train_validation_loss.tsv", sep="\t", index=False,
                  float_format="%.9f")
 
     plt.style.use("seaborn-v0_8-whitegrid")
@@ -78,8 +85,8 @@ def main():
         ax.legend(fontsize=8.5, frameon=True, framealpha=0.94)
 
     fig.tight_layout(w_pad=2.0)
-    png = OUT / "heldout_train_validation_loss.png"
-    pdf = OUT / "heldout_train_validation_loss.pdf"
+    png = output_root / f"{prefix}_train_validation_loss.png"
+    pdf = output_root / f"{prefix}_train_validation_loss.pdf"
     fig.savefig(png, dpi=220, bbox_inches="tight")
     fig.savefig(pdf, bbox_inches="tight")
     plt.close(fig)

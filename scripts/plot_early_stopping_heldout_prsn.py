@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Plot exact chrX+ PR--Sn curves for the early-stopping window grid."""
+"""Plot exact chrX+ PR--Sn curves for an early-stopping window grid regime."""
 
+import argparse
 from pathlib import Path
 
 import matplotlib
@@ -15,8 +16,6 @@ from cnn_mamba.evaluate_candidates import reference_sites
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SCORES = ROOT / "artifacts" / "scores" / "early_stopping_v1" / "heldout"
-OUT = ROOT / "results" / "early_stopping_v1" / "plots" / "chrx_heldout_auprc"
 WINDOWS = (5, 10, 20, 30, 40, 80)
 TASKS = ("donor", "acceptor", "start", "stop")
 TITLES = {
@@ -44,6 +43,13 @@ def thin_curve(recall: np.ndarray, precision: np.ndarray):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--regime", choices=("heldout", "chrxtrain"), default="heldout")
+    args = parser.parse_args()
+    scores_root = ROOT / "artifacts" / "scores" / "early_stopping_v1" / args.regime
+    output_name = "chrx_heldout_auprc" if args.regime == "heldout" else "chrx_in_training_auprc"
+    output_root = ROOT / "results" / "early_stopping_v1" / "plots" / output_name
+
     truth, _, _ = reference_sites(
         "drosophila",
         ROOT / "data" / "raw" / "dmel_reference.gtf",
@@ -53,14 +59,15 @@ def main():
     metrics = {}
     frames = []
     for window in WINDOWS:
-        path = SCORES / f"w{window}" / "candidate_auprc.tsv"
+        path = scores_root / f"w{window}" / "candidate_auprc.tsv"
         frame = pd.read_csv(path, sep="\t").assign(window_kb=window)
         frames.append(frame)
         metrics[window] = dict(zip(frame.task, frame.AUPRC))
 
-    OUT.mkdir(parents=True, exist_ok=True)
+    output_root.mkdir(parents=True, exist_ok=True)
     values = pd.concat(frames, ignore_index=True)
-    values.to_csv(OUT / "exact_auprc.tsv", sep="\t", index=False, float_format="%.9f")
+    values.to_csv(output_root / "exact_auprc.tsv", sep="\t", index=False,
+                  float_format="%.9f")
 
     plt.style.use("seaborn-v0_8-whitegrid")
     fig, axes = plt.subplots(2, 2, figsize=(13.2, 10.0))
@@ -68,7 +75,7 @@ def main():
         labels = None
         expected_positions = None
         for window in WINDOWS:
-            score_dir = SCORES / f"w{window}"
+            score_dir = scores_root / f"w{window}"
             positions = np.load(score_dir / f"{task}_positions0.npy", mmap_mode="r")
             scores = np.load(score_dir / f"{task}_scores.npy", mmap_mode="r")
             if labels is None:
@@ -96,8 +103,9 @@ def main():
         ax.legend(loc="lower left", fontsize=9, frameon=True, framealpha=0.94)
 
     fig.tight_layout(h_pad=2.0, w_pad=1.5)
-    png = OUT / "early_stopping_chrX_heldout_four_task_prsn_curves.png"
-    pdf = OUT / "early_stopping_chrX_heldout_four_task_prsn_curves.pdf"
+    scope = "heldout" if args.regime == "heldout" else "in_training"
+    png = output_root / f"early_stopping_chrX_{scope}_four_task_prsn_curves.png"
+    pdf = output_root / f"early_stopping_chrX_{scope}_four_task_prsn_curves.pdf"
     fig.savefig(png, dpi=220, bbox_inches="tight")
     fig.savefig(pdf, bbox_inches="tight")
     plt.close(fig)
