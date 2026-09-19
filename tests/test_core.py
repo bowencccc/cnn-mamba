@@ -6,6 +6,7 @@ import torch
 
 from cnn_mamba.common import splice_candidate_masks, start_stop_candidate_masks
 from cnn_mamba.model import SpliceMamba
+from cnn_mamba.prepare_droso import build_phase_track
 from cnn_mamba.score_chromosome import keep_bounds
 from cnn_mamba.uniann_evaluate import parse_stats
 
@@ -27,6 +28,27 @@ class CoreTests(unittest.TestCase):
         outputs = model(torch.randint(0, 5, (2, 101)))
         self.assertEqual(outputs[0].shape, (2, 101, 3))
         self.assertEqual(outputs[1].shape, (2, 101, 3))
+
+    def test_frame_branch_and_phase_head_shapes(self):
+        model = SpliceMamba(
+            d_model=16, d_state=8, n_layers=0, dropout=0.0,
+            architecture="cnn_mamba", cnn_kernel_size=7,
+            frame_dilation=3, phase_auxiliary=True,
+        )
+        outputs = model(torch.randint(0, 5, (2, 101)), return_phase=True)
+        self.assertEqual(len(outputs), 3)
+        for output in outputs:
+            self.assertEqual(output.shape, (2, 101, 3))
+
+    def test_phase_tracks_follow_transcript_direction(self):
+        plus = build_phase_track([(2, 8, 0)], 10, "+")
+        minus = build_phase_track([(2, 8, 0)], 10, "-")
+        self.assertEqual(plus[2:8].tolist(), [0, 1, 2, 0, 1, 2])
+        self.assertEqual(minus[2:8][::-1].tolist(), [0, 1, 2, 0, 1, 2])
+
+    def test_conflicting_phase_tracks_are_masked(self):
+        track = build_phase_track([(0, 6, 0), (0, 6, 1)], 6, "+")
+        self.assertTrue((track == -2).all())
 
     def test_window_ownership(self):
         self.assertEqual(keep_bounds(0, 3, 10_000, 5_000), (0, 7_500))

@@ -45,6 +45,10 @@ def initialize_like_original(model):
     model.final_norm.apply(initialize)
     model.splice_head.apply(initialize)
     model.start_stop_head.apply(initialize)
+    if getattr(model, "frame_branch", None) is not None:
+        model.frame_branch.apply(initialize)
+    if getattr(model, "phase_head", None) is not None:
+        model.phase_head.apply(initialize)
 
 
 class BinnedPR:

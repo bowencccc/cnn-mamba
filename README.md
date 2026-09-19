@@ -165,6 +165,30 @@ not the prepared CNN--Mamba environment. Set `UNIANN_ROOT` if UniAnn is not at
 `~/UniAnn`. Outputs are namespaced under `early_stopping_v1` in `runs/`,
 `artifacts/scores/`, and `work/uniann/`.
 
+### Coding-frame ablation
+
+The controlled 10 kb chrX-held-out ablation compares the existing baseline
+with a dilation-3 residual CNN used only by the start/stop head, a masked
+three-class CDS-phase auxiliary loss (weight `0.1`), and both changes together.
+All other split, seed, optimizer, loss and early-stopping settings are unchanged.
+CDS phase is a training target, never a model input; bases outside annotated CDS
+and positions where transcript phases conflict are masked.
+
+```bash
+cnn-mamba-prepare-droso \
+  --config configs/droso_frame_w10.json \
+  --output-root data/processed/frame_ablation \
+  --include-phase-labels
+
+CNN_MAMBA_PYTHON=/path/to/python \
+  bash scripts/run_droso_frame_ablation_local.sh
+```
+
+The script trains the three new arms, scores every canonical chrX+ candidate,
+computes exact AUPRC, and writes the final table and plot under
+`results/frame_ablation_v1/`. The baseline is reused from
+`early_stopping_v1/heldout/w10`.
+
 ## 5. Run UniAnn and combined strict evaluation
 
 This deliberately uses the `chrxtrain` checkpoint, exports the six-column

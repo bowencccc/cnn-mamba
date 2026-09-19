@@ -28,6 +28,12 @@ def main():
     parser.add_argument("--uniann-root", type=Path,
                         default=Path(os.environ.get("UNIANN_ROOT", root.parent / "UniAnn")))
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument(
+        "--data-root", type=Path,
+        help="Override the processed cell directory used for training.",
+    )
+    parser.add_argument("--frame-dilation", type=int, default=0)
+    parser.add_argument("--phase-aux-weight", type=float, default=0.0)
     args = parser.parse_args()
     config_path = args.config if args.config.is_absolute() else root / args.config
     config = json.loads(config_path.read_text())
@@ -51,13 +57,18 @@ def main():
     raw = data / "raw"
 
     if "train" in stages:
+        train_data = args.data_root or (data / "processed" / args.cell)
         command = [sys.executable, "-m", "cnn_mamba.train", "--data-root",
-                   data / "processed" / args.cell, "--mode", "baseline",
+                   train_data, "--mode", "baseline",
                    "--architecture", "cnn_mamba", "--cnn-kernel-size", "7",
                    "--epochs", str(config["epochs"]), "--batch-size", str(cell["micro_batch"]),
                    "--grad-accum", str(cell["grad_accum"]), "--window-size", str(cell["window_bp"]),
                    "--stride", str(cell["stride_bp"]), "--workers", str(args.workers),
                    "--output-dir", run_dir, "--reference-name", "FlyBase", "--test-name", "chrX"]
+        command.extend([
+            "--frame-dilation", str(args.frame_dilation),
+            "--phase-aux-weight", str(args.phase_aux_weight),
+        ])
         early_stopping = config.get("early_stopping")
         if early_stopping:
             command.extend([

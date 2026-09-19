@@ -129,6 +129,45 @@ def parse_reference(path: Path):
     return meta, exons, cds, explicit
 
 
+def parse_cds_phase_records(path: Path):
+    """Collect CDS intervals and their GFF/GTF phase without changing site parsing."""
+    accessions = set(CHROMS.values())
+    records = defaultdict(lambda: {"+": [], "-": []})
+    with path.open() as handle:
+        for line in handle:
+            if line.startswith("#") or not line.strip():
+                continue
+            fields = line.rstrip().split("\t")
+            if (
+                len(fields) < 9 or fields[0] not in accessions
+                or fields[2] != "CDS" or fields[6] not in {"+", "-"}
+                or fields[7] not in {"0", "1", "2"}
+            ):
+                continue
+            records[fields[0]][fields[6]].append(
+                (int(fields[3]) - 1, int(fields[4]), int(fields[7]))
+            )
+    return records
+
+
+def build_phase_track(records, chrom_len: int, strand: str):
+    """Return -1 unknown, -2 conflicting, or codon offsets 0/1/2."""
+    track = np.full(chrom_len, -1, dtype=np.int8)
+    for start, end, phase in records:
+        length = end - start
+        initial = (3 - phase) % 3
+        offsets = np.arange(length, dtype=np.int64)
+        if strand == "-":
+            offsets = offsets[::-1]
+        values = ((initial + offsets) % 3).astype(np.int8)
+        view = track[start:end]
+        unknown = view == -1
+        conflict = (view >= 0) & (view != values)
+        view[unknown] = values[unknown]
+        view[conflict] = -2
+    return track
+
+
 def extract_sites(meta, exons, cds, explicit=None):
     sites = {name: set() for name in SITE_TYPES}
     rejected = defaultdict(int)
@@ -255,7 +294,10 @@ def labels_for_window(start: int, strand: str, indexed, window: int):
     return splice, start_stop
 
 
-def generate_cell(output: Path, cell: dict, regions, eviann, reference) -> dict:
+def generate_cell(
+    output: Path, cell: dict, regions, eviann, reference,
+    eviann_phase=None, reference_phase=None,
+) -> dict:
     window, stride = int(cell["window_bp"]), int(cell["stride_bp"])
     summary = {}
     fasta = pysam.FastaFile(str(FASTA))
@@ -265,9 +307,26 @@ def generate_cell(output: Path, cell: dict, regions, eviann, reference) -> dict:
         split_summary = {"windows": 0, "by_chrom": {}, "eviann": defaultdict(int), "reference": defaultdict(int)}
         for name in chrom_names:
             chrom = CHROMS[name]
+            chrom_len = fasta.get_reference_length(chrom)
+            phase_tracks = None
+            if eviann_phase is not None:
+                phase_tracks = {
+                    "eviann": {
+                        strand: build_phase_track(
+                            eviann_phase[chrom][strand], chrom_len, strand
+                        )
+                        for strand in ("+", "-")
+                    },
+                    "reference": {
+                        strand: build_phase_track(
+                            reference_phase[chrom][strand], chrom_len, strand
+                        )
+                        for strand in ("+", "-")
+                    },
+                }
             count = 0
             for strand in ("+", "-"):
-                starts = window_starts(regions[chrom][strand], fasta.get_reference_length(chrom), window, stride)
+                starts = window_starts(regions[chrom][strand], chrom_len, window, stride)
                 e_local = {site: eviann[site][chrom][strand] for site in SITE_TYPES}
                 r_local = {site: reference[site][chrom][strand] for site in SITE_TYPES}
                 for start in starts:
@@ -280,11 +339,26 @@ def generate_cell(output: Path, cell: dict, regions, eviann, reference) -> dict:
                         text = text.translate(COMPLEMENT)[::-1]
                     sequence = ENCODE[np.frombuffer(text.encode("ascii"), dtype=np.uint8)]
                     filename = f"{name}_{'plus' if strand == '+' else 'minus'}_{start}.npz"
-                    np.savez_compressed(
-                        split_dir / filename, sequence=sequence, labels=e_splice,
-                        start_stop_labels=e_ss, chess_labels=r_splice,
-                        chess_start_stop_labels=r_ss,
-                    )
+                    arrays = {
+                        "sequence": sequence, "labels": e_splice,
+                        "start_stop_labels": e_ss, "chess_labels": r_splice,
+                        "chess_start_stop_labels": r_ss,
+                    }
+                    if phase_tracks is not None:
+                        e_phase = phase_tracks["eviann"][strand][start:start + window]
+                        r_phase = phase_tracks["reference"][strand][start:start + window]
+                        if strand == "-":
+                            # Tracks are indexed in genomic order; model input is
+                            # reverse-complemented into transcript order.
+                            e_phase = e_phase[::-1]
+                            r_phase = r_phase[::-1]
+                        arrays.update(
+                            phase_labels=np.maximum(e_phase, 0),
+                            phase_mask=e_phase >= 0,
+                            reference_phase_labels=np.maximum(r_phase, 0),
+                            reference_phase_mask=r_phase >= 0,
+                        )
+                    np.savez_compressed(split_dir / filename, **arrays)
                     count += 1
                     split_summary["windows"] += 1
                     owned_left = (window - stride) // 2
@@ -303,10 +377,14 @@ def generate_cell(output: Path, cell: dict, regions, eviann, reference) -> dict:
         }
     fasta.close()
     manifest = {
-        "schema": "droso_window_cell_v1", "cell": cell["id"],
+        "schema": "droso_window_cell_v2", "cell": cell["id"],
         "window_size": window, "stride": stride, "adjacent_overlap_bp": window - stride,
         "region_overlap_bp": window,
         "region_policy": "full_window_intersects_EviAnn_transcript_span_with_CDS",
+        "phase_labels": (
+            "GFF/GTF CDS codon offsets 0/1/2; unlabeled and transcript-phase "
+            "conflicts masked" if eviann_phase is not None else None
+        ),
         "owned_local_interval": [(window - stride) // 2, (window - stride) // 2 + stride],
         "splits": SPLITS, "accessions": CHROMS, "summary": summary,
         "sources": {
@@ -327,6 +405,10 @@ def main() -> None:
     parser.add_argument("--eviann-gff", type=Path, default=EVIANN_GFF)
     parser.add_argument("--reference-gtf", type=Path, default=REFERENCE_GTF)
     parser.add_argument("--output-root", type=Path, default=ROOT / "data" / "processed")
+    parser.add_argument(
+        "--include-phase-labels", action="store_true",
+        help="Store masked EviAnn and reference CDS phase targets in every window.",
+    )
     args = parser.parse_args()
     CONFIG = args.config.resolve()
     FASTA = args.fasta.resolve()
@@ -345,6 +427,8 @@ def main() -> None:
     e_sites, e_rejected = extract_sites(e_meta, e_exons, e_cds)
     r_sites, r_rejected = extract_sites(r_meta, r_exons, r_cds, explicit)
     e_index, r_index = index_sites(e_sites), index_sites(r_sites)
+    e_phase = parse_cds_phase_records(EVIANN_GFF) if args.include_phase_labels else None
+    r_phase = parse_cds_phase_records(REFERENCE_GTF) if args.include_phase_labels else None
     completed = []
     for cell in config["cells"]:
         cell_dir = args.output_root / cell["id"]
@@ -359,7 +443,9 @@ def main() -> None:
         else:
             if cell_dir.exists() and any(cell_dir.iterdir()):
                 raise RuntimeError(f"refusing partial non-empty cell: {cell_dir}")
-            manifest = generate_cell(cell_dir, cell, regions, e_index, r_index)
+            manifest = generate_cell(
+                cell_dir, cell, regions, e_index, r_index, e_phase, r_phase
+            )
         completed.append({"cell": cell["id"], "manifest": str(manifest_path.resolve()), "windows": sum(manifest["summary"][s]["windows"] for s in SPLITS)})
     atomic_json(args.output_root / ".complete.json", {
         "schema": "droso_window_generation_complete_v1", "cells": completed,

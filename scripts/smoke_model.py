@@ -45,6 +45,21 @@ def main():
     assert x.grad is not None and torch.isfinite(x.grad).all()
     print(f"Mamba3 CUDA forward/backward passed on {torch.cuda.get_device_name(0)}")
 
+    frame_model = SpliceMamba(
+        d_model=64, d_state=16, n_layers=1, dropout=0.1,
+        architecture="cnn_mamba", cnn_kernel_size=7,
+        frame_dilation=3, phase_auxiliary=True,
+    ).to(device)
+    sequence = torch.randint(0, 5, (2, 256), device=device)
+    outputs = frame_model(sequence, return_phase=True)
+    assert all(output.shape == (2, 256, 3) for output in outputs)
+    sum(output.square().mean() for output in outputs).backward()
+    assert all(
+        parameter.grad is None or torch.isfinite(parameter.grad).all()
+        for parameter in frame_model.parameters()
+    )
+    print("Frame-branch plus phase-head CUDA forward/backward passed")
+
 
 if __name__ == "__main__":
     main()

@@ -48,11 +48,40 @@ class CNNBiMamba3Block(nn.Module):
         return x + self.mamba_drop(self.mamba(self.mamba_norm(x)))
 
 
+class FrameCNNBranch(nn.Module):
+    """Codon-scale residual branch whose taps stay in the same reading frame."""
+
+    def __init__(self, d_model, dropout, kernel_size=7, dilation=3):
+        super().__init__()
+        if dilation < 1:
+            raise ValueError("frame_dilation must be positive")
+        self.norm = nn.LayerNorm(d_model)
+        self.depthwise = nn.Conv1d(
+            d_model, d_model, kernel_size=kernel_size,
+            padding=dilation * (kernel_size // 2), dilation=dilation,
+            groups=d_model,
+        )
+        self.pointwise = nn.Conv1d(d_model, d_model, kernel_size=1)
+        self.drop = nn.Dropout(dropout)
+        nn.init.ones_(self.norm.weight)
+        nn.init.zeros_(self.norm.bias)
+        nn.init.trunc_normal_(self.depthwise.weight, std=0.02)
+        nn.init.zeros_(self.depthwise.bias)
+        nn.init.trunc_normal_(self.pointwise.weight, std=0.02)
+        nn.init.zeros_(self.pointwise.bias)
+
+    def forward(self, x):
+        y = self.norm(x).transpose(1, 2)
+        y = self.pointwise(F.gelu(self.depthwise(y))).transpose(1, 2)
+        return x + self.drop(y)
+
+
 class SpliceMamba(nn.Module):
     """Two-head model: splice(background/donor/acceptor) and codon(background/start/stop)."""
 
     def __init__(self, d_model=192, d_state=64, n_layers=8, dropout=0.1,
-                 architecture="cnn_mamba", cnn_kernel_size=7):
+                 architecture="cnn_mamba", cnn_kernel_size=7,
+                 frame_dilation=0, phase_auxiliary=False):
         super().__init__()
         if architecture not in {"mamba", "cnn_mamba"}:
             raise ValueError(f"unsupported architecture: {architecture}")
@@ -76,6 +105,13 @@ class SpliceMamba(nn.Module):
                 for _ in range(n_layers)
             ])
         self.final_norm = nn.LayerNorm(d_model)
+        self.frame_branch = (
+            FrameCNNBranch(
+                d_model, dropout, kernel_size=cnn_kernel_size,
+                dilation=frame_dilation,
+            )
+            if frame_dilation else None
+        )
 
         def head():
             return nn.Sequential(
@@ -85,8 +121,9 @@ class SpliceMamba(nn.Module):
 
         self.splice_head = head()
         self.start_stop_head = head()
+        self.phase_head = nn.Linear(d_model, 3) if phase_auxiliary else None
 
-    def forward(self, sequence):
+    def forward(self, sequence, return_phase=False):
         x = self.embed_drop(self.input_proj(self.embedding(sequence)))
         if self.architecture == "mamba":
             for norm, layer, drop in zip(self.norms, self.layers, self.drops):
@@ -98,7 +135,13 @@ class SpliceMamba(nn.Module):
                 else:
                     x = layer(x)
         x = self.final_norm(x)
-        return self.splice_head(x), self.start_stop_head(x)
+        start_stop_features = self.frame_branch(x) if self.frame_branch is not None else x
+        outputs = self.splice_head(x), self.start_stop_head(start_stop_features)
+        if return_phase:
+            if self.phase_head is None:
+                raise RuntimeError("phase output requested without phase_auxiliary=True")
+            return outputs + (self.phase_head(start_stop_features),)
+        return outputs
 
 
 def model_from_checkpoint(saved, device=None):
@@ -108,6 +151,8 @@ def model_from_checkpoint(saved, device=None):
         n_layers=config.get("n_layers", 8), dropout=config.get("dropout", 0.1),
         architecture=config.get("architecture", "cnn_mamba"),
         cnn_kernel_size=config.get("cnn_kernel_size", 7),
+        frame_dilation=config.get("frame_dilation", 0),
+        phase_auxiliary=config.get("phase_aux_weight", 0.0) > 0,
     )
     model.load_state_dict(saved["model_state_dict"])
     return model if device is None else model.to(device)

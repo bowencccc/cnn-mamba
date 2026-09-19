@@ -32,7 +32,7 @@ SEED = 42
 
 
 class PUDataset(Dataset):
-    def __init__(self, directory):
+    def __init__(self, directory, require_phase=False):
         directories = directory if isinstance(directory, (list, tuple)) else [directory]
         self.files = sorted(
             str(Path(item) / name)
@@ -40,6 +40,7 @@ class PUDataset(Dataset):
             for name in os.listdir(item)
             if name.endswith(".npz")
         )
+        self.require_phase = require_phase
 
     def __len__(self):
         return len(self.files)
@@ -68,6 +69,19 @@ class PUDataset(Dataset):
                 else:
                     raise KeyError(f"missing required array {key!r} in {self.files[index]}")
                 arrays.append(torch.from_numpy(value.astype(np.int64, copy=False)))
+            if self.require_phase:
+                for key in (
+                    "phase_labels", "phase_mask",
+                    "reference_phase_labels", "reference_phase_mask",
+                ):
+                    if key not in data:
+                        raise KeyError(
+                            f"missing phase array {key!r} in {self.files[index]}; "
+                            "regenerate with --include-phase-labels"
+                        )
+                    arrays.append(
+                        torch.from_numpy(data[key].astype(np.int64, copy=False))
+                    )
             return tuple(arrays)
 
 
@@ -86,31 +100,53 @@ def candidate_loss(logits, labels, sequence, task, ignore=None):
     return F.cross_entropy(logits[mask], labels[mask])
 
 
+def masked_phase_loss(logits, labels, mask):
+    mask = mask.bool()
+    if not mask.any():
+        return logits.sum() * 0.0
+    return F.cross_entropy(logits[mask], labels[mask])
+
+
 @torch.no_grad()
 def evaluate(
     model, loader, device, use_amp, center_left=2500, center_right=7500,
-    splice_loss_weight=0.25,
+    splice_loss_weight=0.25, phase_aux_weight=0.0,
 ):
     model.eval()
     curves = {name: BinnedPR() for name in ("donor", "acceptor", "start", "stop")}
-    totals = {"loss": 0.0, "splice": 0.0, "ss": 0.0}
+    totals = {"loss": 0.0, "splice": 0.0, "ss": 0.0, "phase": 0.0}
     batches = 0
     for batch in loader:
         sequence = batch[0].to(device, non_blocking=True)
         chess_splice = batch[5].to(device, non_blocking=True)
         chess_ss = batch[6].to(device, non_blocking=True)
         with autocast("cuda", enabled=use_amp):
-            splice_logits, ss_logits = model(sequence)
+            if phase_aux_weight > 0:
+                splice_logits, ss_logits, phase_logits = model(
+                    sequence, return_phase=True
+                )
+                reference_phase_labels = batch[9].to(device, non_blocking=True)
+                reference_phase_mask = batch[10].to(device, non_blocking=True)
+                phase_loss = masked_phase_loss(
+                    phase_logits, reference_phase_labels, reference_phase_mask
+                )
+            else:
+                splice_logits, ss_logits = model(sequence)
+                phase_loss = splice_logits.sum() * 0.0
             splice_loss = candidate_loss(
                 splice_logits, chess_splice, sequence, "splice"
             )
             ss_loss = candidate_loss(
                 ss_logits, chess_ss, sequence, "start_stop"
             )
-            loss = splice_loss_weight * splice_loss + ss_loss
+            loss = (
+                splice_loss_weight * splice_loss + ss_loss
+                + phase_aux_weight * phase_loss
+            )
         totals["loss"] += float(loss.item())
         totals["splice"] += float(splice_loss.item())
         totals["ss"] += float(ss_loss.item())
+        totals["phase"] += float(phase_loss.item())
         batches += 1
         splice_probability = splice_logits.softmax(-1)
         ss_probability = ss_logits.softmax(-1)
@@ -130,6 +166,7 @@ def evaluate(
         "loss": totals["loss"] / batches,
         "splice_loss": totals["splice"] / batches,
         "start_stop_loss": totals["ss"] / batches,
+        "phase_loss": totals["phase"] / batches,
     }
     return metrics, losses
 
@@ -163,6 +200,14 @@ def main():
         "--architecture", choices=("cnn_mamba", "mamba"), default="cnn_mamba"
     )
     parser.add_argument("--cnn-kernel-size", type=int, default=7)
+    parser.add_argument(
+        "--frame-dilation", type=int, default=0,
+        help="Optional codon-scale residual CNN dilation; 0 disables the branch.",
+    )
+    parser.add_argument(
+        "--phase-aux-weight", type=float, default=0.0,
+        help="Weight for masked three-class CDS reading-phase auxiliary loss.",
+    )
     parser.add_argument("--window-size", type=int, default=10000)
     parser.add_argument("--stride", type=int, default=5000)
     parser.add_argument("--amp", action="store_true")
@@ -198,6 +243,10 @@ def main():
         parser.error("--early-stopping-patience must be non-negative")
     if args.early_stopping_min_delta < 0:
         parser.error("--early-stopping-min-delta must be non-negative")
+    if args.frame_dilation < 0:
+        parser.error("--frame-dilation must be non-negative")
+    if args.phase_aux_weight < 0:
+        parser.error("--phase-aux-weight must be non-negative")
     if args.all_splits_as_train and args.early_stopping_patience:
         parser.error("early stopping requires a held-out validation split")
     if args.stride != args.window_size // 2:
@@ -225,16 +274,30 @@ def main():
     logger.addHandler(logging.StreamHandler(sys.stdout))
 
     if args.all_splits_as_train:
-        train_data = PUDataset([args.data_root / name for name in ("train", "val", "test")])
+        train_data = PUDataset(
+            [args.data_root / name for name in ("train", "val", "test")],
+            require_phase=args.phase_aux_weight > 0,
+        )
         val_data = test_data = None
     elif args.include_test_in_train:
-        train_data = PUDataset([args.data_root / name for name in ("train", "test")])
-        val_data = PUDataset(args.data_root / "val")
+        train_data = PUDataset(
+            [args.data_root / name for name in ("train", "test")],
+            require_phase=args.phase_aux_weight > 0,
+        )
+        val_data = PUDataset(
+            args.data_root / "val", require_phase=args.phase_aux_weight > 0
+        )
         test_data = None
     else:
-        train_data = PUDataset(args.data_root / "train")
-        val_data = PUDataset(args.data_root / "val")
-        test_data = PUDataset(args.data_root / "test")
+        train_data = PUDataset(
+            args.data_root / "train", require_phase=args.phase_aux_weight > 0
+        )
+        val_data = PUDataset(
+            args.data_root / "val", require_phase=args.phase_aux_weight > 0
+        )
+        test_data = PUDataset(
+            args.data_root / "test", require_phase=args.phase_aux_weight > 0
+        )
     generator = torch.Generator().manual_seed(SEED)
     loader_kwargs = dict(
         num_workers=args.workers,
@@ -260,6 +323,8 @@ def main():
         dropout=0.1,
         architecture=args.architecture,
         cnn_kernel_size=args.cnn_kernel_size,
+        frame_dilation=args.frame_dilation,
+        phase_auxiliary=args.phase_aux_weight > 0,
     ).to(device)
     model.gradient_checkpointing = args.gradient_checkpointing
     initialize_like_original(model)
@@ -309,7 +374,8 @@ def main():
         f"val={len(val_data) if val_data is not None else 0:,} "
         f"test={len(test_data) if test_data is not None else 0:,} epochs={args.epochs} "
         f"start_epoch={start_epoch} early_stopping_patience={args.early_stopping_patience} "
-        f"early_stopping_min_delta={args.early_stopping_min_delta:g}"
+        f"early_stopping_min_delta={args.early_stopping_min_delta:g} "
+        f"frame_dilation={args.frame_dilation} phase_aux_weight={args.phase_aux_weight:g}"
     )
     run_start = time.time()
     early_stopped = (
@@ -326,7 +392,7 @@ def main():
     for epoch in epoch_iterator:
         model.train()
         optimizer.zero_grad(set_to_none=True)
-        totals = {"loss": 0.0, "splice": 0.0, "ss": 0.0}
+        totals = {"loss": 0.0, "splice": 0.0, "ss": 0.0, "phase": 0.0}
         accumulated = 0
         epoch_start = time.time()
         for batch_index, batch in enumerate(train_loader, 1):
@@ -338,7 +404,18 @@ def main():
                 group["lr"] = lr
             use_ignore = args.mode == "ignore"
             with autocast("cuda", enabled=args.amp):
-                splice_logits, ss_logits = model(sequence)
+                if args.phase_aux_weight > 0:
+                    splice_logits, ss_logits, phase_logits = model(
+                        sequence, return_phase=True
+                    )
+                    phase_labels = batch[7].to(device, non_blocking=True)
+                    phase_mask = batch[8].to(device, non_blocking=True)
+                    phase_loss = masked_phase_loss(
+                        phase_logits, phase_labels, phase_mask
+                    )
+                else:
+                    splice_logits, ss_logits = model(sequence)
+                    phase_loss = splice_logits.sum() * 0.0
                 splice_loss = candidate_loss(
                     splice_logits, splice_labels, sequence, "splice",
                     splice_ignore if use_ignore else None,
@@ -347,7 +424,10 @@ def main():
                     ss_logits, ss_labels, sequence, "start_stop",
                     ss_ignore if use_ignore else None,
                 )
-                loss = args.splice_loss_weight * splice_loss + ss_loss
+                loss = (
+                    args.splice_loss_weight * splice_loss + ss_loss
+                    + args.phase_aux_weight * phase_loss
+                )
             if not torch.isfinite(loss):
                 logger.warning(
                     f"non-finite loss at epoch={epoch} batch={batch_index}; "
@@ -373,6 +453,7 @@ def main():
             totals["loss"] += float(loss.item())
             totals["splice"] += float(splice_loss.item())
             totals["ss"] += float(ss_loss.item())
+            totals["phase"] += float(phase_loss.item())
             if batch_index % 500 == 0:
                 logger.info(
                     f"epoch={epoch} batch={batch_index:,}/{len(train_loader):,} "
@@ -395,6 +476,7 @@ def main():
             metrics, validation_losses = evaluate(
                 model, val_loader, device, args.amp, center_left, center_right,
                 args.splice_loss_weight,
+                args.phase_aux_weight,
             )
         mean_ap = None if metrics is None else sum(metrics[name]["AP"] for name in metrics) / 4
         row = {
@@ -402,12 +484,16 @@ def main():
             "train_loss": totals["loss"] / len(train_loader),
             "train_splice_loss": totals["splice"] / len(train_loader),
             "train_start_stop_loss": totals["ss"] / len(train_loader),
+            "train_phase_loss": totals["phase"] / len(train_loader),
             "validation_loss": None if validation_losses is None else validation_losses["loss"],
             "validation_splice_loss": (
                 None if validation_losses is None else validation_losses["splice_loss"]
             ),
             "validation_start_stop_loss": (
                 None if validation_losses is None else validation_losses["start_stop_loss"]
+            ),
+            "validation_phase_loss": (
+                None if validation_losses is None else validation_losses["phase_loss"]
             ),
             "validation_chess": metrics,
             "validation_reference": metrics,
@@ -485,6 +571,7 @@ def main():
         test_metrics, test_losses = evaluate(
             model, test_loader, device, args.amp, center_left, center_right,
             args.splice_loss_weight,
+            args.phase_aux_weight,
         )
     result = {
         "mode": args.mode,
