@@ -189,6 +189,19 @@ computes exact AUPRC, and writes the final table and plot under
 `results/frame_ablation_v1/`. The baseline is reused from
 `early_stopping_v1/heldout/w10`.
 
+To compare phase-loss weights `0.03/0.05/0.10/0.20` across both held-out and
+chrX-in-training regimes, including exact PR--Sn curves and strict UniAnn locus
+metrics, run:
+
+```bash
+CNN_MAMBA_PYTHON=/path/to/python \
+  bash scripts/run_phase_weight_grid_local.sh
+```
+
+The completed summary is written to `results/phase_weight_grid_v1/`. Existing
+weight-0.10 checkpoints and scores are reused; the other six models are trained
+from scratch with identical splits, seed and early-stopping settings.
+
 ## 5. Run UniAnn and combined strict evaluation
 
 This deliberately uses the `chrxtrain` checkpoint, exports the six-column
