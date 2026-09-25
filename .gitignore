@@ -13,6 +13,8 @@ artifacts/checkpoints/*
 !artifacts/checkpoints/.gitkeep
 artifacts/scores/*
 !artifacts/scores/.gitkeep
+artifacts/phase_predictions/*
+!artifacts/phase_predictions/.gitkeep
 /runs/
 /work/
 *.pt

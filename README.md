@@ -202,6 +202,24 @@ The completed summary is written to `results/phase_weight_grid_v1/`. Existing
 weight-0.10 checkpoints and scores are reused; the other six models are trained
 from scratch with identical splits, seed and early-stopping settings.
 
+Per-base phase probabilities from a phase-auxiliary checkpoint can be exported
+for an entire chromosome strand:
+
+```bash
+python -m cnn_mamba.score_phase_chromosome \
+  --checkpoint /path/to/best_model.pt \
+  --fasta data/raw/dmel_genome.fa \
+  --chrom NC_004354.4 \
+  --display-chrom chrX \
+  --output-dir artifacts/phase_predictions/chrX_plus
+```
+
+`phase_probabilities.npy` has shape `[chromosome_length, 3]` in class order
+phase 0/1/2, and row `i` corresponds to zero-based genomic position `i` on the
+plus strand. The auxiliary head was not supervised outside non-conflicting CDS,
+so probabilities outside coding sequence are emitted but are not calibrated;
+the head also does not enforce a global 0-1-2 path.
+
 ## 5. Run UniAnn and combined strict evaluation
 
 This deliberately uses the `chrxtrain` checkpoint, exports the six-column
