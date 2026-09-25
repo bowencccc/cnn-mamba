@@ -11,9 +11,13 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch, Circle
 import numpy as np
+import pandas as pd
 from PIL import Image, ImageOps, ImageDraw
 from pptx import Presentation
 from pptx.util import Inches
+from sklearn.metrics import precision_recall_curve
+
+from cnn_mamba.evaluate_candidates import reference_sites
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,6 +34,11 @@ ORANGE = "#F59E0B"
 RED = "#E45756"
 PURPLE = "#7C4DFF"
 GREEN = "#54A24B"
+TASKS = ("donor", "acceptor", "start", "stop")
+TASK_TITLES = {
+    "donor": "Donor", "acceptor": "Acceptor",
+    "start": "Start codon", "stop": "Stop codon",
+}
 WHITE = "#FFFFFF"
 
 plt.rcParams.update({
@@ -433,8 +442,114 @@ def slide_ablation():
     return fig
 
 
+def _comparison_sources(regime):
+    if regime == "heldout":
+        baseline = (
+            ROOT / "artifacts" / "scores" / "early_stopping_v1"
+            / "heldout" / "w10"
+        )
+        current = (
+            ROOT / "artifacts" / "scores" / "frame_ablation_v1"
+            / "combined" / "heldout" / "w10"
+        )
+    else:
+        baseline = (
+            ROOT / "artifacts" / "scores" / "early_stopping_v1"
+            / "chrxtrain" / "w10"
+        )
+        current = (
+            ROOT / "artifacts" / "scores" / "frame_ablation_chrxtrain_v1"
+            / "combined" / "chrxtrain" / "w10"
+        )
+    return baseline, current
+
+
+def _thin_curve(recall, precision, max_points=6000):
+    if len(recall) <= max_points:
+        return recall, precision
+    indices = np.linspace(0, len(recall) - 1, max_points, dtype=np.int64)
+    return recall[indices], precision[indices]
+
+
+def slide_four_task_comparison(regime, number):
+    heldout = regime == "heldout"
+    title = (
+        "Four-task PR–sensitivity curves: held-out chrX"
+        if heldout else
+        "Four-task PR–sensitivity curves: chrX-in-training"
+    )
+    subtitle = (
+        "Honest generalization: chrX excluded from model training"
+        if heldout else
+        "Diagnostic fit: chrX candidates come from a chromosome included in training"
+    )
+    fig = base_slide(title, number, kicker="Exact candidate evaluation",
+                     subtitle=subtitle)
+    truth, _, _ = reference_sites(
+        "drosophila", ROOT / "data" / "raw" / "dmel_reference.gtf",
+        ROOT / "data" / "raw" / "dmel_genome.fa", "NC_004354.4",
+    )
+    baseline, current = _comparison_sources(regime)
+    baseline_metrics = {
+        row.task: float(row.AUPRC)
+        for row in pd.read_csv(
+            baseline / "candidate_auprc.tsv", sep="\t"
+        ).itertuples()
+    }
+    current_metrics = {
+        row.task: float(row.AUPRC)
+        for row in pd.read_csv(
+            current / "candidate_auprc.tsv", sep="\t"
+        ).itertuples()
+    }
+    grid = fig.add_gridspec(
+        2, 2, left=0.065, right=0.965, bottom=0.095, top=0.76,
+        hspace=0.34, wspace=0.23,
+    )
+    for axis, task in zip(
+        [fig.add_subplot(grid[row, col]) for row in range(2) for col in range(2)],
+        TASKS,
+    ):
+        expected_positions = None
+        labels = None
+        for directory, label, color, metrics in (
+            (baseline, "Previous CNN–Mamba-k7", MUTED, baseline_metrics),
+            (current, "Current frame model, phase=0.10", PURPLE, current_metrics),
+        ):
+            positions = np.load(directory / f"{task}_positions0.npy", mmap_mode="r")
+            scores = np.load(directory / f"{task}_scores.npy", mmap_mode="r")
+            if expected_positions is None:
+                expected_positions = np.asarray(positions)
+                labels = np.isin(positions, truth[task], assume_unique=True)
+            elif not np.array_equal(positions, expected_positions):
+                raise RuntimeError(f"candidate positions differ for {regime} {task}")
+            precision, recall, _ = precision_recall_curve(labels, scores)
+            recall, precision = _thin_curve(recall, precision)
+            axis.plot(
+                recall, precision, color=color, linewidth=2.2,
+                label=f"{label}  (AP={metrics[task]:.4f})",
+            )
+        axis.set_xlim(0, 1); axis.set_ylim(0, 1.01)
+        axis.set_title(TASK_TITLES[task], fontsize=14, weight="bold", color=INK)
+        axis.set_xlabel("Sensitivity (recall)", fontsize=10.5)
+        axis.set_ylabel("Precision", fontsize=10.5)
+        axis.tick_params(labelsize=9)
+        axis.grid(alpha=0.22)
+        axis.legend(loc="lower left", fontsize=8.3, frameon=True, framealpha=0.94)
+        axis.set_facecolor(WHITE)
+    return fig
+
+
+def slide_heldout_curves():
+    return slide_four_task_comparison("heldout", 9)
+
+
+def slide_chrxtrain_curves():
+    return slide_four_task_comparison("chrxtrain", 10)
+
+
 def slide_weight_grid():
-    fig = base_slide("Phase-loss coefficient: no single value wins every metric", 9,
+    fig = base_slide("Phase-loss coefficient: no single value wins every metric", 11,
                      kicker="Hyperparameter grid",
                      subtitle="dilation=3 fixed; only λphase changes")
     plot_path = ROOT / "results" / "phase_weight_grid_v1" / "strict_locus_metrics.png"
@@ -470,7 +585,7 @@ def slide_weight_grid():
 
 
 def slide_end_to_end():
-    fig = base_slide("End-to-end evaluation and practical takeaway", 10,
+    fig = base_slide("End-to-end evaluation and practical takeaway", 12,
                      kicker="Pipeline",
                      subtitle="Model quality is evaluated at both candidate and gene-model levels")
     stages = [
@@ -513,7 +628,8 @@ def make_contact_sheet(paths, output):
         canvas = Image.new("RGB", (660, 390), "white")
         canvas.paste(image, ((660 - image.width) // 2, 10))
         thumbs.append(canvas)
-    sheet = Image.new("RGB", (1320, 390 * 5), "#DCE3EC")
+    rows = (len(thumbs) + 1) // 2
+    sheet = Image.new("RGB", (1320, 390 * rows), "#DCE3EC")
     for index, thumb in enumerate(thumbs):
         sheet.paste(thumb, ((index % 2) * 660, (index // 2) * 390))
     sheet.save(output, quality=92)
@@ -534,6 +650,8 @@ def main():
         slide_phase_labels,
         slide_training_inference,
         slide_ablation,
+        slide_heldout_curves,
+        slide_chrxtrain_curves,
         slide_weight_grid,
         slide_end_to_end,
     ]
