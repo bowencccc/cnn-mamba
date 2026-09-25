@@ -168,6 +168,14 @@ def build_phase_track(records, chrom_len: int, strand: str):
     return track
 
 
+def build_cds_track(records, chrom_len: int):
+    """Return the union of all annotated CDS intervals, independent of phase."""
+    track = np.zeros(chrom_len, dtype=np.bool_)
+    for start, end, _phase in records:
+        track[start:end] = True
+    return track
+
+
 def extract_sites(meta, exons, cds, explicit=None):
     sites = {name: set() for name in SITE_TYPES}
     rejected = defaultdict(int)
@@ -317,9 +325,21 @@ def generate_cell(
                         )
                         for strand in ("+", "-")
                     },
+                    "eviann_cds": {
+                        strand: build_cds_track(
+                            eviann_phase[chrom][strand], chrom_len
+                        )
+                        for strand in ("+", "-")
+                    },
                     "reference": {
                         strand: build_phase_track(
                             reference_phase[chrom][strand], chrom_len, strand
+                        )
+                        for strand in ("+", "-")
+                    },
+                    "reference_cds": {
+                        strand: build_cds_track(
+                            reference_phase[chrom][strand], chrom_len
                         )
                         for strand in ("+", "-")
                     },
@@ -347,16 +367,22 @@ def generate_cell(
                     if phase_tracks is not None:
                         e_phase = phase_tracks["eviann"][strand][start:start + window]
                         r_phase = phase_tracks["reference"][strand][start:start + window]
+                        e_cds = phase_tracks["eviann_cds"][strand][start:start + window]
+                        r_cds = phase_tracks["reference_cds"][strand][start:start + window]
                         if strand == "-":
                             # Tracks are indexed in genomic order; model input is
                             # reverse-complemented into transcript order.
                             e_phase = e_phase[::-1]
                             r_phase = r_phase[::-1]
+                            e_cds = e_cds[::-1]
+                            r_cds = r_cds[::-1]
                         arrays.update(
                             phase_labels=np.maximum(e_phase, 0),
                             phase_mask=e_phase >= 0,
                             reference_phase_labels=np.maximum(r_phase, 0),
                             reference_phase_mask=r_phase >= 0,
+                            cds_labels=e_cds,
+                            reference_cds_labels=r_cds,
                         )
                     np.savez_compressed(split_dir / filename, **arrays)
                     count += 1
@@ -384,6 +410,10 @@ def generate_cell(
         "phase_labels": (
             "GFF/GTF CDS codon offsets 0/1/2; unlabeled and transcript-phase "
             "conflicts masked" if eviann_phase is not None else None
+        ),
+        "cds_labels": (
+            "union of all GFF/GTF CDS intervals, including positions whose "
+            "isoform phases conflict" if eviann_phase is not None else None
         ),
         "owned_local_interval": [(window - stride) // 2, (window - stride) // 2 + stride],
         "splits": SPLITS, "accessions": CHROMS, "summary": summary,

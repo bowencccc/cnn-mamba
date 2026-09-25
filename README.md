@@ -230,6 +230,36 @@ python -m cnn_mamba.export_phase_tsv \
   --output artifacts/phase_predictions/chrX_plus/chrX_plus_phase_probabilities.tsv
 ```
 
+### Frozen CDS-head gating experiment
+
+The CDS-gating probe preserves every parameter in an existing phase model and
+fits only a new linear CDS/non-CDS head. Independent CDS labels are the union of
+all annotated CDS intervals, so bases with conflicting isoform phases remain
+valid CDS positives. Regenerate the 10 kb labels and train the probe with:
+
+```bash
+cnn-mamba-prepare-droso \
+  --config configs/droso_frame_w10.json \
+  --output-root data/processed/cds_gating \
+  --include-phase-labels
+
+python -m cnn_mamba.train_cds_head \
+  --data-root data/processed/cds_gating/w10_frame \
+  --base-checkpoint /path/to/phase_0.10/best_model.pt \
+  --output-dir runs/cds_gating_v1/frozen_probe/chrxtrain/w10 \
+  --include-test-in-train
+```
+
+Chromosome-wide inference exports `P(CDS)` and the hierarchical joint scores
+`P(CDS) * P(phase_k | CDS)` for phase 0/1/2:
+
+```bash
+python -m cnn_mamba.score_gated_phase_chromosome \
+  --checkpoint runs/cds_gating_v1/frozen_probe/chrxtrain/w10/best_model.pt \
+  --fasta data/raw/dmel_genome.fa --chrom NC_004354.4 \
+  --output-dir artifacts/phase_predictions/cds_gating_v1/chrX_plus
+```
+
 ## 5. Run UniAnn and combined strict evaluation
 
 This deliberately uses the `chrxtrain` checkpoint, exports the six-column

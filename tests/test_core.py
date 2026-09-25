@@ -2,11 +2,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import numpy as np
 import torch
 
 from cnn_mamba.common import splice_candidate_masks, start_stop_candidate_masks
+from cnn_mamba.evaluate_gated_phase import BinnedBinaryMetrics
 from cnn_mamba.model import SpliceMamba
-from cnn_mamba.prepare_droso import build_phase_track
+from cnn_mamba.prepare_droso import build_cds_track, build_phase_track
 from cnn_mamba.score_chromosome import keep_bounds
 from cnn_mamba.uniann_evaluate import parse_stats
 
@@ -34,11 +36,16 @@ class CoreTests(unittest.TestCase):
             d_model=16, d_state=8, n_layers=0, dropout=0.0,
             architecture="cnn_mamba", cnn_kernel_size=7,
             frame_dilation=3, phase_auxiliary=True,
+            cds_auxiliary=True,
         )
-        outputs = model(torch.randint(0, 5, (2, 101)), return_phase=True)
-        self.assertEqual(len(outputs), 3)
-        for output in outputs:
+        outputs = model(
+            torch.randint(0, 5, (2, 101)),
+            return_phase=True, return_cds=True,
+        )
+        self.assertEqual(len(outputs), 4)
+        for output in outputs[:3]:
             self.assertEqual(output.shape, (2, 101, 3))
+        self.assertEqual(outputs[3].shape, (2, 101, 2))
 
     def test_phase_tracks_follow_transcript_direction(self):
         plus = build_phase_track([(2, 8, 0)], 10, "+")
@@ -50,10 +57,24 @@ class CoreTests(unittest.TestCase):
         track = build_phase_track([(0, 6, 0), (0, 6, 1)], 6, "+")
         self.assertTrue((track == -2).all())
 
+    def test_conflicting_phase_tracks_remain_cds(self):
+        track = build_cds_track([(0, 6, 0), (0, 6, 1)], 8)
+        self.assertEqual(track.tolist(), [True] * 6 + [False] * 2)
+
     def test_window_ownership(self):
         self.assertEqual(keep_bounds(0, 3, 10_000, 5_000), (0, 7_500))
         self.assertEqual(keep_bounds(1, 3, 10_000, 5_000), (2_500, 7_500))
         self.assertEqual(keep_bounds(2, 3, 10_000, 5_000), (2_500, 10_000))
+
+    def test_binned_binary_metrics_separates_perfect_scores(self):
+        metric = BinnedBinaryMetrics(bins=16)
+        metric.add(
+            np.asarray([0.01, 0.1, 0.9, 0.99], dtype=np.float32),
+            np.asarray([False, False, True, True]),
+        )
+        result = metric.metrics()
+        self.assertAlmostEqual(result["AP"], 1.0)
+        self.assertAlmostEqual(result["best_F1"], 1.0)
 
     def test_stats_parser(self):
         text = (
