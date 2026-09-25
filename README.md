@@ -220,6 +220,16 @@ plus strand. The auxiliary head was not supervised outside non-conflicting CDS,
 so probabilities outside coding sequence are emitted but are not calibrated;
 the head also does not enforce a global 0-1-2 path.
 
+To convert the arrays to a one-row-per-base TSV with one-based coordinates:
+
+```bash
+python -m cnn_mamba.export_phase_tsv \
+  --probabilities artifacts/phase_predictions/chrX_plus/phase_probabilities.npy \
+  --argmax artifacts/phase_predictions/chrX_plus/phase_argmax.npy \
+  --chrom chrX --strand + \
+  --output artifacts/phase_predictions/chrX_plus/chrX_plus_phase_probabilities.tsv
+```
+
 ## 5. Run UniAnn and combined strict evaluation
 
 This deliberately uses the `chrxtrain` checkpoint, exports the six-column
