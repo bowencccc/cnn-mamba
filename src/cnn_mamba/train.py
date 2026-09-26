@@ -32,7 +32,7 @@ SEED = 42
 
 
 class PUDataset(Dataset):
-    def __init__(self, directory, require_phase=False):
+    def __init__(self, directory, require_phase=False, require_cds=False):
         directories = directory if isinstance(directory, (list, tuple)) else [directory]
         self.files = sorted(
             str(Path(item) / name)
@@ -41,6 +41,7 @@ class PUDataset(Dataset):
             if name.endswith(".npz")
         )
         self.require_phase = require_phase
+        self.require_cds = require_cds
 
     def __len__(self):
         return len(self.files)
@@ -82,6 +83,16 @@ class PUDataset(Dataset):
                     arrays.append(
                         torch.from_numpy(data[key].astype(np.int64, copy=False))
                     )
+            if self.require_cds:
+                for key in ("cds_labels", "reference_cds_labels"):
+                    if key not in data:
+                        raise KeyError(
+                            f"missing CDS array {key!r} in {self.files[index]}; "
+                            "regenerate with current prepare_droso"
+                        )
+                    arrays.append(
+                        torch.from_numpy(data[key].astype(np.int64, copy=False))
+                    )
             return tuple(arrays)
 
 
@@ -110,29 +121,55 @@ def masked_phase_loss(logits, labels, mask):
 @torch.no_grad()
 def evaluate(
     model, loader, device, use_amp, center_left=2500, center_right=7500,
-    splice_loss_weight=0.25, phase_aux_weight=0.0,
+    splice_loss_weight=0.25, phase_aux_weight=0.0, cds_aux_weight=0.0,
 ):
     model.eval()
     curves = {name: BinnedPR() for name in ("donor", "acceptor", "start", "stop")}
-    totals = {"loss": 0.0, "splice": 0.0, "ss": 0.0, "phase": 0.0}
+    cds_curve = BinnedPR() if cds_aux_weight > 0 else None
+    totals = {
+        "loss": 0.0, "splice": 0.0, "ss": 0.0,
+        "phase": 0.0, "cds": 0.0,
+    }
     batches = 0
     for batch in loader:
         sequence = batch[0].to(device, non_blocking=True)
         chess_splice = batch[5].to(device, non_blocking=True)
         chess_ss = batch[6].to(device, non_blocking=True)
         with autocast("cuda", enabled=use_amp):
-            if phase_aux_weight > 0:
-                splice_logits, ss_logits, phase_logits = model(
-                    sequence, return_phase=True
+            if phase_aux_weight > 0 or cds_aux_weight > 0:
+                outputs = model(
+                    sequence, return_phase=phase_aux_weight > 0,
+                    return_cds=cds_aux_weight > 0,
                 )
+                splice_logits, ss_logits = outputs[:2]
+                output_index = 2
+            else:
+                splice_logits, ss_logits = model(sequence)
+                outputs = None
+                output_index = 2
+            if phase_aux_weight > 0:
+                phase_logits = outputs[output_index]
+                output_index += 1
                 reference_phase_labels = batch[9].to(device, non_blocking=True)
                 reference_phase_mask = batch[10].to(device, non_blocking=True)
                 phase_loss = masked_phase_loss(
                     phase_logits, reference_phase_labels, reference_phase_mask
                 )
             else:
-                splice_logits, ss_logits = model(sequence)
                 phase_loss = splice_logits.sum() * 0.0
+            if cds_aux_weight > 0:
+                cds_logits = outputs[output_index]
+                cds_index = 11 if phase_aux_weight > 0 else 7
+                reference_cds = batch[cds_index + 1].to(
+                    device, non_blocking=True
+                )
+                cds_loss = F.cross_entropy(
+                    cds_logits.reshape(-1, 2), reference_cds.reshape(-1)
+                )
+            else:
+                cds_logits = None
+                reference_cds = None
+                cds_loss = splice_logits.sum() * 0.0
             splice_loss = candidate_loss(
                 splice_logits, chess_splice, sequence, "splice"
             )
@@ -142,11 +179,13 @@ def evaluate(
             loss = (
                 splice_loss_weight * splice_loss + ss_loss
                 + phase_aux_weight * phase_loss
+                + cds_aux_weight * cds_loss
             )
         totals["loss"] += float(loss.item())
         totals["splice"] += float(splice_loss.item())
         totals["ss"] += float(ss_loss.item())
         totals["phase"] += float(phase_loss.item())
+        totals["cds"] += float(cds_loss.item())
         batches += 1
         splice_probability = splice_logits.softmax(-1)
         ss_probability = ss_logits.softmax(-1)
@@ -161,12 +200,20 @@ def evaluate(
             ("stop", ss_probability, chess_ss, stop & center, 2),
         ):
             curves[name].add(probability[..., cls][mask].float(), labels[mask] == cls)
+        if cds_curve is not None:
+            cds_curve.add(
+                cds_logits.softmax(-1)[..., 1][center].float(),
+                reference_cds[center].bool(),
+            )
     metrics = {name: curve.metrics() for name, curve in curves.items()}
+    if cds_curve is not None:
+        metrics["cds"] = cds_curve.metrics()
     losses = {
         "loss": totals["loss"] / batches,
         "splice_loss": totals["splice"] / batches,
         "start_stop_loss": totals["ss"] / batches,
         "phase_loss": totals["phase"] / batches,
+        "cds_loss": totals["cds"] / batches,
     }
     return metrics, losses
 
@@ -208,6 +255,10 @@ def main():
         "--phase-aux-weight", type=float, default=0.0,
         help="Weight for masked three-class CDS reading-phase auxiliary loss.",
     )
+    parser.add_argument(
+        "--cds-aux-weight", type=float, default=0.0,
+        help="Weight for dense CDS/non-CDS auxiliary cross-entropy loss.",
+    )
     parser.add_argument("--window-size", type=int, default=10000)
     parser.add_argument("--stride", type=int, default=5000)
     parser.add_argument("--amp", action="store_true")
@@ -247,6 +298,8 @@ def main():
         parser.error("--frame-dilation must be non-negative")
     if args.phase_aux_weight < 0:
         parser.error("--phase-aux-weight must be non-negative")
+    if args.cds_aux_weight < 0:
+        parser.error("--cds-aux-weight must be non-negative")
     if args.all_splits_as_train and args.early_stopping_patience:
         parser.error("early stopping requires a held-out validation split")
     if args.stride != args.window_size // 2:
@@ -277,26 +330,32 @@ def main():
         train_data = PUDataset(
             [args.data_root / name for name in ("train", "val", "test")],
             require_phase=args.phase_aux_weight > 0,
+            require_cds=args.cds_aux_weight > 0,
         )
         val_data = test_data = None
     elif args.include_test_in_train:
         train_data = PUDataset(
             [args.data_root / name for name in ("train", "test")],
             require_phase=args.phase_aux_weight > 0,
+            require_cds=args.cds_aux_weight > 0,
         )
         val_data = PUDataset(
-            args.data_root / "val", require_phase=args.phase_aux_weight > 0
+            args.data_root / "val", require_phase=args.phase_aux_weight > 0,
+            require_cds=args.cds_aux_weight > 0,
         )
         test_data = None
     else:
         train_data = PUDataset(
-            args.data_root / "train", require_phase=args.phase_aux_weight > 0
+            args.data_root / "train", require_phase=args.phase_aux_weight > 0,
+            require_cds=args.cds_aux_weight > 0,
         )
         val_data = PUDataset(
-            args.data_root / "val", require_phase=args.phase_aux_weight > 0
+            args.data_root / "val", require_phase=args.phase_aux_weight > 0,
+            require_cds=args.cds_aux_weight > 0,
         )
         test_data = PUDataset(
-            args.data_root / "test", require_phase=args.phase_aux_weight > 0
+            args.data_root / "test", require_phase=args.phase_aux_weight > 0,
+            require_cds=args.cds_aux_weight > 0,
         )
     generator = torch.Generator().manual_seed(SEED)
     loader_kwargs = dict(
@@ -325,6 +384,7 @@ def main():
         cnn_kernel_size=args.cnn_kernel_size,
         frame_dilation=args.frame_dilation,
         phase_auxiliary=args.phase_aux_weight > 0,
+        cds_auxiliary=args.cds_aux_weight > 0,
     ).to(device)
     model.gradient_checkpointing = args.gradient_checkpointing
     initialize_like_original(model)
@@ -375,7 +435,8 @@ def main():
         f"test={len(test_data) if test_data is not None else 0:,} epochs={args.epochs} "
         f"start_epoch={start_epoch} early_stopping_patience={args.early_stopping_patience} "
         f"early_stopping_min_delta={args.early_stopping_min_delta:g} "
-        f"frame_dilation={args.frame_dilation} phase_aux_weight={args.phase_aux_weight:g}"
+        f"frame_dilation={args.frame_dilation} phase_aux_weight={args.phase_aux_weight:g} "
+        f"cds_aux_weight={args.cds_aux_weight:g}"
     )
     run_start = time.time()
     early_stopped = (
@@ -392,7 +453,10 @@ def main():
     for epoch in epoch_iterator:
         model.train()
         optimizer.zero_grad(set_to_none=True)
-        totals = {"loss": 0.0, "splice": 0.0, "ss": 0.0, "phase": 0.0}
+        totals = {
+            "loss": 0.0, "splice": 0.0, "ss": 0.0,
+            "phase": 0.0, "cds": 0.0,
+        }
         accumulated = 0
         epoch_start = time.time()
         for batch_index, batch in enumerate(train_loader, 1):
@@ -404,18 +468,36 @@ def main():
                 group["lr"] = lr
             use_ignore = args.mode == "ignore"
             with autocast("cuda", enabled=args.amp):
-                if args.phase_aux_weight > 0:
-                    splice_logits, ss_logits, phase_logits = model(
-                        sequence, return_phase=True
+                if args.phase_aux_weight > 0 or args.cds_aux_weight > 0:
+                    outputs = model(
+                        sequence, return_phase=args.phase_aux_weight > 0,
+                        return_cds=args.cds_aux_weight > 0,
                     )
+                    splice_logits, ss_logits = outputs[:2]
+                    output_index = 2
+                else:
+                    splice_logits, ss_logits = model(sequence)
+                    outputs = None
+                    output_index = 2
+                if args.phase_aux_weight > 0:
+                    phase_logits = outputs[output_index]
+                    output_index += 1
                     phase_labels = batch[7].to(device, non_blocking=True)
                     phase_mask = batch[8].to(device, non_blocking=True)
                     phase_loss = masked_phase_loss(
                         phase_logits, phase_labels, phase_mask
                     )
                 else:
-                    splice_logits, ss_logits = model(sequence)
                     phase_loss = splice_logits.sum() * 0.0
+                if args.cds_aux_weight > 0:
+                    cds_logits = outputs[output_index]
+                    cds_index = 11 if args.phase_aux_weight > 0 else 7
+                    cds_labels = batch[cds_index].to(device, non_blocking=True)
+                    cds_loss = F.cross_entropy(
+                        cds_logits.reshape(-1, 2), cds_labels.reshape(-1)
+                    )
+                else:
+                    cds_loss = splice_logits.sum() * 0.0
                 splice_loss = candidate_loss(
                     splice_logits, splice_labels, sequence, "splice",
                     splice_ignore if use_ignore else None,
@@ -427,6 +509,7 @@ def main():
                 loss = (
                     args.splice_loss_weight * splice_loss + ss_loss
                     + args.phase_aux_weight * phase_loss
+                    + args.cds_aux_weight * cds_loss
                 )
             if not torch.isfinite(loss):
                 logger.warning(
@@ -454,6 +537,7 @@ def main():
             totals["splice"] += float(splice_loss.item())
             totals["ss"] += float(ss_loss.item())
             totals["phase"] += float(phase_loss.item())
+            totals["cds"] += float(cds_loss.item())
             if batch_index % 500 == 0:
                 logger.info(
                     f"epoch={epoch} batch={batch_index:,}/{len(train_loader):,} "
@@ -477,14 +561,19 @@ def main():
                 model, val_loader, device, args.amp, center_left, center_right,
                 args.splice_loss_weight,
                 args.phase_aux_weight,
+                args.cds_aux_weight,
             )
-        mean_ap = None if metrics is None else sum(metrics[name]["AP"] for name in metrics) / 4
+        mean_ap = None if metrics is None else sum(
+            metrics[name]["AP"]
+            for name in ("donor", "acceptor", "start", "stop")
+        ) / 4
         row = {
             "epoch": epoch,
             "train_loss": totals["loss"] / len(train_loader),
             "train_splice_loss": totals["splice"] / len(train_loader),
             "train_start_stop_loss": totals["ss"] / len(train_loader),
             "train_phase_loss": totals["phase"] / len(train_loader),
+            "train_cds_loss": totals["cds"] / len(train_loader),
             "validation_loss": None if validation_losses is None else validation_losses["loss"],
             "validation_splice_loss": (
                 None if validation_losses is None else validation_losses["splice_loss"]
@@ -494,6 +583,12 @@ def main():
             ),
             "validation_phase_loss": (
                 None if validation_losses is None else validation_losses["phase_loss"]
+            ),
+            "validation_cds_loss": (
+                None if validation_losses is None else validation_losses["cds_loss"]
+            ),
+            "validation_cds": (
+                None if metrics is None else metrics.get("cds")
             ),
             "validation_chess": metrics,
             "validation_reference": metrics,
@@ -523,6 +618,13 @@ def main():
                 f"mean {args.reference_name} AP={mean_ap:.4f}\n    "
                 + format_metrics(metrics).replace("\n", "\n    ")
             )
+            if "cds" in metrics:
+                cds = metrics["cds"]
+                logger.info(
+                    f"    CDS AP={cds['AP']:.4f} F1={cds['F1']:.4f} "
+                    f"P={cds['P']:.4f} R={cds['R']:.4f} "
+                    f"thr={cds['threshold']:.4f}"
+                )
         checkpoint = {
             "epoch": epoch,
             "model_state_dict": model.state_dict(),
@@ -572,6 +674,7 @@ def main():
             model, test_loader, device, args.amp, center_left, center_right,
             args.splice_loss_weight,
             args.phase_aux_weight,
+            args.cds_aux_weight,
         )
     result = {
         "mode": args.mode,

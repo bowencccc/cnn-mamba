@@ -10,6 +10,7 @@ from cnn_mamba.evaluate_gated_phase import BinnedBinaryMetrics
 from cnn_mamba.model import SpliceMamba
 from cnn_mamba.prepare_droso import build_cds_track, build_phase_track
 from cnn_mamba.score_chromosome import keep_bounds
+from cnn_mamba.train import PUDataset, candidate_loss, masked_phase_loss
 from cnn_mamba.uniann_evaluate import parse_stats
 
 
@@ -75,6 +76,52 @@ class CoreTests(unittest.TestCase):
         result = metric.metrics()
         self.assertAlmostEqual(result["AP"], 1.0)
         self.assertAlmostEqual(result["best_F1"], 1.0)
+
+    def test_joint_phase_cds_dataset_layout_and_backward(self):
+        length = 12
+        with tempfile.TemporaryDirectory() as directory:
+            arrays = {
+                "sequence": np.asarray([0, 3, 2, 3] * 3, dtype=np.uint8),
+                "labels": np.zeros(length, dtype=np.int8),
+                "start_stop_labels": np.zeros(length, dtype=np.int8),
+                "chess_labels": np.zeros(length, dtype=np.int8),
+                "chess_start_stop_labels": np.zeros(length, dtype=np.int8),
+                "phase_labels": np.arange(length, dtype=np.int8) % 3,
+                "phase_mask": np.ones(length, dtype=bool),
+                "reference_phase_labels": np.arange(length, dtype=np.int8) % 3,
+                "reference_phase_mask": np.ones(length, dtype=bool),
+                "cds_labels": np.asarray([0, 1] * 6, dtype=bool),
+                "reference_cds_labels": np.asarray([1, 0] * 6, dtype=bool),
+            }
+            np.savez_compressed(Path(directory) / "sample.npz", **arrays)
+            batch = PUDataset(
+                Path(directory), require_phase=True, require_cds=True
+            )[0]
+        self.assertEqual(len(batch), 13)
+        self.assertTrue(torch.equal(batch[11], torch.from_numpy(arrays["cds_labels"])))
+        model = SpliceMamba(
+            d_model=16, d_state=8, n_layers=0, dropout=0.0,
+            architecture="cnn_mamba", cnn_kernel_size=7,
+            frame_dilation=3, phase_auxiliary=True, cds_auxiliary=True,
+        )
+        sequence = batch[0].unsqueeze(0)
+        splice, start_stop, phase, cds = model(
+            sequence, return_phase=True, return_cds=True
+        )
+        loss = (
+            0.25 * candidate_loss(splice, batch[1].unsqueeze(0), sequence, "splice")
+            + candidate_loss(
+                start_stop, batch[2].unsqueeze(0), sequence, "start_stop"
+            )
+            + 0.1 * masked_phase_loss(
+                phase, batch[7].unsqueeze(0), batch[8].unsqueeze(0)
+            )
+            + 0.1 * torch.nn.functional.cross_entropy(
+                cds.reshape(-1, 2), batch[11].reshape(-1)
+            )
+        )
+        loss.backward()
+        self.assertIsNotNone(model.cds_head.weight.grad)
 
     def test_stats_parser(self):
         text = (

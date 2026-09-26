@@ -34,6 +34,7 @@ def main():
     )
     parser.add_argument("--frame-dilation", type=int, default=0)
     parser.add_argument("--phase-aux-weight", type=float, default=0.0)
+    parser.add_argument("--cds-aux-weight", type=float, default=0.0)
     args = parser.parse_args()
     config_path = args.config if args.config.is_absolute() else root / args.config
     config = json.loads(config_path.read_text())
@@ -68,6 +69,7 @@ def main():
         command.extend([
             "--frame-dilation", str(args.frame_dilation),
             "--phase-aux-weight", str(args.phase_aux_weight),
+            "--cds-aux-weight", str(args.cds_aux_weight),
         ])
         early_stopping = config.get("early_stopping")
         if early_stopping:

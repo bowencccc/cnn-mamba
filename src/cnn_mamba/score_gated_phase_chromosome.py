@@ -25,6 +25,10 @@ def main():
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument(
+        "--write-raw-phase", action="store_true",
+        help="Also persist the ungated phase softmax for direct comparison.",
+    )
+    parser.add_argument(
         "--reference-phase-probabilities", type=Path,
         help="Optional original raw phase array used to prove the frozen model is unchanged.",
     )
@@ -54,6 +58,13 @@ def main():
     gated_phase = np.lib.format.open_memmap(
         args.output_dir / "gated_phase_probabilities.npy", mode="w+",
         dtype=np.float32, shape=(chrom_len, 3),
+    )
+    raw_phase = (
+        np.lib.format.open_memmap(
+            args.output_dir / "raw_phase_probabilities.npy", mode="w+",
+            dtype=np.float32, shape=(chrom_len, 3),
+        )
+        if args.write_raw_phase else None
     )
     joint_argmax = np.lib.format.open_memmap(
         args.output_dir / "joint_class_argmax.npy", mode="w+",
@@ -108,6 +119,8 @@ def main():
                 gated = raw * cds[:, None]
                 cds_probability[destination_start:destination_end] = cds
                 gated_phase[destination_start:destination_end] = gated
+                if raw_phase is not None:
+                    raw_phase[destination_start:destination_end] = raw
                 joint = np.column_stack((1.0 - cds, gated))
                 joint_argmax[destination_start:destination_end] = joint.argmax(1)
                 if reference is not None:
@@ -125,6 +138,8 @@ def main():
         raise RuntimeError(f"incomplete coverage: {expected_position}/{chrom_len}")
     cds_probability.flush()
     gated_phase.flush()
+    if raw_phase is not None:
+        raw_phase.flush()
     joint_argmax.flush()
     metadata = {
         "schema": "cds_gated_phase_probabilities_v1",
@@ -144,6 +159,9 @@ def main():
             "cds_probability": "cds_probability.npy",
             "gated_phase_probabilities": "gated_phase_probabilities.npy",
             "joint_class_argmax": "joint_class_argmax.npy",
+            "raw_phase_probabilities": (
+                "raw_phase_probabilities.npy" if raw_phase is not None else None
+            ),
         },
         "reference_phase_probabilities": (
             None if args.reference_phase_probabilities is None

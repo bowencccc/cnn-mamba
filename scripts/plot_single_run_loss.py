@@ -30,6 +30,9 @@ def main():
         "train_start_stop_loss", "validation_start_stop_loss",
         "train_phase_loss", "validation_phase_loss", "mean_AP",
     ]
+    for column in ("train_cds_loss", "validation_cds_loss"):
+        if column in frame:
+            columns.insert(-1, column)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     frame[columns].to_csv(
         args.output_dir / f"{args.prefix}.tsv", sep="\t", index=False,
