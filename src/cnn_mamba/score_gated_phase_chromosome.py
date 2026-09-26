@@ -42,7 +42,15 @@ def main():
 
     checkpoint = torch.load(args.checkpoint, map_location="cpu", weights_only=False)
     config = checkpoint["config"]
-    if not config.get("cds_auxiliary"):
+    has_cds_head = (
+        bool(config.get("cds_auxiliary", False))
+        or float(config.get("cds_aux_weight", 0.0)) > 0
+        or any(
+            name.startswith("cds_head.")
+            for name in checkpoint["model_state_dict"]
+        )
+    )
+    if not has_cds_head:
         raise RuntimeError("checkpoint does not contain a trained CDS head")
     if float(config.get("phase_aux_weight", 0.0)) <= 0:
         raise RuntimeError("checkpoint does not contain a trained phase head")
