@@ -1,0 +1,17 @@
+task	candidates	reference_sites	matched_positives	AUPRC	model	regime
+donor	1236362	3403	3403	0.955915129	Phase auxiliary	heldout
+acceptor	1245749	3438	3438	0.952745576	Phase auxiliary	heldout
+start	411520	1281	1281	0.850984495	Phase auxiliary	heldout
+stop	1060569	1265	1265	0.882286936	Phase auxiliary	heldout
+donor	1236362	3403	3403	0.963164535	Phase auxiliary	chrxtrain
+acceptor	1245749	3438	3438	0.957508819	Phase auxiliary	chrxtrain
+start	411520	1281	1281	0.881101731	Phase auxiliary	chrxtrain
+stop	1060569	1265	1265	0.907998279	Phase auxiliary	chrxtrain
+donor	1236362	3403	3403	0.958578849	+ CDS auxiliary	heldout
+acceptor	1245749	3438	3438	0.955750008	+ CDS auxiliary	heldout
+start	411520	1281	1281	0.864165394	+ CDS auxiliary	heldout
+stop	1060569	1265	1265	0.881493008	+ CDS auxiliary	heldout
+donor	1236362	3403	3403	0.961871722	+ CDS auxiliary	chrxtrain
+acceptor	1245749	3438	3438	0.954216792	+ CDS auxiliary	chrxtrain
+start	411520	1281	1281	0.871672422	+ CDS auxiliary	chrxtrain
+stop	1060569	1265	1265	0.900707925	+ CDS auxiliary	chrxtrain

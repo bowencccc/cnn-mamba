@@ -1,0 +1,5 @@
+method	sn	pr	f1	predicted_loci	matched_loci	missed_loci	novel_loci	model
+UniAnn	77.100000000	77.200000000	77.149967600	1068	825	41	28	Phase auxiliary
+EviAnn+UniAnn	91.600000000	89.500000000	90.537824400	1080	980	20	35	Phase auxiliary
+UniAnn	77.200000000	75.100000000	76.135522000	1100	826	40	46	+ CDS auxiliary
+EviAnn+UniAnn	91.400000000	87.800000000	89.563839300	1101	978	17	50	+ CDS auxiliary
