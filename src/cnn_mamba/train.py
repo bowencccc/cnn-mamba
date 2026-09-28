@@ -118,10 +118,10 @@ def masked_phase_loss(logits, labels, mask):
     return F.cross_entropy(logits[mask], labels[mask])
 
 
-def shared_backbone_gradient_norm(loss, parameters):
+def shared_backbone_gradient_norm(loss, parameters, retain_graph=True):
     """Return the unscaled L2 gradient norm without modifying ``.grad`` fields."""
     gradients = torch.autograd.grad(
-        loss, parameters, retain_graph=True, allow_unused=True
+        loss, parameters, retain_graph=retain_graph, allow_unused=True
     )
     squared = torch.zeros((), device=loss.device, dtype=torch.float32)
     for gradient in gradients:
@@ -496,6 +496,77 @@ def main():
         f"shared_backbone_parameters={shared_backbone_parameter_count:,} "
         f"gradient_probe={gradient_probe_file}"
     )
+
+    def measure_gradient_probe(epoch, use_ignore):
+        cuda_device_index = (
+            device.index if device.index is not None
+            else torch.cuda.current_device()
+        )
+        with torch.random.fork_rng(devices=[cuda_device_index]):
+            torch.manual_seed(SEED + epoch)
+            torch.cuda.manual_seed_all(SEED + epoch)
+            probe_batch = tuple(
+                tensor.unsqueeze(0).to(device, non_blocking=True)
+                for tensor in gradient_probe
+            )
+            probe_sequence = probe_batch[0]
+            with autocast("cuda", enabled=args.amp):
+                probe_outputs = model(
+                    probe_sequence,
+                    return_phase=args.phase_aux_weight > 0,
+                    return_cds=args.cds_aux_weight > 0,
+                )
+                probe_splice, probe_ss = probe_outputs[:2]
+                probe_output_index = 2
+                if args.phase_aux_weight > 0:
+                    probe_phase = probe_outputs[probe_output_index]
+                    probe_output_index += 1
+                    probe_phase_loss = masked_phase_loss(
+                        probe_phase, probe_batch[7], probe_batch[8]
+                    )
+                else:
+                    probe_phase_loss = probe_splice.sum() * 0.0
+                cds_index = 11 if args.phase_aux_weight > 0 else 7
+                if args.cds_aux_weight > 0:
+                    probe_cds = probe_outputs[probe_output_index]
+                    probe_cds_loss = F.cross_entropy(
+                        probe_cds.reshape(-1, 2),
+                        probe_batch[cds_index].reshape(-1),
+                    )
+                else:
+                    probe_cds_loss = probe_splice.sum() * 0.0
+                probe_splice_loss = candidate_loss(
+                    probe_splice, probe_batch[1], probe_sequence, "splice",
+                    probe_batch[3] if use_ignore else None,
+                )
+                probe_ss_loss = candidate_loss(
+                    probe_ss, probe_batch[2], probe_sequence, "start_stop",
+                    probe_batch[4] if use_ignore else None,
+                )
+            component_losses = (
+                ("splice", probe_splice_loss, args.splice_loss_weight),
+                ("start_stop", probe_ss_loss, 1.0),
+                ("phase", probe_phase_loss, args.phase_aux_weight),
+                ("cds", probe_cds_loss, args.cds_aux_weight),
+            )
+            norms = {}
+            for index, (name, component_loss, weight) in enumerate(
+                component_losses
+            ):
+                raw_norm = shared_backbone_gradient_norm(
+                    component_loss, shared_backbone_parameters,
+                    retain_graph=index < len(component_losses) - 1,
+                )
+                norms[name] = {
+                    "raw": raw_norm,
+                    "weight": float(weight),
+                    "weighted": abs(float(weight)) * raw_norm,
+                    "backward_scaled": (
+                        abs(float(weight)) * raw_norm / args.grad_accum
+                    ),
+                }
+        return norms
+
     run_start = time.time()
     early_stopped = (
         args.early_stopping_patience > 0
@@ -526,6 +597,16 @@ def main():
             for group in optimizer.param_groups:
                 group["lr"] = lr
             use_ignore = args.mode == "ignore"
+            if args.record_gradient_norms and batch_index == 1:
+                epoch_gradient_norms = measure_gradient_probe(epoch, use_ignore)
+                torch.cuda.empty_cache()
+                logger.info(
+                    f"epoch={epoch} shared-backbone gradient norms (weighted): "
+                    + " ".join(
+                        f"{name}={values['weighted']:.6g}"
+                        for name, values in epoch_gradient_norms.items()
+                    )
+                )
             with autocast("cuda", enabled=args.amp):
                 if args.phase_aux_weight > 0 or args.cds_aux_weight > 0:
                     outputs = model(
@@ -580,89 +661,6 @@ def main():
                 continue
             scaled = loss / args.grad_accum
             (scaler.scale(scaled) if args.amp else scaled).backward()
-            if args.record_gradient_norms and batch_index == 1:
-                # Use one example in a separate graph after the normal graph's
-                # saved activations have been released.  This keeps the 12 GB
-                # training memory envelope intact.  fork_rng prevents the
-                # diagnostic dropout pass from changing subsequent training.
-                cuda_device_index = (
-                    device.index if device.index is not None
-                    else torch.cuda.current_device()
-                )
-                with torch.random.fork_rng(devices=[cuda_device_index]):
-                    torch.manual_seed(SEED + epoch)
-                    torch.cuda.manual_seed_all(SEED + epoch)
-                    probe_batch = tuple(
-                        tensor.unsqueeze(0).to(device, non_blocking=True)
-                        for tensor in gradient_probe
-                    )
-                    probe_sequence = probe_batch[0]
-                    probe_splice_labels = probe_batch[1]
-                    probe_ss_labels = probe_batch[2]
-                    probe_splice_ignore = probe_batch[3]
-                    probe_ss_ignore = probe_batch[4]
-                    with autocast("cuda", enabled=args.amp):
-                        probe_outputs = model(
-                            probe_sequence,
-                            return_phase=args.phase_aux_weight > 0,
-                            return_cds=args.cds_aux_weight > 0,
-                        )
-                        probe_splice, probe_ss = probe_outputs[:2]
-                        probe_index = 2
-                        if args.phase_aux_weight > 0:
-                            probe_phase = probe_outputs[probe_index]
-                            probe_index += 1
-                            probe_phase_loss = masked_phase_loss(
-                                probe_phase, probe_batch[7], probe_batch[8]
-                            )
-                        else:
-                            probe_phase_loss = probe_splice.sum() * 0.0
-                        if args.cds_aux_weight > 0:
-                            probe_cds = probe_outputs[probe_index]
-                            probe_cds_loss = F.cross_entropy(
-                                probe_cds.reshape(-1, 2),
-                                probe_batch[cds_index].reshape(-1),
-                            )
-                        else:
-                            probe_cds_loss = probe_splice.sum() * 0.0
-                        probe_splice_loss = candidate_loss(
-                            probe_splice, probe_splice_labels, probe_sequence,
-                            "splice",
-                            probe_splice_ignore if use_ignore else None,
-                        )
-                        probe_ss_loss = candidate_loss(
-                            probe_ss, probe_ss_labels, probe_sequence,
-                            "start_stop",
-                            probe_ss_ignore if use_ignore else None,
-                        )
-                    component_losses = {
-                        "splice": (
-                            probe_splice_loss, args.splice_loss_weight
-                        ),
-                        "start_stop": (probe_ss_loss, 1.0),
-                        "phase": (probe_phase_loss, args.phase_aux_weight),
-                        "cds": (probe_cds_loss, args.cds_aux_weight),
-                    }
-                    epoch_gradient_norms = {}
-                    for name, (component_loss, weight) in component_losses.items():
-                        raw_norm = shared_backbone_gradient_norm(
-                            component_loss, shared_backbone_parameters
-                        )
-                        epoch_gradient_norms[name] = {
-                            "raw": raw_norm,
-                            "weight": float(weight),
-                            "weighted": abs(float(weight)) * raw_norm,
-                            "backward_scaled": (
-                                abs(float(weight)) * raw_norm / args.grad_accum
-                            ),
-                        }
-                logger.info(
-                    f"epoch={epoch} shared-backbone gradient norms (weighted): "
-                    + " ".join(
-                        f"{name}={values['weighted']:.6g}"
-                        for name, values in epoch_gradient_norms.items()
-                    )
-                )
             accumulated += 1
             if accumulated == args.grad_accum:
                 if args.amp:
