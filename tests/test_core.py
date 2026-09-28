@@ -10,7 +10,10 @@ from cnn_mamba.evaluate_gated_phase import BinnedBinaryMetrics
 from cnn_mamba.model import SpliceMamba
 from cnn_mamba.prepare_droso import build_cds_track, build_phase_track
 from cnn_mamba.score_chromosome import keep_bounds
-from cnn_mamba.train import PUDataset, candidate_loss, masked_phase_loss
+from cnn_mamba.train import (
+    PUDataset, candidate_loss, masked_phase_loss,
+    shared_backbone_gradient_norm,
+)
 from cnn_mamba.uniann_evaluate import parse_stats
 
 
@@ -120,6 +123,21 @@ class CoreTests(unittest.TestCase):
                 cds.reshape(-1, 2), batch[11].reshape(-1)
             )
         )
+        shared = tuple(
+            parameter for name, parameter in model.named_parameters()
+            if not name.startswith((
+                "splice_head.", "start_stop_head.", "phase_head.",
+                "cds_head.", "frame_branch.",
+            ))
+        )
+        cds_norm = shared_backbone_gradient_norm(
+            torch.nn.functional.cross_entropy(
+                cds.reshape(-1, 2), batch[11].reshape(-1)
+            ),
+            shared,
+        )
+        self.assertGreater(cds_norm, 0.0)
+        self.assertTrue(all(parameter.grad is None for parameter in shared))
         loss.backward()
         self.assertIsNotNone(model.cds_head.weight.grad)
 

@@ -260,6 +260,21 @@ python -m cnn_mamba.score_gated_phase_chromosome \
   --output-dir artifacts/phase_predictions/cds_gating_v1/chrX_plus
 ```
 
+To run the controlled joint-loss grid at `lambda_CDS=0.03/0.05`, including
+held-out and chrX-in-training models, strict UniAnn evaluation, and per-loss
+shared-core-backbone gradient diagnostics:
+
+```bash
+CNN_MAMBA_PYTHON=/path/to/python \
+  bash scripts/run_cds_weight_grid_local.sh
+```
+
+The gradient probe uses the same fixed phase-containing training window for
+every model. On the first batch of each epoch it measures each unweighted loss
+with `torch.autograd.grad`, reports the norm after applying that loss's
+coefficient, and restores RNG state so the diagnostic does not alter training.
+Heads and the dilation-3 frame branch are excluded from the shared-core norm.
+
 ## 5. Run UniAnn and combined strict evaluation
 
 This deliberately uses the `chrxtrain` checkpoint, exports the six-column
