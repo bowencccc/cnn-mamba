@@ -176,6 +176,18 @@ def build_cds_track(records, chrom_len: int):
     return track
 
 
+def build_cds_boundary_mask(cds_track, radius: int):
+    """Mark bases within ``radius`` bp of chromosome-level CDS transitions."""
+    if radius < 1:
+        raise ValueError("CDS boundary radius must be positive")
+    cds_track = np.asarray(cds_track, dtype=np.bool_)
+    mask = np.zeros_like(cds_track)
+    transitions = np.flatnonzero(cds_track[1:] != cds_track[:-1]) + 1
+    for boundary in transitions:
+        mask[max(0, boundary - radius):min(len(mask), boundary + radius)] = True
+    return mask
+
+
 def extract_sites(meta, exons, cds, explicit=None):
     sites = {name: set() for name in SITE_TYPES}
     rejected = defaultdict(int)
@@ -304,7 +316,7 @@ def labels_for_window(start: int, strand: str, indexed, window: int):
 
 def generate_cell(
     output: Path, cell: dict, regions, eviann, reference,
-    eviann_phase=None, reference_phase=None,
+    eviann_phase=None, reference_phase=None, cds_boundary_radius=0,
 ) -> dict:
     window, stride = int(cell["window_bp"]), int(cell["stride_bp"])
     summary = {}
@@ -318,6 +330,18 @@ def generate_cell(
             chrom_len = fasta.get_reference_length(chrom)
             phase_tracks = None
             if eviann_phase is not None:
+                eviann_cds = {
+                    strand: build_cds_track(
+                        eviann_phase[chrom][strand], chrom_len
+                    )
+                    for strand in ("+", "-")
+                }
+                reference_cds = {
+                    strand: build_cds_track(
+                        reference_phase[chrom][strand], chrom_len
+                    )
+                    for strand in ("+", "-")
+                }
                 phase_tracks = {
                     "eviann": {
                         strand: build_phase_track(
@@ -325,25 +349,28 @@ def generate_cell(
                         )
                         for strand in ("+", "-")
                     },
-                    "eviann_cds": {
-                        strand: build_cds_track(
-                            eviann_phase[chrom][strand], chrom_len
-                        )
-                        for strand in ("+", "-")
-                    },
+                    "eviann_cds": eviann_cds,
                     "reference": {
                         strand: build_phase_track(
                             reference_phase[chrom][strand], chrom_len, strand
                         )
                         for strand in ("+", "-")
                     },
-                    "reference_cds": {
-                        strand: build_cds_track(
-                            reference_phase[chrom][strand], chrom_len
+                    "reference_cds": reference_cds,
+                }
+                if cds_boundary_radius:
+                    phase_tracks["eviann_cds_boundary"] = {
+                        strand: build_cds_boundary_mask(
+                            eviann_cds[strand], cds_boundary_radius
                         )
                         for strand in ("+", "-")
-                    },
-                }
+                    }
+                    phase_tracks["reference_cds_boundary"] = {
+                        strand: build_cds_boundary_mask(
+                            reference_cds[strand], cds_boundary_radius
+                        )
+                        for strand in ("+", "-")
+                    }
             count = 0
             for strand in ("+", "-"):
                 starts = window_starts(regions[chrom][strand], chrom_len, window, stride)
@@ -369,6 +396,13 @@ def generate_cell(
                         r_phase = phase_tracks["reference"][strand][start:start + window]
                         e_cds = phase_tracks["eviann_cds"][strand][start:start + window]
                         r_cds = phase_tracks["reference_cds"][strand][start:start + window]
+                        if cds_boundary_radius:
+                            e_cds_boundary = phase_tracks[
+                                "eviann_cds_boundary"
+                            ][strand][start:start + window]
+                            r_cds_boundary = phase_tracks[
+                                "reference_cds_boundary"
+                            ][strand][start:start + window]
                         if strand == "-":
                             # Tracks are indexed in genomic order; model input is
                             # reverse-complemented into transcript order.
@@ -376,6 +410,9 @@ def generate_cell(
                             r_phase = r_phase[::-1]
                             e_cds = e_cds[::-1]
                             r_cds = r_cds[::-1]
+                            if cds_boundary_radius:
+                                e_cds_boundary = e_cds_boundary[::-1]
+                                r_cds_boundary = r_cds_boundary[::-1]
                         arrays.update(
                             phase_labels=np.maximum(e_phase, 0),
                             phase_mask=e_phase >= 0,
@@ -384,6 +421,11 @@ def generate_cell(
                             cds_labels=e_cds,
                             reference_cds_labels=r_cds,
                         )
+                        if cds_boundary_radius:
+                            arrays.update(
+                                cds_boundary_mask=e_cds_boundary,
+                                reference_cds_boundary_mask=r_cds_boundary,
+                            )
                     np.savez_compressed(split_dir / filename, **arrays)
                     count += 1
                     split_summary["windows"] += 1
@@ -415,6 +457,14 @@ def generate_cell(
             "union of all GFF/GTF CDS intervals, including positions whose "
             "isoform phases conflict" if eviann_phase is not None else None
         ),
+        "cds_boundary_labels": (
+            {
+                "definition": "bases within radius of chromosome-level CDS 0/1 transitions",
+                "radius_bp": cds_boundary_radius,
+                "window_edges_are_boundaries": False,
+            }
+            if cds_boundary_radius else None
+        ),
         "owned_local_interval": [(window - stride) // 2, (window - stride) // 2 + stride],
         "splits": SPLITS, "accessions": CHROMS, "summary": summary,
         "sources": {
@@ -439,7 +489,18 @@ def main() -> None:
         "--include-phase-labels", action="store_true",
         help="Store masked EviAnn and reference CDS phase targets in every window.",
     )
+    parser.add_argument(
+        "--cds-boundary-radius", type=int, default=0,
+        help=(
+            "Also store chromosome-aware CDS boundary masks covering this many "
+            "bases on each side of every CDS 0/1 transition; 0 disables."
+        ),
+    )
     args = parser.parse_args()
+    if args.cds_boundary_radius < 0:
+        parser.error("--cds-boundary-radius must be non-negative")
+    if args.cds_boundary_radius and not args.include_phase_labels:
+        parser.error("--cds-boundary-radius requires --include-phase-labels")
     CONFIG = args.config.resolve()
     FASTA = args.fasta.resolve()
     EVIANN_GFF = args.eviann_gff.resolve()
@@ -474,7 +535,8 @@ def main() -> None:
             if cell_dir.exists() and any(cell_dir.iterdir()):
                 raise RuntimeError(f"refusing partial non-empty cell: {cell_dir}")
             manifest = generate_cell(
-                cell_dir, cell, regions, e_index, r_index, e_phase, r_phase
+                cell_dir, cell, regions, e_index, r_index, e_phase, r_phase,
+                args.cds_boundary_radius,
             )
         completed.append({"cell": cell["id"], "manifest": str(manifest_path.resolve()), "windows": sum(manifest["summary"][s]["windows"] for s in SPLITS)})
     atomic_json(args.output_root / ".complete.json", {

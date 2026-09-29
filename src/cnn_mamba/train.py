@@ -32,7 +32,10 @@ SEED = 42
 
 
 class PUDataset(Dataset):
-    def __init__(self, directory, require_phase=False, require_cds=False):
+    def __init__(
+        self, directory, require_phase=False, require_cds=False,
+        require_cds_boundary=False,
+    ):
         directories = directory if isinstance(directory, (list, tuple)) else [directory]
         self.files = sorted(
             str(Path(item) / name)
@@ -42,6 +45,9 @@ class PUDataset(Dataset):
         )
         self.require_phase = require_phase
         self.require_cds = require_cds
+        self.require_cds_boundary = require_cds_boundary
+        if require_cds_boundary and not require_cds:
+            raise ValueError("CDS boundary masks require CDS labels")
 
     def __len__(self):
         return len(self.files)
@@ -93,6 +99,19 @@ class PUDataset(Dataset):
                     arrays.append(
                         torch.from_numpy(data[key].astype(np.int64, copy=False))
                     )
+            if self.require_cds_boundary:
+                for key in (
+                    "cds_boundary_mask", "reference_cds_boundary_mask",
+                ):
+                    if key not in data:
+                        raise KeyError(
+                            f"missing CDS boundary array {key!r} in "
+                            f"{self.files[index]}; regenerate with "
+                            "--cds-boundary-radius"
+                        )
+                    arrays.append(
+                        torch.from_numpy(data[key].astype(np.int64, copy=False))
+                    )
             return tuple(arrays)
 
 
@@ -118,6 +137,22 @@ def masked_phase_loss(logits, labels, mask):
     return F.cross_entropy(logits[mask], labels[mask])
 
 
+def boundary_weighted_cds_loss(logits, labels, boundary_mask, far_weight=0.1):
+    """Average CDS CE near transitions plus a downweighted far-region mean."""
+    boundary_mask = boundary_mask.bool()
+    far_mask = ~boundary_mask
+    loss = logits.sum() * 0.0
+    if boundary_mask.any():
+        loss = loss + F.cross_entropy(
+            logits[boundary_mask], labels[boundary_mask]
+        )
+    if far_weight and far_mask.any():
+        loss = loss + far_weight * F.cross_entropy(
+            logits[far_mask], labels[far_mask]
+        )
+    return loss
+
+
 def shared_backbone_gradient_norm(loss, parameters, retain_graph=True):
     """Return the unscaled L2 gradient norm without modifying ``.grad`` fields."""
     gradients = torch.autograd.grad(
@@ -134,6 +169,7 @@ def shared_backbone_gradient_norm(loss, parameters, retain_graph=True):
 def evaluate(
     model, loader, device, use_amp, center_left=2500, center_right=7500,
     splice_loss_weight=0.25, phase_aux_weight=0.0, cds_aux_weight=0.0,
+    cds_boundary_radius=0, cds_far_loss_weight=0.1,
 ):
     model.eval()
     curves = {name: BinnedPR() for name in ("donor", "acceptor", "start", "stop")}
@@ -175,9 +211,18 @@ def evaluate(
                 reference_cds = batch[cds_index + 1].to(
                     device, non_blocking=True
                 )
-                cds_loss = F.cross_entropy(
-                    cds_logits.reshape(-1, 2), reference_cds.reshape(-1)
-                )
+                if cds_boundary_radius:
+                    reference_cds_boundary = batch[cds_index + 3].to(
+                        device, non_blocking=True
+                    )
+                    cds_loss = boundary_weighted_cds_loss(
+                        cds_logits, reference_cds, reference_cds_boundary,
+                        cds_far_loss_weight,
+                    )
+                else:
+                    cds_loss = F.cross_entropy(
+                        cds_logits.reshape(-1, 2), reference_cds.reshape(-1)
+                    )
             else:
                 cds_logits = None
                 reference_cds = None
@@ -271,6 +316,20 @@ def main():
         "--cds-aux-weight", type=float, default=0.0,
         help="Weight for dense CDS/non-CDS auxiliary cross-entropy loss.",
     )
+    parser.add_argument(
+        "--cds-boundary-radius", type=int, default=0,
+        help=(
+            "Use precomputed chromosome-aware CDS boundary masks with this "
+            "radius; 0 retains the original dense CDS loss."
+        ),
+    )
+    parser.add_argument(
+        "--cds-far-loss-weight", type=float, default=0.1,
+        help=(
+            "Multiplier on the separately averaged CDS loss outside the "
+            "boundary mask."
+        ),
+    )
     parser.add_argument("--window-size", type=int, default=10000)
     parser.add_argument("--stride", type=int, default=5000)
     parser.add_argument("--amp", action="store_true")
@@ -319,6 +378,12 @@ def main():
         parser.error("--phase-aux-weight must be non-negative")
     if args.cds_aux_weight < 0:
         parser.error("--cds-aux-weight must be non-negative")
+    if args.cds_boundary_radius < 0:
+        parser.error("--cds-boundary-radius must be non-negative")
+    if args.cds_far_loss_weight < 0:
+        parser.error("--cds-far-loss-weight must be non-negative")
+    if args.cds_boundary_radius and args.cds_aux_weight <= 0:
+        parser.error("--cds-boundary-radius requires --cds-aux-weight > 0")
     if args.all_splits_as_train and args.early_stopping_patience:
         parser.error("early stopping requires a held-out validation split")
     if args.stride != args.window_size // 2:
@@ -350,6 +415,7 @@ def main():
             [args.data_root / name for name in ("train", "val", "test")],
             require_phase=args.phase_aux_weight > 0,
             require_cds=args.cds_aux_weight > 0,
+            require_cds_boundary=args.cds_boundary_radius > 0,
         )
         val_data = test_data = None
     elif args.include_test_in_train:
@@ -357,24 +423,29 @@ def main():
             [args.data_root / name for name in ("train", "test")],
             require_phase=args.phase_aux_weight > 0,
             require_cds=args.cds_aux_weight > 0,
+            require_cds_boundary=args.cds_boundary_radius > 0,
         )
         val_data = PUDataset(
             args.data_root / "val", require_phase=args.phase_aux_weight > 0,
             require_cds=args.cds_aux_weight > 0,
+            require_cds_boundary=args.cds_boundary_radius > 0,
         )
         test_data = None
     else:
         train_data = PUDataset(
             args.data_root / "train", require_phase=args.phase_aux_weight > 0,
             require_cds=args.cds_aux_weight > 0,
+            require_cds_boundary=args.cds_boundary_radius > 0,
         )
         val_data = PUDataset(
             args.data_root / "val", require_phase=args.phase_aux_weight > 0,
             require_cds=args.cds_aux_weight > 0,
+            require_cds_boundary=args.cds_boundary_radius > 0,
         )
         test_data = PUDataset(
             args.data_root / "test", require_phase=args.phase_aux_weight > 0,
             require_cds=args.cds_aux_weight > 0,
+            require_cds_boundary=args.cds_boundary_radius > 0,
         )
     generator = torch.Generator().manual_seed(SEED)
     loader_kwargs = dict(
@@ -400,6 +471,7 @@ def main():
             args.data_root / "train",
             require_phase=args.phase_aux_weight > 0,
             require_cds=args.cds_aux_weight > 0,
+            require_cds_boundary=args.cds_boundary_radius > 0,
         )
         for probe_index in range(len(probe_data)):
             candidate = probe_data[probe_index]
@@ -409,7 +481,11 @@ def main():
                 int(torch.unique(candidate[cds_index]).numel())
                 if args.cds_aux_weight > 0 else 2
             )
-            if phase_bases > 100 and cds_classes == 2:
+            boundary_bases = (
+                int(candidate[cds_index + 2].sum())
+                if args.cds_boundary_radius else 1
+            )
+            if phase_bases > 100 and cds_classes == 2 and boundary_bases > 0:
                 gradient_probe = candidate
                 gradient_probe_file = probe_data.files[probe_index]
                 break
@@ -492,6 +568,8 @@ def main():
         f"early_stopping_min_delta={args.early_stopping_min_delta:g} "
         f"frame_dilation={args.frame_dilation} phase_aux_weight={args.phase_aux_weight:g} "
         f"cds_aux_weight={args.cds_aux_weight:g} "
+        f"cds_boundary_radius={args.cds_boundary_radius} "
+        f"cds_far_loss_weight={args.cds_far_loss_weight:g} "
         f"record_gradient_norms={args.record_gradient_norms} "
         f"shared_backbone_parameters={shared_backbone_parameter_count:,} "
         f"gradient_probe={gradient_probe_file}"
@@ -529,10 +607,17 @@ def main():
                 cds_index = 11 if args.phase_aux_weight > 0 else 7
                 if args.cds_aux_weight > 0:
                     probe_cds = probe_outputs[probe_output_index]
-                    probe_cds_loss = F.cross_entropy(
-                        probe_cds.reshape(-1, 2),
-                        probe_batch[cds_index].reshape(-1),
-                    )
+                    if args.cds_boundary_radius:
+                        probe_cds_loss = boundary_weighted_cds_loss(
+                            probe_cds, probe_batch[cds_index],
+                            probe_batch[cds_index + 2],
+                            args.cds_far_loss_weight,
+                        )
+                    else:
+                        probe_cds_loss = F.cross_entropy(
+                            probe_cds.reshape(-1, 2),
+                            probe_batch[cds_index].reshape(-1),
+                        )
                 else:
                     probe_cds_loss = probe_splice.sum() * 0.0
                 probe_splice_loss = candidate_loss(
@@ -633,9 +718,18 @@ def main():
                     cds_logits = outputs[output_index]
                     cds_index = 11 if args.phase_aux_weight > 0 else 7
                     cds_labels = batch[cds_index].to(device, non_blocking=True)
-                    cds_loss = F.cross_entropy(
-                        cds_logits.reshape(-1, 2), cds_labels.reshape(-1)
-                    )
+                    if args.cds_boundary_radius:
+                        cds_boundary = batch[cds_index + 2].to(
+                            device, non_blocking=True
+                        )
+                        cds_loss = boundary_weighted_cds_loss(
+                            cds_logits, cds_labels, cds_boundary,
+                            args.cds_far_loss_weight,
+                        )
+                    else:
+                        cds_loss = F.cross_entropy(
+                            cds_logits.reshape(-1, 2), cds_labels.reshape(-1)
+                        )
                 else:
                     cds_loss = splice_logits.sum() * 0.0
                 splice_loss = candidate_loss(
@@ -702,6 +796,8 @@ def main():
                 args.splice_loss_weight,
                 args.phase_aux_weight,
                 args.cds_aux_weight,
+                args.cds_boundary_radius,
+                args.cds_far_loss_weight,
             )
         mean_ap = None if metrics is None else sum(
             metrics[name]["AP"]
@@ -818,6 +914,8 @@ def main():
             args.splice_loss_weight,
             args.phase_aux_weight,
             args.cds_aux_weight,
+            args.cds_boundary_radius,
+            args.cds_far_loss_weight,
         )
     result = {
         "mode": args.mode,

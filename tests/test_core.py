@@ -8,10 +8,12 @@ import torch
 from cnn_mamba.common import splice_candidate_masks, start_stop_candidate_masks
 from cnn_mamba.evaluate_gated_phase import BinnedBinaryMetrics
 from cnn_mamba.model import SpliceMamba
-from cnn_mamba.prepare_droso import build_cds_track, build_phase_track
+from cnn_mamba.prepare_droso import (
+    build_cds_boundary_mask, build_cds_track, build_phase_track,
+)
 from cnn_mamba.score_chromosome import keep_bounds
 from cnn_mamba.train import (
-    PUDataset, candidate_loss, masked_phase_loss,
+    PUDataset, boundary_weighted_cds_loss, candidate_loss, masked_phase_loss,
     shared_backbone_gradient_norm,
 )
 from cnn_mamba.uniann_evaluate import parse_stats
@@ -65,6 +67,22 @@ class CoreTests(unittest.TestCase):
         track = build_cds_track([(0, 6, 0), (0, 6, 1)], 8)
         self.assertEqual(track.tolist(), [True] * 6 + [False] * 2)
 
+    def test_cds_boundary_mask_uses_only_real_chromosome_transitions(self):
+        track = np.asarray([True, True, True, False, False, False], dtype=bool)
+        mask = build_cds_boundary_mask(track, radius=1)
+        self.assertEqual(mask.tolist(), [False, False, True, True, False, False])
+
+    def test_boundary_weighted_cds_loss_separately_averages_regions(self):
+        logits = torch.zeros(1, 4, 2, requires_grad=True)
+        labels = torch.tensor([[0, 1, 1, 0]])
+        boundary = torch.tensor([[False, True, True, False]])
+        loss = boundary_weighted_cds_loss(
+            logits, labels, boundary, far_weight=0.1
+        )
+        self.assertAlmostEqual(loss.item(), 1.1 * np.log(2), places=6)
+        loss.backward()
+        self.assertIsNotNone(logits.grad)
+
     def test_window_ownership(self):
         self.assertEqual(keep_bounds(0, 3, 10_000, 5_000), (0, 7_500))
         self.assertEqual(keep_bounds(1, 3, 10_000, 5_000), (2_500, 7_500))
@@ -95,13 +113,23 @@ class CoreTests(unittest.TestCase):
                 "reference_phase_mask": np.ones(length, dtype=bool),
                 "cds_labels": np.asarray([0, 1] * 6, dtype=bool),
                 "reference_cds_labels": np.asarray([1, 0] * 6, dtype=bool),
+                "cds_boundary_mask": np.asarray(
+                    [False, True, True, False] * 3, dtype=bool
+                ),
+                "reference_cds_boundary_mask": np.asarray(
+                    [True, True, False, False] * 3, dtype=bool
+                ),
             }
             np.savez_compressed(Path(directory) / "sample.npz", **arrays)
             batch = PUDataset(
-                Path(directory), require_phase=True, require_cds=True
+                Path(directory), require_phase=True, require_cds=True,
+                require_cds_boundary=True,
             )[0]
-        self.assertEqual(len(batch), 13)
+        self.assertEqual(len(batch), 15)
         self.assertTrue(torch.equal(batch[11], torch.from_numpy(arrays["cds_labels"])))
+        self.assertTrue(torch.equal(
+            batch[13], torch.from_numpy(arrays["cds_boundary_mask"])
+        ))
         model = SpliceMamba(
             d_model=16, d_state=8, n_layers=0, dropout=0.0,
             architecture="cnn_mamba", cnn_kernel_size=7,
