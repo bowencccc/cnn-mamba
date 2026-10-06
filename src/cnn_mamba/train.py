@@ -137,6 +137,35 @@ def masked_phase_loss(logits, labels, mask):
     return F.cross_entropy(logits[mask], labels[mask])
 
 
+def group_balanced_joint_frame_loss(
+    logits, phase_labels, phase_mask, cds_labels, noncoding_weight=0.1,
+):
+    """Four-state CE: non-CDS=0 and valid CDS phases=1/2/3.
+
+    Coding and noncoding groups are averaged separately so their relative
+    influence is controlled by ``noncoding_weight`` rather than genome-wide
+    class prevalence. CDS bases with conflicting/unknown phase are excluded.
+    """
+    phase_mask = phase_mask.bool()
+    cds_mask = cds_labels.bool()
+    coding_mask = cds_mask & phase_mask
+    noncoding_mask = ~cds_mask
+    loss = logits.sum() * 0.0
+    if coding_mask.any():
+        loss = loss + F.cross_entropy(
+            logits[coding_mask], phase_labels[coding_mask] + 1
+        )
+    if noncoding_weight and noncoding_mask.any():
+        targets = torch.zeros(
+            int(noncoding_mask.sum().item()), dtype=torch.long,
+            device=logits.device,
+        )
+        loss = loss + noncoding_weight * F.cross_entropy(
+            logits[noncoding_mask], targets
+        )
+    return loss
+
+
 def boundary_weighted_cds_loss(logits, labels, boundary_mask, far_weight=0.1):
     """Average CDS CE near transitions plus a downweighted far-region mean."""
     boundary_mask = boundary_mask.bool()
@@ -170,13 +199,15 @@ def evaluate(
     model, loader, device, use_amp, center_left=2500, center_right=7500,
     splice_loss_weight=0.25, phase_aux_weight=0.0, cds_aux_weight=0.0,
     cds_boundary_radius=0, cds_far_loss_weight=0.1,
+    joint_frame_aux_weight=0.0, joint_noncoding_weight=0.1,
 ):
     model.eval()
     curves = {name: BinnedPR() for name in ("donor", "acceptor", "start", "stop")}
     cds_curve = BinnedPR() if cds_aux_weight > 0 else None
+    joint_cds_curve = BinnedPR() if joint_frame_aux_weight > 0 else None
     totals = {
         "loss": 0.0, "splice": 0.0, "ss": 0.0,
-        "phase": 0.0, "cds": 0.0,
+        "phase": 0.0, "cds": 0.0, "joint_frame": 0.0,
     }
     batches = 0
     for batch in loader:
@@ -184,10 +215,14 @@ def evaluate(
         chess_splice = batch[5].to(device, non_blocking=True)
         chess_ss = batch[6].to(device, non_blocking=True)
         with autocast("cuda", enabled=use_amp):
-            if phase_aux_weight > 0 or cds_aux_weight > 0:
+            if (
+                phase_aux_weight > 0 or cds_aux_weight > 0
+                or joint_frame_aux_weight > 0
+            ):
                 outputs = model(
                     sequence, return_phase=phase_aux_weight > 0,
                     return_cds=cds_aux_weight > 0,
+                    return_joint_frame=joint_frame_aux_weight > 0,
                 )
                 splice_logits, ss_logits = outputs[:2]
                 output_index = 2
@@ -227,6 +262,23 @@ def evaluate(
                 cds_logits = None
                 reference_cds = None
                 cds_loss = splice_logits.sum() * 0.0
+            if joint_frame_aux_weight > 0:
+                joint_logits = outputs[output_index]
+                reference_phase_labels = batch[9].to(
+                    device, non_blocking=True
+                )
+                reference_phase_mask = batch[10].to(
+                    device, non_blocking=True
+                )
+                reference_cds = batch[12].to(device, non_blocking=True)
+                joint_frame_loss = group_balanced_joint_frame_loss(
+                    joint_logits, reference_phase_labels,
+                    reference_phase_mask, reference_cds,
+                    joint_noncoding_weight,
+                )
+            else:
+                joint_logits = None
+                joint_frame_loss = splice_logits.sum() * 0.0
             splice_loss = candidate_loss(
                 splice_logits, chess_splice, sequence, "splice"
             )
@@ -237,12 +289,14 @@ def evaluate(
                 splice_loss_weight * splice_loss + ss_loss
                 + phase_aux_weight * phase_loss
                 + cds_aux_weight * cds_loss
+                + joint_frame_aux_weight * joint_frame_loss
             )
         totals["loss"] += float(loss.item())
         totals["splice"] += float(splice_loss.item())
         totals["ss"] += float(ss_loss.item())
         totals["phase"] += float(phase_loss.item())
         totals["cds"] += float(cds_loss.item())
+        totals["joint_frame"] += float(joint_frame_loss.item())
         batches += 1
         splice_probability = splice_logits.softmax(-1)
         ss_probability = ss_logits.softmax(-1)
@@ -262,15 +316,24 @@ def evaluate(
                 cds_logits.softmax(-1)[..., 1][center].float(),
                 reference_cds[center].bool(),
             )
+        if joint_cds_curve is not None:
+            joint_probability = joint_logits.softmax(-1)
+            joint_cds_curve.add(
+                (1.0 - joint_probability[..., 0])[center].float(),
+                reference_cds[center].bool(),
+            )
     metrics = {name: curve.metrics() for name, curve in curves.items()}
     if cds_curve is not None:
         metrics["cds"] = cds_curve.metrics()
+    if joint_cds_curve is not None:
+        metrics["joint_cds"] = joint_cds_curve.metrics()
     losses = {
         "loss": totals["loss"] / batches,
         "splice_loss": totals["splice"] / batches,
         "start_stop_loss": totals["ss"] / batches,
         "phase_loss": totals["phase"] / batches,
         "cds_loss": totals["cds"] / batches,
+        "joint_frame_loss": totals["joint_frame"] / batches,
     }
     return metrics, losses
 
@@ -330,6 +393,20 @@ def main():
             "boundary mask."
         ),
     )
+    parser.add_argument(
+        "--joint-frame-aux-weight", type=float, default=0.0,
+        help=(
+            "Weight for a four-state non-CDS/frame-0/frame-1/frame-2 "
+            "auxiliary loss. This replaces the separate phase and CDS heads."
+        ),
+    )
+    parser.add_argument(
+        "--joint-noncoding-weight", type=float, default=0.1,
+        help=(
+            "Weight on the separately averaged non-CDS component within "
+            "the four-state joint-frame loss."
+        ),
+    )
     parser.add_argument("--window-size", type=int, default=10000)
     parser.add_argument("--stride", type=int, default=5000)
     parser.add_argument("--amp", action="store_true")
@@ -382,8 +459,19 @@ def main():
         parser.error("--cds-boundary-radius must be non-negative")
     if args.cds_far_loss_weight < 0:
         parser.error("--cds-far-loss-weight must be non-negative")
+    if args.joint_frame_aux_weight < 0:
+        parser.error("--joint-frame-aux-weight must be non-negative")
+    if args.joint_noncoding_weight < 0:
+        parser.error("--joint-noncoding-weight must be non-negative")
     if args.cds_boundary_radius and args.cds_aux_weight <= 0:
         parser.error("--cds-boundary-radius requires --cds-aux-weight > 0")
+    if args.joint_frame_aux_weight > 0 and (
+        args.phase_aux_weight > 0 or args.cds_aux_weight > 0
+    ):
+        parser.error(
+            "--joint-frame-aux-weight replaces --phase-aux-weight and "
+            "--cds-aux-weight; do not enable them together"
+        )
     if args.all_splits_as_train and args.early_stopping_patience:
         parser.error("early stopping requires a held-out validation split")
     if args.stride != args.window_size // 2:
@@ -410,41 +498,47 @@ def main():
     logger.addHandler(file_handler)
     logger.addHandler(logging.StreamHandler(sys.stdout))
 
+    require_phase = (
+        args.phase_aux_weight > 0 or args.joint_frame_aux_weight > 0
+    )
+    require_cds = (
+        args.cds_aux_weight > 0 or args.joint_frame_aux_weight > 0
+    )
     if args.all_splits_as_train:
         train_data = PUDataset(
             [args.data_root / name for name in ("train", "val", "test")],
-            require_phase=args.phase_aux_weight > 0,
-            require_cds=args.cds_aux_weight > 0,
+            require_phase=require_phase,
+            require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
         )
         val_data = test_data = None
     elif args.include_test_in_train:
         train_data = PUDataset(
             [args.data_root / name for name in ("train", "test")],
-            require_phase=args.phase_aux_weight > 0,
-            require_cds=args.cds_aux_weight > 0,
+            require_phase=require_phase,
+            require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
         )
         val_data = PUDataset(
-            args.data_root / "val", require_phase=args.phase_aux_weight > 0,
-            require_cds=args.cds_aux_weight > 0,
+            args.data_root / "val", require_phase=require_phase,
+            require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
         )
         test_data = None
     else:
         train_data = PUDataset(
-            args.data_root / "train", require_phase=args.phase_aux_weight > 0,
-            require_cds=args.cds_aux_weight > 0,
+            args.data_root / "train", require_phase=require_phase,
+            require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
         )
         val_data = PUDataset(
-            args.data_root / "val", require_phase=args.phase_aux_weight > 0,
-            require_cds=args.cds_aux_weight > 0,
+            args.data_root / "val", require_phase=require_phase,
+            require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
         )
         test_data = PUDataset(
-            args.data_root / "test", require_phase=args.phase_aux_weight > 0,
-            require_cds=args.cds_aux_weight > 0,
+            args.data_root / "test", require_phase=require_phase,
+            require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
         )
     generator = torch.Generator().manual_seed(SEED)
@@ -469,14 +563,14 @@ def main():
     if args.record_gradient_norms:
         probe_data = PUDataset(
             args.data_root / "train",
-            require_phase=args.phase_aux_weight > 0,
-            require_cds=args.cds_aux_weight > 0,
+            require_phase=require_phase,
+            require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
         )
         for probe_index in range(len(probe_data)):
             candidate = probe_data[probe_index]
-            phase_bases = int(candidate[8].sum()) if args.phase_aux_weight > 0 else 1
-            cds_index = 11 if args.phase_aux_weight > 0 else 7
+            phase_bases = int(candidate[8].sum()) if require_phase else 1
+            cds_index = 11 if require_phase else 7
             cds_classes = (
                 int(torch.unique(candidate[cds_index]).numel())
                 if args.cds_aux_weight > 0 else 2
@@ -505,12 +599,13 @@ def main():
         frame_dilation=args.frame_dilation,
         phase_auxiliary=args.phase_aux_weight > 0,
         cds_auxiliary=args.cds_aux_weight > 0,
+        joint_frame_auxiliary=args.joint_frame_aux_weight > 0,
     ).to(device)
     model.gradient_checkpointing = args.gradient_checkpointing
     initialize_like_original(model)
     excluded_from_shared = (
         "splice_head.", "start_stop_head.", "phase_head.", "cds_head.",
-        "frame_branch.",
+        "joint_frame_head.", "frame_branch.",
     )
     shared_backbone_parameters = tuple(
         parameter for name, parameter in model.named_parameters()
@@ -570,6 +665,8 @@ def main():
         f"cds_aux_weight={args.cds_aux_weight:g} "
         f"cds_boundary_radius={args.cds_boundary_radius} "
         f"cds_far_loss_weight={args.cds_far_loss_weight:g} "
+        f"joint_frame_aux_weight={args.joint_frame_aux_weight:g} "
+        f"joint_noncoding_weight={args.joint_noncoding_weight:g} "
         f"record_gradient_norms={args.record_gradient_norms} "
         f"shared_backbone_parameters={shared_backbone_parameter_count:,} "
         f"gradient_probe={gradient_probe_file}"
@@ -593,6 +690,7 @@ def main():
                     probe_sequence,
                     return_phase=args.phase_aux_weight > 0,
                     return_cds=args.cds_aux_weight > 0,
+                    return_joint_frame=args.joint_frame_aux_weight > 0,
                 )
                 probe_splice, probe_ss = probe_outputs[:2]
                 probe_output_index = 2
@@ -607,6 +705,7 @@ def main():
                 cds_index = 11 if args.phase_aux_weight > 0 else 7
                 if args.cds_aux_weight > 0:
                     probe_cds = probe_outputs[probe_output_index]
+                    probe_output_index += 1
                     if args.cds_boundary_radius:
                         probe_cds_loss = boundary_weighted_cds_loss(
                             probe_cds, probe_batch[cds_index],
@@ -620,6 +719,14 @@ def main():
                         )
                 else:
                     probe_cds_loss = probe_splice.sum() * 0.0
+                if args.joint_frame_aux_weight > 0:
+                    probe_joint = probe_outputs[probe_output_index]
+                    probe_joint_loss = group_balanced_joint_frame_loss(
+                        probe_joint, probe_batch[7], probe_batch[8],
+                        probe_batch[11], args.joint_noncoding_weight,
+                    )
+                else:
+                    probe_joint_loss = probe_splice.sum() * 0.0
                 probe_splice_loss = candidate_loss(
                     probe_splice, probe_batch[1], probe_sequence, "splice",
                     probe_batch[3] if use_ignore else None,
@@ -633,6 +740,10 @@ def main():
                 ("start_stop", probe_ss_loss, 1.0),
                 ("phase", probe_phase_loss, args.phase_aux_weight),
                 ("cds", probe_cds_loss, args.cds_aux_weight),
+                (
+                    "joint_frame", probe_joint_loss,
+                    args.joint_frame_aux_weight,
+                ),
             )
             norms = {}
             for index, (name, component_loss, weight) in enumerate(
@@ -669,7 +780,7 @@ def main():
         optimizer.zero_grad(set_to_none=True)
         totals = {
             "loss": 0.0, "splice": 0.0, "ss": 0.0,
-            "phase": 0.0, "cds": 0.0,
+            "phase": 0.0, "cds": 0.0, "joint_frame": 0.0,
         }
         accumulated = 0
         epoch_gradient_norms = None
@@ -693,10 +804,14 @@ def main():
                     )
                 )
             with autocast("cuda", enabled=args.amp):
-                if args.phase_aux_weight > 0 or args.cds_aux_weight > 0:
+                if (
+                    args.phase_aux_weight > 0 or args.cds_aux_weight > 0
+                    or args.joint_frame_aux_weight > 0
+                ):
                     outputs = model(
                         sequence, return_phase=args.phase_aux_weight > 0,
                         return_cds=args.cds_aux_weight > 0,
+                        return_joint_frame=args.joint_frame_aux_weight > 0,
                     )
                     splice_logits, ss_logits = outputs[:2]
                     output_index = 2
@@ -716,6 +831,7 @@ def main():
                     phase_loss = splice_logits.sum() * 0.0
                 if args.cds_aux_weight > 0:
                     cds_logits = outputs[output_index]
+                    output_index += 1
                     cds_index = 11 if args.phase_aux_weight > 0 else 7
                     cds_labels = batch[cds_index].to(device, non_blocking=True)
                     if args.cds_boundary_radius:
@@ -732,6 +848,17 @@ def main():
                         )
                 else:
                     cds_loss = splice_logits.sum() * 0.0
+                if args.joint_frame_aux_weight > 0:
+                    joint_logits = outputs[output_index]
+                    joint_frame_loss = group_balanced_joint_frame_loss(
+                        joint_logits,
+                        batch[7].to(device, non_blocking=True),
+                        batch[8].to(device, non_blocking=True),
+                        batch[11].to(device, non_blocking=True),
+                        args.joint_noncoding_weight,
+                    )
+                else:
+                    joint_frame_loss = splice_logits.sum() * 0.0
                 splice_loss = candidate_loss(
                     splice_logits, splice_labels, sequence, "splice",
                     splice_ignore if use_ignore else None,
@@ -744,6 +871,7 @@ def main():
                     args.splice_loss_weight * splice_loss + ss_loss
                     + args.phase_aux_weight * phase_loss
                     + args.cds_aux_weight * cds_loss
+                    + args.joint_frame_aux_weight * joint_frame_loss
                 )
             if not torch.isfinite(loss):
                 logger.warning(
@@ -772,6 +900,7 @@ def main():
             totals["ss"] += float(ss_loss.item())
             totals["phase"] += float(phase_loss.item())
             totals["cds"] += float(cds_loss.item())
+            totals["joint_frame"] += float(joint_frame_loss.item())
             if batch_index % 500 == 0:
                 logger.info(
                     f"epoch={epoch} batch={batch_index:,}/{len(train_loader):,} "
@@ -798,6 +927,8 @@ def main():
                 args.cds_aux_weight,
                 args.cds_boundary_radius,
                 args.cds_far_loss_weight,
+                args.joint_frame_aux_weight,
+                args.joint_noncoding_weight,
             )
         mean_ap = None if metrics is None else sum(
             metrics[name]["AP"]
@@ -810,6 +941,9 @@ def main():
             "train_start_stop_loss": totals["ss"] / len(train_loader),
             "train_phase_loss": totals["phase"] / len(train_loader),
             "train_cds_loss": totals["cds"] / len(train_loader),
+            "train_joint_frame_loss": (
+                totals["joint_frame"] / len(train_loader)
+            ),
             "validation_loss": None if validation_losses is None else validation_losses["loss"],
             "validation_splice_loss": (
                 None if validation_losses is None else validation_losses["splice_loss"]
@@ -823,8 +957,15 @@ def main():
             "validation_cds_loss": (
                 None if validation_losses is None else validation_losses["cds_loss"]
             ),
+            "validation_joint_frame_loss": (
+                None if validation_losses is None
+                else validation_losses["joint_frame_loss"]
+            ),
             "validation_cds": (
                 None if metrics is None else metrics.get("cds")
+            ),
+            "validation_joint_cds": (
+                None if metrics is None else metrics.get("joint_cds")
             ),
             "train_shared_backbone_gradient_norms": epoch_gradient_norms,
             "shared_backbone_parameter_count": shared_backbone_parameter_count,
@@ -863,6 +1004,14 @@ def main():
                     f"    CDS AP={cds['AP']:.4f} F1={cds['F1']:.4f} "
                     f"P={cds['P']:.4f} R={cds['R']:.4f} "
                     f"thr={cds['threshold']:.4f}"
+                )
+            if "joint_cds" in metrics:
+                joint_cds = metrics["joint_cds"]
+                logger.info(
+                    f"    Joint CDS AP={joint_cds['AP']:.4f} "
+                    f"F1={joint_cds['F1']:.4f} "
+                    f"P={joint_cds['P']:.4f} R={joint_cds['R']:.4f} "
+                    f"thr={joint_cds['threshold']:.4f}"
                 )
         checkpoint = {
             "epoch": epoch,
@@ -916,6 +1065,8 @@ def main():
             args.cds_aux_weight,
             args.cds_boundary_radius,
             args.cds_far_loss_weight,
+            args.joint_frame_aux_weight,
+            args.joint_noncoding_weight,
         )
     result = {
         "mode": args.mode,

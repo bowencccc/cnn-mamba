@@ -17,9 +17,27 @@ FRAME_SOURCE = (
     ROOT / "work" / "uniann" / "frame_ablation_chrxtrain_v1"
     / "combined" / "w10" / "locus_metrics.tsv"
 )
+CDS_SOURCES = {
+    0.03: (
+        ROOT / "work" / "uniann" / "cds_weight_grid_v1"
+        / "p003" / "w10" / "locus_metrics.tsv"
+    ),
+    0.05: (
+        ROOT / "work" / "uniann" / "cds_weight_grid_v1"
+        / "p005" / "w10" / "locus_metrics.tsv"
+    ),
+    0.10: (
+        ROOT / "work" / "uniann" / "joint_cds_aux_v1"
+        / "lambda_010" / "w10" / "locus_metrics.tsv"
+    ),
+}
 OUT = ROOT / "results" / "early_stopping_v1" / "plots" / "uniann_locus"
 WINDOWS = (5, 10, 20, 30, 40, 80)
-CONFIGURATIONS = ("5 kb", "10 kb", "10 kb + frame", "20 kb", "30 kb", "40 kb", "80 kb")
+CONFIGURATIONS = (
+    "5 kb", "10 kb", "10 kb + frame/phase",
+    "10 kb + CDS 0.03", "10 kb + CDS 0.05", "10 kb + CDS 0.10",
+    "20 kb", "30 kb", "40 kb", "80 kb",
+)
 COLORS = {"UniAnn": "#4C78A8", "EviAnn + UniAnn": "#E45756"}
 
 
@@ -35,10 +53,19 @@ def load_metrics():
         )
     frames.append(
         pd.read_csv(FRAME_SOURCE, sep="\t").assign(
-            window_kb=10, configuration="10 kb + frame",
-            frame_auxiliary=True,
+            window_kb=10, configuration="10 kb + frame/phase",
+            frame_auxiliary=True, cds_weight=0.0,
         )
     )
+    for weight, path in CDS_SOURCES.items():
+        frames.append(
+            pd.read_csv(path, sep="\t").assign(
+                window_kb=10,
+                configuration=f"10 kb + CDS {weight:.2f}",
+                frame_auxiliary=True,
+                cds_weight=weight,
+            )
+        )
     return pd.concat(frames, ignore_index=True)
 
 
@@ -57,7 +84,7 @@ def main():
     )
 
     plt.style.use("seaborn-v0_8-whitegrid")
-    fig, axes = plt.subplots(1, 3, figsize=(15.5, 5.2), sharey=True)
+    fig, axes = plt.subplots(1, 3, figsize=(20.0, 6.0), sharey=True)
     for ax, (title, metric) in zip(axes, panels):
         uniann = wide[metric]["UniAnn"].reindex(CONFIGURATIONS).to_numpy()
         combined = wide[metric]["EviAnn+UniAnn"].reindex(CONFIGURATIONS).to_numpy()
@@ -73,7 +100,15 @@ def main():
         ax.bar_label(bars2, fmt="%.1f", padding=3, fontsize=8.5)
         ax.set_title(title, fontsize=14, weight="bold")
         ax.set_xlabel("Window/model configuration")
-        ax.set_xticks(x, ("5", "10", "10 +\nframe", "20", "30", "40", "80"))
+        ax.set_xticks(
+            x,
+            (
+                "5", "10", "10 +\nframe/phase",
+                "10 + CDS\n0.03", "10 + CDS\n0.05", "10 + CDS\n0.10",
+                "20", "30", "40", "80",
+            ),
+        )
+        ax.tick_params(axis="x", labelsize=8.5)
         ax.set_ylim(60, 96)
         ax.grid(axis="y", alpha=0.25, linewidth=0.8)
         ax.grid(axis="x", visible=False)

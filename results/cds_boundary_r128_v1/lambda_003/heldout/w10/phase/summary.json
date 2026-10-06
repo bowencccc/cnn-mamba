@@ -1,0 +1,51 @@
+{
+  "schema": "cds_gated_phase_evaluation_v1",
+  "raw_phase": "/home/bowencccc/cnn_mamba_k7_portable/artifacts/phase_predictions/cds_boundary_r128_v1/lambda_003/heldout/w10/chrX_plus/raw_phase_probabilities.npy",
+  "gated_directory": "/home/bowencccc/cnn_mamba_k7_portable/artifacts/phase_predictions/cds_boundary_r128_v1/lambda_003/heldout/w10/chrX_plus",
+  "reference": "/home/bowencccc/ssm_splice_site/drosophila_annotation.gtf",
+  "chromosome": "NC_004354.4",
+  "strand": "+",
+  "metric": "4096-bin bounded-memory average precision",
+  "raw_phase_macro_AP": 0.751810466931234,
+  "gated_phase_macro_AP": 0.957361642692914,
+  "macro_AP_difference": 0.20555117576168003,
+  "cds_metrics": {
+    "AP": 0.9654092587109564,
+    "best_F1": 0.9128372543260623,
+    "precision": 0.9201688668525353,
+    "recall": 0.905621550186557,
+    "threshold": 0.8537240537240537,
+    "positives": 2012790,
+    "evaluated_bases": 23542271
+  },
+  "joint_confusion_matrix_rows_reference_columns_prediction": [
+    [
+      21107652,
+      140719,
+      136676,
+      144434
+    ],
+    [
+      32324,
+      633422,
+      836,
+      3889
+    ],
+    [
+      34360,
+      3801,
+      631323,
+      1006
+    ],
+    [
+      31726,
+      940,
+      3758,
+      634062
+    ]
+  ],
+  "joint_macro_F1": 0.9022756021441588,
+  "maximum_gated_sum_minus_cds_probability": 1.7881393432617188e-07,
+  "joint_argmax_mismatches": 0,
+  "excluded_reference_phase_conflict_bases": 1343
+}

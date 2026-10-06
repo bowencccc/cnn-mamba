@@ -14,7 +14,7 @@ from cnn_mamba.prepare_droso import (
 from cnn_mamba.score_chromosome import keep_bounds
 from cnn_mamba.train import (
     PUDataset, boundary_weighted_cds_loss, candidate_loss, masked_phase_loss,
-    shared_backbone_gradient_norm,
+    group_balanced_joint_frame_loss, shared_backbone_gradient_norm,
 )
 from cnn_mamba.uniann_evaluate import parse_stats
 
@@ -52,6 +52,32 @@ class CoreTests(unittest.TestCase):
         for output in outputs[:3]:
             self.assertEqual(output.shape, (2, 101, 3))
         self.assertEqual(outputs[3].shape, (2, 101, 2))
+
+    def test_four_state_joint_frame_head_shape(self):
+        model = SpliceMamba(
+            d_model=16, d_state=8, n_layers=0, dropout=0.0,
+            architecture="cnn_mamba", cnn_kernel_size=7,
+            frame_dilation=3, joint_frame_auxiliary=True,
+        )
+        outputs = model(
+            torch.randint(0, 5, (2, 101)), return_joint_frame=True
+        )
+        self.assertEqual(len(outputs), 3)
+        self.assertEqual(outputs[2].shape, (2, 101, 4))
+
+    def test_group_balanced_joint_frame_loss(self):
+        logits = torch.zeros(1, 6, 4, requires_grad=True)
+        phase = torch.tensor([[0, 1, 2, 0, 0, 0]])
+        phase_mask = torch.tensor([[True, True, True, False, False, False]])
+        cds = torch.tensor([[True, True, True, False, False, True]])
+        loss = group_balanced_joint_frame_loss(
+            logits, phase, phase_mask, cds, noncoding_weight=0.1
+        )
+        self.assertAlmostEqual(loss.item(), 1.1 * np.log(4), places=6)
+        loss.backward()
+        # The final CDS base has conflicting/unknown phase and is excluded.
+        self.assertTrue(torch.equal(logits.grad[0, 5], torch.zeros(4)))
+        self.assertIsNotNone(logits.grad)
 
     def test_phase_tracks_follow_transcript_direction(self):
         plus = build_phase_track([(2, 8, 0)], 10, "+")

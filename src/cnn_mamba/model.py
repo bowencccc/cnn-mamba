@@ -82,7 +82,7 @@ class SpliceMamba(nn.Module):
     def __init__(self, d_model=192, d_state=64, n_layers=8, dropout=0.1,
                  architecture="cnn_mamba", cnn_kernel_size=7,
                  frame_dilation=0, phase_auxiliary=False,
-                 cds_auxiliary=False):
+                 cds_auxiliary=False, joint_frame_auxiliary=False):
         super().__init__()
         if architecture not in {"mamba", "cnn_mamba"}:
             raise ValueError(f"unsupported architecture: {architecture}")
@@ -124,8 +124,14 @@ class SpliceMamba(nn.Module):
         self.start_stop_head = head()
         self.phase_head = nn.Linear(d_model, 3) if phase_auxiliary else None
         self.cds_head = nn.Linear(d_model, 2) if cds_auxiliary else None
+        self.joint_frame_head = (
+            nn.Linear(d_model, 4) if joint_frame_auxiliary else None
+        )
 
-    def forward(self, sequence, return_phase=False, return_cds=False):
+    def forward(
+        self, sequence, return_phase=False, return_cds=False,
+        return_joint_frame=False,
+    ):
         x = self.embed_drop(self.input_proj(self.embedding(sequence)))
         if self.architecture == "mamba":
             for norm, layer, drop in zip(self.norms, self.layers, self.drops):
@@ -147,6 +153,13 @@ class SpliceMamba(nn.Module):
             if self.cds_head is None:
                 raise RuntimeError("CDS output requested without cds_auxiliary=True")
             outputs += (self.cds_head(start_stop_features),)
+        if return_joint_frame:
+            if self.joint_frame_head is None:
+                raise RuntimeError(
+                    "joint frame output requested without "
+                    "joint_frame_auxiliary=True"
+                )
+            outputs += (self.joint_frame_head(start_stop_features),)
         return outputs
 
 
@@ -164,6 +177,11 @@ def model_from_checkpoint(saved, device=None):
             bool(config.get("cds_auxiliary", False))
             or config.get("cds_aux_weight", 0.0) > 0
             or any(name.startswith("cds_head.") for name in state)
+        ),
+        joint_frame_auxiliary=(
+            bool(config.get("joint_frame_auxiliary", False))
+            or config.get("joint_frame_aux_weight", 0.0) > 0
+            or any(name.startswith("joint_frame_head.") for name in state)
         ),
     )
     model.load_state_dict(state)

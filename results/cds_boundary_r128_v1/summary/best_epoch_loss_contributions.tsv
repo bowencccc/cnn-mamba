@@ -1,0 +1,17 @@
+model	regime	best_epoch	split	component	raw_loss	weight	weighted_loss	fraction
+boundary CDS=0.03	heldout	16	train	splice	0.00311971065	0.25	0.000779927664	0.105463881
+boundary CDS=0.03	heldout	16	train	start_stop	0.00371693848	1	0.00371693848	0.502614251
+boundary CDS=0.03	heldout	16	train	phase	0.00925934071	0.1	0.000925934071	0.125207254
+boundary CDS=0.03	heldout	16	train	cds	0.0657470292	0.03	0.00197241088	0.266714615
+boundary CDS=0.03	heldout	16	validation	splice	0.00289219844	0.25	0.000723049611	0.0653042978
+boundary CDS=0.03	heldout	16	validation	start_stop	0.00461564766	1	0.00461564766	0.416875446
+boundary CDS=0.03	heldout	16	validation	phase	0.0294097422	0.1	0.00294097422	0.265622515
+boundary CDS=0.03	heldout	16	validation	cds	0.0930778344	0.03	0.00279233503	0.252197741
+boundary CDS=0.03	chrxtrain	13	train	splice	0.0030648921	0.25	0.000766223025	0.10077313
+boundary CDS=0.03	chrxtrain	13	train	start_stop	0.00376429327	1	0.00376429327	0.495077286
+boundary CDS=0.03	chrxtrain	13	train	phase	0.0109884978	0.1	0.00109884978	0.144519975
+boundary CDS=0.03	chrxtrain	13	train	cds	0.0658026547	0.03	0.00197407964	0.259629609
+boundary CDS=0.03	chrxtrain	13	validation	splice	0.00274315	0.25	0.0006857875	0.066801045
+boundary CDS=0.03	chrxtrain	13	validation	start_stop	0.00434442411	1	0.00434442411	0.423180753
+boundary CDS=0.03	chrxtrain	13	validation	phase	0.0263309408	0.1	0.00263309408	0.256483876
+boundary CDS=0.03	chrxtrain	13	validation	cds	0.0867604552	0.03	0.00260281366	0.253534327

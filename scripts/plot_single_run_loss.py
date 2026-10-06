@@ -30,7 +30,10 @@ def main():
         "train_start_stop_loss", "validation_start_stop_loss",
         "train_phase_loss", "validation_phase_loss", "mean_AP",
     ]
-    for column in ("train_cds_loss", "validation_cds_loss"):
+    for column in (
+        "train_cds_loss", "validation_cds_loss",
+        "train_joint_frame_loss", "validation_joint_frame_loss",
+    ):
         if column in frame:
             columns.insert(-1, column)
     args.output_dir.mkdir(parents=True, exist_ok=True)

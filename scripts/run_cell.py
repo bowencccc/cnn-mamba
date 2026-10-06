@@ -37,6 +37,8 @@ def main():
     parser.add_argument("--cds-aux-weight", type=float, default=0.0)
     parser.add_argument("--cds-boundary-radius", type=int, default=0)
     parser.add_argument("--cds-far-loss-weight", type=float, default=0.1)
+    parser.add_argument("--joint-frame-aux-weight", type=float, default=0.0)
+    parser.add_argument("--joint-noncoding-weight", type=float, default=0.1)
     parser.add_argument("--record-gradient-norms", action="store_true")
     args = parser.parse_args()
     config_path = args.config if args.config.is_absolute() else root / args.config
@@ -75,6 +77,8 @@ def main():
             "--cds-aux-weight", str(args.cds_aux_weight),
             "--cds-boundary-radius", str(args.cds_boundary_radius),
             "--cds-far-loss-weight", str(args.cds_far_loss_weight),
+            "--joint-frame-aux-weight", str(args.joint_frame_aux_weight),
+            "--joint-noncoding-weight", str(args.joint_noncoding_weight),
         ])
         if args.record_gradient_norms:
             command.append("--record-gradient-norms")

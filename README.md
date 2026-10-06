@@ -275,6 +275,47 @@ with `torch.autograd.grad`, reports the norm after applying that loss's
 coefficient, and restores RNG state so the diagnostic does not alter training.
 Heads and the dilation-3 frame branch are excluded from the shared-core norm.
 
+### Four-state coding-frame head
+
+The latest model replaces the masked three-class phase head with one four-class
+head in class order `non_CDS/frame0/frame1/frame2`. Coding bases are supervised
+with their annotation-derived frame; all bases outside annotated CDS are
+supervised as `non_CDS`. Bases with conflicting reference phase are excluded
+from the coding part of the auxiliary loss. The joint-head coefficient is
+`0.1`; the completed grid compares noncoding within-head weights
+`0.03/0.10/0.30` while leaving the two candidate heads and their loss unchanged.
+
+Run all six cells sequentially on one local GPU with:
+
+```bash
+CNN_MAMBA_PYTHON=/path/to/python \
+  bash scripts/run_joint_frame_grid_local.sh
+```
+
+On Rockfish, generate the phase/CDS windows once and submit the six independent
+GPU cells as a Slurm array:
+
+```bash
+cnn-mamba-prepare-droso \
+  --config configs/droso_frame_w10.json \
+  --output-root data/processed/cds_gating \
+  --include-phase-labels
+
+sbatch --account=<PI_NAME>_gpu scripts/rockfish_joint_frame_grid.slurm
+```
+
+After the whole array succeeds, create the cross-model figures and tables:
+
+```bash
+python scripts/summarize_joint_frame_grid.py
+```
+
+The completed local run is versioned under `results/joint_frame_grid_v1/`.
+Among the four-state models, noncoding weight `0.10` gave the best strict
+UniAnn-only locus result (Sn 80.4, Pr 79.6, F1 80.00). The phase-only baseline
+remained narrowly best after combining EviAnn and UniAnn (F1 90.54 versus
+90.34 for the four-state 0.10 model).
+
 ## 5. Run UniAnn and combined strict evaluation
 
 This deliberately uses the `chrxtrain` checkpoint, exports the six-column
@@ -301,6 +342,13 @@ legacy grid was 20 kb (0.7949); the best UniAnn-only locus F1 was 10 kb
 (77.33 using the latest UniAnn), and EviAnn+UniAnn at 10 kb was Sn 89.8 / Pr
 90.8 / F1 90.30. See `results/window_ablation/README.md` for provenance and
 file routing.
+
+The newer CDS auxiliary, boundary-weighted CDS, and four-state frame experiments
+are stored in `results/cds_weight_grid_v1/`, `results/cds_boundary_r128_v1/`,
+and `results/joint_frame_grid_v1/`. These compact tables, JSON summaries, loss
+plots, PR--Sn figures and strict locus comparisons are tracked by Git. Raw
+chromosome score arrays, per-base predictions, training checkpoints and UniAnn
+working directories remain external.
 
 ## Human pipeline
 
@@ -343,7 +391,10 @@ src/cnn_mamba/score_chromosome.py      all canonical candidate scores
 src/cnn_mamba/evaluate_candidates.py   exact held-out AUPRC
 src/cnn_mamba/export_uniann_scores.py  legacy UniAnn score TSV
 src/cnn_mamba/uniann_evaluate.py       UniAnn + strict locus comparison
+src/cnn_mamba/score_joint_frame_chromosome.py  four-state per-base inference
+src/cnn_mamba/evaluate_joint_frame.py  CDS/frame evaluation for four-state head
 scripts/run_cell.py                    end-to-end per-GPU driver
+scripts/rockfish_joint_frame_grid.slurm  six-cell Rockfish Slurm array
 external_manifest.tsv                  external data/checkpoint inventory
 results/window_ablation/               versioned compact results
 ```

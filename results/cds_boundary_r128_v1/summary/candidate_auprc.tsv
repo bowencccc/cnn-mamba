@@ -1,0 +1,25 @@
+task	candidates	reference_sites	matched_positives	AUPRC	model	regime
+donor	1236362	3403	3403	0.955915129	phase only	heldout
+acceptor	1245749	3438	3438	0.952745576	phase only	heldout
+start	411520	1281	1281	0.850984495	phase only	heldout
+stop	1060569	1265	1265	0.882286936	phase only	heldout
+donor	1236362	3403	3403	0.963164535	phase only	chrxtrain
+acceptor	1245749	3438	3438	0.957508819	phase only	chrxtrain
+start	411520	1281	1281	0.881101731	phase only	chrxtrain
+stop	1060569	1265	1265	0.907998279	phase only	chrxtrain
+donor	1236362	3403	3403	0.956949450	dense CDS=0.03	heldout
+acceptor	1245749	3438	3438	0.951844069	dense CDS=0.03	heldout
+start	411520	1281	1281	0.860838707	dense CDS=0.03	heldout
+stop	1060569	1265	1265	0.885793288	dense CDS=0.03	heldout
+donor	1236362	3403	3403	0.966936978	dense CDS=0.03	chrxtrain
+acceptor	1245749	3438	3438	0.962927723	dense CDS=0.03	chrxtrain
+start	411520	1281	1281	0.892166782	dense CDS=0.03	chrxtrain
+stop	1060569	1265	1265	0.902838144	dense CDS=0.03	chrxtrain
+donor	1236362	3403	3403	0.959343596	boundary CDS=0.03	heldout
+acceptor	1245749	3438	3438	0.957187424	boundary CDS=0.03	heldout
+start	411520	1281	1281	0.852135483	boundary CDS=0.03	heldout
+stop	1060569	1265	1265	0.881585861	boundary CDS=0.03	heldout
+donor	1236362	3403	3403	0.967102490	boundary CDS=0.03	chrxtrain
+acceptor	1245749	3438	3438	0.962662314	boundary CDS=0.03	chrxtrain
+start	411520	1281	1281	0.889922391	boundary CDS=0.03	chrxtrain
+stop	1060569	1265	1265	0.901749410	boundary CDS=0.03	chrxtrain
