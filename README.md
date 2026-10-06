@@ -310,6 +310,17 @@ After the whole array succeeds, create the cross-model figures and tables:
 python scripts/summarize_joint_frame_grid.py
 ```
 
+Export a completed four-state chromosome prediction as a one-row-per-base TSV
+in `frame0/frame1/frame2/noncoding` column order with one-based coordinates:
+
+```bash
+python -m cnn_mamba.export_joint_frame_tsv \
+  --probabilities artifacts/joint_frame_predictions/joint_frame_grid_v1/b010/chrxtrain/w10/chrX_plus/joint_frame_probabilities.npy \
+  --argmax artifacts/joint_frame_predictions/joint_frame_grid_v1/b010/chrxtrain/w10/chrX_plus/joint_frame_argmax.npy \
+  --output artifacts/joint_frame_predictions/joint_frame_grid_v1/b010/chrxtrain/w10/chrX_plus/chrX_plus_joint_frame_probabilities.tsv \
+  --chrom chrX --strand +
+```
+
 The completed local run is versioned under `results/joint_frame_grid_v1/`.
 Among the four-state models, noncoding weight `0.10` gave the best strict
 UniAnn-only locus result (Sn 80.4, Pr 79.6, F1 80.00). The phase-only baseline
