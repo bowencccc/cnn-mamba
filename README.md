@@ -385,6 +385,30 @@ CUDA_VISIBLE_DEVICES=0 python scripts/run_human.py \
   --regime chr1held --stages train,score,auprc
 ```
 
+For the Human four-state `noncoding/frame0/frame1/frame2` pretraining run,
+generate the EviAnn training and CHESS reference phase/CDS arrays while keeping
+the original 10 kb windows and chromosome split:
+
+```bash
+cnn-mamba-prepare-human \
+  --fasta data/raw/human_grch38.fa \
+  --eviann-gff data/raw/human_eviann_pseudo_label.gff \
+  --chess-gtf data/raw/human_chess3.1.3.gtf \
+  --output-dir data/processed/human_joint_frame_w10_chr1held \
+  --max-windows-per-chrom-strand 0 \
+  --region-overlap-bp 10000 \
+  --include-phase-labels
+
+CNN_MAMBA_PYTHON=/path/to/python \
+  bash scripts/run_human_joint_frame_pretrain_local.sh
+```
+
+This run holds out chr1, uses frame dilation 3, joint-head weight 0.1 and
+noncoding within-head weight 0.1. It retains the original Human baseline's five
+epochs and effective batch of eight windows. On Rockfish, submit the same run
+with `scripts/rockfish_human_joint_frame_pretrain.slurm` after generating or
+transferring the processed windows.
+
 Reuse and evaluate the existing chr1-in-training checkpoint:
 
 ```bash

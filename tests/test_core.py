@@ -7,6 +7,7 @@ import torch
 
 from cnn_mamba.common import splice_candidate_masks, start_stop_candidate_masks
 from cnn_mamba.evaluate_gated_phase import BinnedBinaryMetrics
+from cnn_mamba.prepare_human import parse_cds_phase_records as parse_human_phase
 from cnn_mamba.model import SpliceMamba
 from cnn_mamba.prepare_droso import (
     build_cds_boundary_mask, build_cds_track, build_phase_track,
@@ -20,6 +21,23 @@ from cnn_mamba.uniann_evaluate import parse_stats
 
 
 class CoreTests(unittest.TestCase):
+    def test_human_phase_parser_normalizes_accession_and_chr_names(self):
+        eviann = (
+            "NC_000001.11\tEviAnn\tCDS\t2\t5\t.\t+\t1\tParent=x\n"
+        )
+        chess = (
+            'chr1\tCHESS\tCDS\t8\t10\t.\t-\t2\ttranscript_id "y";\n'
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            e_path = Path(directory) / "e.gff"
+            c_path = Path(directory) / "c.gtf"
+            e_path.write_text(eviann)
+            c_path.write_text(chess)
+            e_records = parse_human_phase(e_path, "eviann")
+            c_records = parse_human_phase(c_path, "chess")
+        self.assertEqual(e_records["chr1"]["+"], [(1, 5, 1)])
+        self.assertEqual(c_records["chr1"]["-"], [(7, 10, 2)])
+
     def test_candidate_masks(self):
         # A C G T G T A G A T G T A A
         sequence = torch.tensor([[0, 1, 2, 3, 2, 3, 0, 2, 0, 3, 2, 3, 0, 0]])

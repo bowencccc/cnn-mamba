@@ -39,6 +39,7 @@ from .human_window_helpers import (
     merge_intervals,
     window_starts_for_regions,
 )
+from .prepare_droso import build_cds_track, build_phase_track
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -74,6 +75,34 @@ def index_sites(sites):
             for strand in ("+", "-"):
                 indexed[name][chrom][strand] = sorted(indexed[name][chrom][strand])
     return indexed
+
+
+def parse_cds_phase_records(path, annotation_kind):
+    """Collect primary-chromosome CDS intervals and GFF/GTF phase values."""
+    if annotation_kind not in {"eviann", "chess"}:
+        raise ValueError(f"unsupported annotation kind: {annotation_kind}")
+    records = defaultdict(lambda: {"+": [], "-": []})
+    with Path(path).open() as handle:
+        for line in handle:
+            if line.startswith("#") or not line.strip():
+                continue
+            fields = line.rstrip("\n").split("\t")
+            if (
+                len(fields) < 8 or fields[2] != "CDS"
+                or fields[6] not in {"+", "-"}
+                or fields[7] not in {"0", "1", "2"}
+            ):
+                continue
+            if annotation_kind == "eviann":
+                chrom = NC_TO_CHR.get(fields[0])
+            else:
+                chrom = fields[0] if fields[0] in CHR_TO_NC else None
+            if chrom is None:
+                continue
+            records[chrom][fields[6]].append(
+                (int(fields[3]) - 1, int(fields[4]), int(fields[7]))
+            )
+    return records
 
 
 def oriented_offset(position, win_start, strand, motif_length):
@@ -130,6 +159,7 @@ def window_starts_for_region_overlap(regions, chrom_len, overlap_bp):
 def generate_split(
     output_dir, split, chroms, regions, eviann, chess, fasta_path,
     max_per_chrom_strand, region_overlap_bp,
+    eviann_phase=None, chess_phase=None,
 ):
     split_dir = output_dir / split
     split_dir.mkdir(parents=True, exist_ok=True)
@@ -146,6 +176,26 @@ def generate_split(
         chrom_len = fasta.get_reference_length(accession)
         chrom_windows = 0
         for strand in ("+", "-"):
+            phase_tracks = None
+            if eviann_phase is not None:
+                e_phase_track = build_phase_track(
+                    eviann_phase[chrom][strand], chrom_len, strand
+                )
+                c_phase_track = build_phase_track(
+                    chess_phase[chrom][strand], chrom_len, strand
+                )
+                phase_tracks = {
+                    "phase": e_phase_track,
+                    "phase_mask": e_phase_track >= 0,
+                    "reference_phase": c_phase_track,
+                    "reference_phase_mask": c_phase_track >= 0,
+                    "cds": build_cds_track(
+                        eviann_phase[chrom][strand], chrom_len
+                    ),
+                    "reference_cds": build_cds_track(
+                        chess_phase[chrom][strand], chrom_len
+                    ),
+                }
             starts = window_starts_for_region_overlap(
                 regions[chrom][strand], chrom_len, region_overlap_bp
             )
@@ -170,8 +220,7 @@ def generate_split(
                     sequence = sequence.translate(COMPLEMENT)[::-1]
                 encoded = ENCODE[np.frombuffer(sequence.encode("ascii"), dtype=np.uint8)]
                 filename = f"{chrom[3:]}_{'plus' if strand == '+' else 'minus'}_{win_start}.npz"
-                np.savez_compressed(
-                    split_dir / filename,
+                arrays = dict(
                     sequence=encoded,
                     labels=e_splice,
                     start_stop_labels=e_ss,
@@ -180,6 +229,32 @@ def generate_split(
                     chess_labels=c_splice,
                     chess_start_stop_labels=c_ss,
                 )
+                if phase_tracks is not None:
+                    end = win_start + WINDOW_SIZE
+                    e_phase = phase_tracks["phase"][win_start:end]
+                    e_phase_mask = phase_tracks["phase_mask"][win_start:end]
+                    c_phase = phase_tracks["reference_phase"][win_start:end]
+                    c_phase_mask = phase_tracks[
+                        "reference_phase_mask"
+                    ][win_start:end]
+                    e_cds = phase_tracks["cds"][win_start:end]
+                    c_cds = phase_tracks["reference_cds"][win_start:end]
+                    if strand == "-":
+                        e_phase = e_phase[::-1]
+                        e_phase_mask = e_phase_mask[::-1]
+                        c_phase = c_phase[::-1]
+                        c_phase_mask = c_phase_mask[::-1]
+                        e_cds = e_cds[::-1]
+                        c_cds = c_cds[::-1]
+                    arrays.update(
+                        phase_labels=np.maximum(e_phase, 0),
+                        phase_mask=e_phase_mask,
+                        reference_phase_labels=np.maximum(c_phase, 0),
+                        reference_phase_mask=c_phase_mask,
+                        cds_labels=e_cds,
+                        reference_cds_labels=c_cds,
+                    )
+                np.savez_compressed(split_dir / filename, **arrays)
                 chrom_windows += 1
                 summary["windows"] += 1
                 for name, e_arr, c_arr, ign_arr, cls in (
@@ -193,6 +268,10 @@ def generate_split(
                     summary["ignored_chess_only_positions"][name] += int(
                         np.sum(ign_arr & (c_arr == cls))
                     )
+            if phase_tracks is not None:
+                # Release chromosome-sized dense tracks before allocating the
+                # next strand/chromosome (chr1 alone is about 249 Mb/base track).
+                del phase_tracks, e_phase_track, c_phase_track
         summary["by_chrom"][chrom] = chrom_windows
         print(f"[{split}] {chrom}: {chrom_windows:,} windows", flush=True)
     fasta.close()
@@ -216,6 +295,13 @@ def main():
     parser.add_argument(
         "--region-overlap-bp", type=int, choices=(5000, 10000), default=10000,
         help="Retain a window when its central 5 kb or full 10 kb overlaps an EviAnn coding-transcript span.",
+    )
+    parser.add_argument(
+        "--include-phase-labels", action="store_true",
+        help=(
+            "Store EviAnn training and CHESS reference CDS phase/CDS tracks "
+            "for auxiliary-head training."
+        ),
     )
     args = parser.parse_args()
     args.fasta = args.fasta.resolve()
@@ -242,6 +328,12 @@ def main():
     e_sites, e_rejected = extract_sites(e_meta, e_exons, e_cds, args.fasta)
     c_sites, c_rejected = extract_sites(c_meta, c_exons, c_cds, args.fasta)
     e_indexed, c_indexed = index_sites(e_sites), index_sites(c_sites)
+    if args.include_phase_labels:
+        print("Parsing EviAnn and CHESS CDS phase records...", flush=True)
+        e_phase = parse_cds_phase_records(args.eviann_gff, "eviann")
+        c_phase = parse_cds_phase_records(args.chess_gtf, "chess")
+    else:
+        e_phase = c_phase = None
 
     summaries = {}
     for split in ("train", "val", "test"):
@@ -255,6 +347,8 @@ def main():
             args.fasta,
             args.max_windows_per_chrom_strand,
             args.region_overlap_bp,
+            e_phase,
+            c_phase,
         )
     manifest = {
         "eviann_annotation": str(args.eviann_gff),
@@ -270,6 +364,15 @@ def main():
         ),
         "region_overlap_bp": args.region_overlap_bp,
         "max_windows_per_chrom_strand": args.max_windows_per_chrom_strand,
+        "phase_labels": (
+            "EviAnn/CHESS CDS phase converted to transcript-oriented per-base "
+            "states 0/1/2; non-CDS and isoform conflicts are masked"
+            if args.include_phase_labels else None
+        ),
+        "cds_labels": (
+            "union of EviAnn/CHESS CDS intervals independent of phase conflicts"
+            if args.include_phase_labels else None
+        ),
         "splits": split_chroms,
         "summary": summaries,
         "eviann_rejected": e_rejected,

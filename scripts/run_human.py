@@ -19,6 +19,15 @@ def main():
     parser.add_argument("--regime", choices=("chr1held", "chr1train"), required=True)
     parser.add_argument("--stages", default="train,score,auprc")
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--experiment-tag", default="")
+    parser.add_argument("--data-root", type=Path)
+    parser.add_argument("--epochs", type=int)
+    parser.add_argument("--frame-dilation", type=int, default=0)
+    parser.add_argument("--joint-frame-aux-weight", type=float, default=0.0)
+    parser.add_argument("--joint-noncoding-weight", type=float, default=0.1)
+    parser.add_argument("--record-gradient-norms", action="store_true")
+    parser.add_argument("--early-stopping-patience", type=int, default=0)
+    parser.add_argument("--early-stopping-min-delta", type=float, default=0.0001)
     args = parser.parse_args()
     stages = [value.strip() for value in args.stages.split(",") if value.strip()]
     unknown = set(stages) - {"train", "score", "auprc"}
@@ -27,30 +36,48 @@ def main():
 
     config = json.loads((root / "configs/human_cnn_mamba_k7.json").read_text())
     raw = root / "data/raw"
-    processed = root / "data/processed/human_w10_chr1held"
-    run_dir = root / "runs/human" / args.regime
+    processed = args.data_root or root / "data/processed/human_w10_chr1held"
+    run_root = root / "runs/human"
+    score_root = root / "artifacts/scores/human"
+    if args.experiment_tag:
+        run_root /= args.experiment_tag
+        score_root /= args.experiment_tag
+    run_dir = run_root / args.regime
     checkpoint = run_dir / "best_model.pt"
     external = root / "artifacts/checkpoints/human/chr1train_cnn_mamba_k7/best_model.pt"
-    score_dir = root / "artifacts/scores/human" / args.regime / "chr1_plus"
+    score_dir = score_root / args.regime / "chr1_plus"
 
     if "train" in stages:
         command = [sys.executable, "-m", "cnn_mamba.train",
                    "--data-root", processed, "--mode", "baseline",
-                   "--output-dir", run_dir, "--epochs", str(config["epochs"]),
+                   "--output-dir", run_dir,
+                   "--epochs", str(args.epochs or config["epochs"]),
                    "--batch-size", str(config["micro_batch"]),
                    "--grad-accum", str(config["grad_accum"]),
                    "--workers", str(args.workers), "--architecture", "cnn_mamba",
                    "--cnn-kernel-size", str(config["cnn_kernel_size"]),
                    "--window-size", str(config["window_bp"]),
                    "--stride", str(config["stride_bp"]),
-                   "--reference-name", "CHESS", "--test-name", "chr1"]
+                   "--reference-name", "CHESS", "--test-name", "chr1",
+                   "--frame-dilation", str(args.frame_dilation),
+                   "--joint-frame-aux-weight", str(args.joint_frame_aux_weight),
+                   "--joint-noncoding-weight", str(args.joint_noncoding_weight),
+                   "--early-stopping-patience", str(args.early_stopping_patience),
+                   "--early-stopping-min-delta", str(args.early_stopping_min_delta)]
+        if args.record_gradient_norms:
+            command.append("--record-gradient-norms")
         if args.regime == "chr1train":
             command.append("--include-test-in-train")
         if (run_dir / "last_model.pt").is_file():
             command.append("--resume")
         call(command)
     elif not checkpoint.is_file():
-        if args.regime == "chr1train" and external.is_file():
+        if (
+            args.regime == "chr1train"
+            and not args.experiment_tag
+            and args.joint_frame_aux_weight == 0
+            and external.is_file()
+        ):
             checkpoint = external
         else:
             parser.error(f"checkpoint not found: {checkpoint}")
