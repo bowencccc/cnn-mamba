@@ -1,0 +1,14 @@
+{
+  "job_id": 31705646,
+  "slurm_state": "COMPLETED",
+  "slurm_exit_code": "0:0",
+  "slurm_elapsed": "1-01:45:29",
+  "best_epoch": 4,
+  "training_source_base_commit": "3c8f52c",
+  "training_source_had_uncommitted_changes": true,
+  "source_sha256": {
+    "src/cnn_mamba/train.py": "1ba6217f299b39aeff78b72020a7af4941be35d9609e1d9e94e92c49a4d0f28f",
+    "src/cnn_mamba/model.py": "27d05f4d86b59e861f2d238100d26337b2aa222a039611cba3589082181f3897",
+    "src/cnn_mamba/common.py": "df6e1932f9e4b14e29d7e2b91dbe5e02f8c9f4d3b8f21c6b4d9b5ba36b9f977d"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "experiment": "human_joint_frame_w10_v1",
+  "window_bp": 10000,
+  "stride_bp": 5000,
+  "seed": 42,
+  "epochs": 30,
+  "micro_batch": 4,
+  "grad_accum": 2,
+  "score_batch": 8,
+  "frame_dilation": 3,
+  "joint_frame_aux_weight": 0.1,
+  "joint_noncoding_weight": 0.1,
+  "early_stopping_patience": 3,
+  "early_stopping_min_delta": 0.0001,
+  "evaluation_chrom": "chr1",
+  "evaluation_strand": "+"
+}

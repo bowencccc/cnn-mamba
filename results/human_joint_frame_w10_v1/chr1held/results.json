@@ -1,0 +1,1197 @@
+{
+  "mode": "baseline",
+  "best_validation_mean_AP": 0.41744206379723287,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.06265434244895075,
+      "train_splice_loss": 0.007014498063826891,
+      "train_start_stop_loss": 0.006290973393686487,
+      "train_phase_loss": 0.0,
+      "train_cds_loss": 0.0,
+      "train_joint_frame_loss": 0.5460974361207653,
+      "validation_loss": 0.09527533359386074,
+      "validation_splice_loss": 0.003827950638411471,
+      "validation_start_stop_loss": 0.004633556414319173,
+      "validation_phase_loss": 0.0,
+      "validation_cds_loss": 0.0,
+      "validation_joint_frame_loss": 0.8968478784580333,
+      "validation_cds": null,
+      "validation_joint_cds": {
+        "AP": 0.6076730475153991,
+        "F1": 0.585005193418482,
+        "P": 0.5894928305113978,
+        "R": 0.5805853662545997,
+        "threshold": 0.9753357753357753,
+        "positives": 5109929,
+        "candidates": 228150000
+      },
+      "train_shared_backbone_gradient_norms": {
+        "splice": {
+          "raw": 19.645156860351562,
+          "weight": 0.25,
+          "weighted": 4.911289215087891,
+          "backward_scaled": 2.4556446075439453
+        },
+        "start_stop": {
+          "raw": 16.899953842163086,
+          "weight": 1.0,
+          "weighted": 16.899953842163086,
+          "backward_scaled": 8.449976921081543
+        },
+        "phase": {
+          "raw": 0.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "backward_scaled": 0.0
+        },
+        "cds": {
+          "raw": 0.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "backward_scaled": 0.0
+        },
+        "joint_frame": {
+          "raw": 94.54194641113281,
+          "weight": 0.1,
+          "weighted": 9.454194641113281,
+          "backward_scaled": 4.7270973205566404
+        }
+      },
+      "shared_backbone_parameter_count": 4404416,
+      "gradient_probe_file": "/home/bchen103/cnn_mamba_k7_portable/data/processed/human_joint_frame_w10_sharded_v1/train/windows-00110.zip::11_minus_10000000.npz",
+      "validation_chess": {
+        "donor": {
+          "AP": 0.701511435732835,
+          "F1": 0.6701117830309694,
+          "P": 0.6510004984689881,
+          "R": 0.6903790968131702,
+          "threshold": 0.13137973137973138,
+          "positives": 26484,
+          "candidates": 12353539
+        },
+        "acceptor": {
+          "AP": 0.7062454954759501,
+          "F1": 0.6743303697831133,
+          "P": 0.6920573421154591,
+          "R": 0.6574888651672985,
+          "threshold": 0.19462759462759463,
+          "positives": 27167,
+          "candidates": 16138052
+        },
+        "start": {
+          "AP": 0.22782094475580522,
+          "F1": 0.2963308095515434,
+          "P": 0.36923076923076925,
+          "R": 0.24747081712062258,
+          "threshold": 0.3321123321123321,
+          "positives": 5140,
+          "candidates": 4001790
+        },
+        "stop": {
+          "AP": 0.013367121756328067,
+          "F1": 0.04413740165035502,
+          "P": 0.032519558865114526,
+          "R": 0.0686703821656051,
+          "threshold": 0.005128205128205128,
+          "positives": 5024,
+          "candidates": 11657001
+        },
+        "joint_cds": {
+          "AP": 0.6076730475153991,
+          "F1": 0.585005193418482,
+          "P": 0.5894928305113978,
+          "R": 0.5805853662545997,
+          "threshold": 0.9753357753357753,
+          "positives": 5109929,
+          "candidates": 228150000
+        }
+      },
+      "validation_reference": {
+        "donor": {
+          "AP": 0.701511435732835,
+          "F1": 0.6701117830309694,
+          "P": 0.6510004984689881,
+          "R": 0.6903790968131702,
+          "threshold": 0.13137973137973138,
+          "positives": 26484,
+          "candidates": 12353539
+        },
+        "acceptor": {
+          "AP": 0.7062454954759501,
+          "F1": 0.6743303697831133,
+          "P": 0.6920573421154591,
+          "R": 0.6574888651672985,
+          "threshold": 0.19462759462759463,
+          "positives": 27167,
+          "candidates": 16138052
+        },
+        "start": {
+          "AP": 0.22782094475580522,
+          "F1": 0.2963308095515434,
+          "P": 0.36923076923076925,
+          "R": 0.24747081712062258,
+          "threshold": 0.3321123321123321,
+          "positives": 5140,
+          "candidates": 4001790
+        },
+        "stop": {
+          "AP": 0.013367121756328067,
+          "F1": 0.04413740165035502,
+          "P": 0.032519558865114526,
+          "R": 0.0686703821656051,
+          "threshold": 0.005128205128205128,
+          "positives": 5024,
+          "candidates": 11657001
+        },
+        "joint_cds": {
+          "AP": 0.6076730475153991,
+          "F1": 0.585005193418482,
+          "P": 0.5894928305113978,
+          "R": 0.5805853662545997,
+          "threshold": 0.9753357753357753,
+          "positives": 5109929,
+          "candidates": 228150000
+        }
+      },
+      "mean_AP": 0.41223624943022963,
+      "epoch_seconds": 13310.855671405792
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.04885861486760231,
+      "train_splice_loss": 0.004433324286983286,
+      "train_start_stop_loss": 0.0043822270535718655,
+      "train_phase_loss": 0.0,
+      "train_cds_loss": 0.0,
+      "train_joint_frame_loss": 0.4336805599854249,
+      "validation_loss": 0.09347490076167342,
+      "validation_splice_loss": 0.003895089676897407,
+      "validation_start_stop_loss": 0.004132994509900897,
+      "validation_phase_loss": 0.0,
+      "validation_cds_loss": 0.0,
+      "validation_joint_frame_loss": 0.8836813236591321,
+      "validation_cds": null,
+      "validation_joint_cds": {
+        "AP": 0.5805958822669833,
+        "F1": 0.573625142010569,
+        "P": 0.5548183243366702,
+        "R": 0.5937516940059245,
+        "threshold": 0.9858363858363859,
+        "positives": 5109929,
+        "candidates": 228150000
+      },
+      "train_shared_backbone_gradient_norms": {
+        "splice": {
+          "raw": 0.3913017809391022,
+          "weight": 0.25,
+          "weighted": 0.09782544523477554,
+          "backward_scaled": 0.04891272261738777
+        },
+        "start_stop": {
+          "raw": 0.2932579517364502,
+          "weight": 1.0,
+          "weighted": 0.2932579517364502,
+          "backward_scaled": 0.1466289758682251
+        },
+        "phase": {
+          "raw": 0.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "backward_scaled": 0.0
+        },
+        "cds": {
+          "raw": 0.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "backward_scaled": 0.0
+        },
+        "joint_frame": {
+          "raw": 363.9739990234375,
+          "weight": 0.1,
+          "weighted": 36.39739990234375,
+          "backward_scaled": 18.198699951171875
+        }
+      },
+      "shared_backbone_parameter_count": 4404416,
+      "gradient_probe_file": "/home/bchen103/cnn_mamba_k7_portable/data/processed/human_joint_frame_w10_sharded_v1/train/windows-00110.zip::11_minus_10000000.npz",
+      "validation_chess": {
+        "donor": {
+          "AP": 0.7314824157384627,
+          "F1": 0.687182393501464,
+          "P": 0.68761105440248,
+          "R": 0.6867542667270805,
+          "threshold": 0.6214896214896215,
+          "positives": 26484,
+          "candidates": 12353539
+        },
+        "acceptor": {
+          "AP": 0.65126046793981,
+          "F1": 0.6346326567271421,
+          "P": 0.619759323579974,
+          "R": 0.6502374203997497,
+          "threshold": 0.24932844932844933,
+          "positives": 27167,
+          "candidates": 16138052
+        },
+        "start": {
+          "AP": 0.1934657424320969,
+          "F1": 0.2646858698117487,
+          "P": 0.3172920065252855,
+          "R": 0.22704280155642023,
+          "threshold": 0.23101343101343103,
+          "positives": 5140,
+          "candidates": 4001790
+        },
+        "stop": {
+          "AP": 0.03310119429328908,
+          "F1": 0.0917771391489756,
+          "P": 0.08589276418532014,
+          "R": 0.09852707006369427,
+          "threshold": 0.06984126984126984,
+          "positives": 5024,
+          "candidates": 11657001
+        },
+        "joint_cds": {
+          "AP": 0.5805958822669833,
+          "F1": 0.573625142010569,
+          "P": 0.5548183243366702,
+          "R": 0.5937516940059245,
+          "threshold": 0.9858363858363859,
+          "positives": 5109929,
+          "candidates": 228150000
+        }
+      },
+      "validation_reference": {
+        "donor": {
+          "AP": 0.7314824157384627,
+          "F1": 0.687182393501464,
+          "P": 0.68761105440248,
+          "R": 0.6867542667270805,
+          "threshold": 0.6214896214896215,
+          "positives": 26484,
+          "candidates": 12353539
+        },
+        "acceptor": {
+          "AP": 0.65126046793981,
+          "F1": 0.6346326567271421,
+          "P": 0.619759323579974,
+          "R": 0.6502374203997497,
+          "threshold": 0.24932844932844933,
+          "positives": 27167,
+          "candidates": 16138052
+        },
+        "start": {
+          "AP": 0.1934657424320969,
+          "F1": 0.2646858698117487,
+          "P": 0.3172920065252855,
+          "R": 0.22704280155642023,
+          "threshold": 0.23101343101343103,
+          "positives": 5140,
+          "candidates": 4001790
+        },
+        "stop": {
+          "AP": 0.03310119429328908,
+          "F1": 0.0917771391489756,
+          "P": 0.08589276418532014,
+          "R": 0.09852707006369427,
+          "threshold": 0.06984126984126984,
+          "positives": 5024,
+          "candidates": 11657001
+        },
+        "joint_cds": {
+          "AP": 0.5805958822669833,
+          "F1": 0.573625142010569,
+          "P": 0.5548183243366702,
+          "R": 0.5937516940059245,
+          "threshold": 0.9858363858363859,
+          "positives": 5109929,
+          "candidates": 228150000
+        }
+      },
+      "mean_AP": 0.40232745510091467,
+      "epoch_seconds": 13224.293208360672
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.04745214667671675,
+      "train_splice_loss": 0.00439803567841945,
+      "train_start_stop_loss": 0.0043075543677829325,
+      "train_phase_loss": 0.0,
+      "train_cds_loss": 0.0,
+      "train_joint_frame_loss": 0.4204508267034842,
+      "validation_loss": 0.12389916775004904,
+      "validation_splice_loss": 0.00423367574852867,
+      "validation_start_stop_loss": 0.004620925037700507,
+      "validation_phase_loss": 0.0,
+      "validation_cds_loss": 0.0,
+      "validation_joint_frame_loss": 1.182198217005742,
+      "validation_cds": null,
+      "validation_joint_cds": {
+        "AP": 0.5701882792880767,
+        "F1": 0.5696906624801251,
+        "P": 0.5584593214406425,
+        "R": 0.58138302900099,
+        "threshold": 0.9833943833943833,
+        "positives": 5109929,
+        "candidates": 228150000
+      },
+      "train_shared_backbone_gradient_norms": {
+        "splice": {
+          "raw": 0.6183128356933594,
+          "weight": 0.25,
+          "weighted": 0.15457820892333984,
+          "backward_scaled": 0.07728910446166992
+        },
+        "start_stop": {
+          "raw": 0.44114869832992554,
+          "weight": 1.0,
+          "weighted": 0.44114869832992554,
+          "backward_scaled": 0.22057434916496277
+        },
+        "phase": {
+          "raw": 0.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "backward_scaled": 0.0
+        },
+        "cds": {
+          "raw": 0.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "backward_scaled": 0.0
+        },
+        "joint_frame": {
+          "raw": 264.3445129394531,
+          "weight": 0.1,
+          "weighted": 26.434451293945315,
+          "backward_scaled": 13.217225646972658
+        }
+      },
+      "shared_backbone_parameter_count": 4404416,
+      "gradient_probe_file": "/home/bchen103/cnn_mamba_k7_portable/data/processed/human_joint_frame_w10_sharded_v1/train/windows-00110.zip::11_minus_10000000.npz",
+      "validation_chess": {
+        "donor": {
+          "AP": 0.6327607955815595,
+          "F1": 0.6228964907758588,
+          "P": 0.6078332734459216,
+          "R": 0.6387252680863917,
+          "threshold": 0.3523809523809524,
+          "positives": 26484,
+          "candidates": 12353539
+        },
+        "acceptor": {
+          "AP": 0.5726452645450751,
+          "F1": 0.5800504422578239,
+          "P": 0.5604599279217436,
+          "R": 0.6010601096919056,
+          "threshold": 0.2293040293040293,
+          "positives": 27167,
+          "candidates": 16138052
+        },
+        "start": {
+          "AP": 0.15052432629382448,
+          "F1": 0.214909052675849,
+          "P": 0.2338137725920842,
+          "R": 0.1988326848249027,
+          "threshold": 0.15286935286935288,
+          "positives": 5140,
+          "candidates": 4001790
+        },
+        "stop": {
+          "AP": 0.017864128061374746,
+          "F1": 0.06085700529610014,
+          "P": 0.05894422682335385,
+          "R": 0.06289808917197452,
+          "threshold": 0.07765567765567766,
+          "positives": 5024,
+          "candidates": 11657001
+        },
+        "joint_cds": {
+          "AP": 0.5701882792880767,
+          "F1": 0.5696906624801251,
+          "P": 0.5584593214406425,
+          "R": 0.58138302900099,
+          "threshold": 0.9833943833943833,
+          "positives": 5109929,
+          "candidates": 228150000
+        }
+      },
+      "validation_reference": {
+        "donor": {
+          "AP": 0.6327607955815595,
+          "F1": 0.6228964907758588,
+          "P": 0.6078332734459216,
+          "R": 0.6387252680863917,
+          "threshold": 0.3523809523809524,
+          "positives": 26484,
+          "candidates": 12353539
+        },
+        "acceptor": {
+          "AP": 0.5726452645450751,
+          "F1": 0.5800504422578239,
+          "P": 0.5604599279217436,
+          "R": 0.6010601096919056,
+          "threshold": 0.2293040293040293,
+          "positives": 27167,
+          "candidates": 16138052
+        },
+        "start": {
+          "AP": 0.15052432629382448,
+          "F1": 0.214909052675849,
+          "P": 0.2338137725920842,
+          "R": 0.1988326848249027,
+          "threshold": 0.15286935286935288,
+          "positives": 5140,
+          "candidates": 4001790
+        },
+        "stop": {
+          "AP": 0.017864128061374746,
+          "F1": 0.06085700529610014,
+          "P": 0.05894422682335385,
+          "R": 0.06289808917197452,
+          "threshold": 0.07765567765567766,
+          "positives": 5024,
+          "candidates": 11657001
+        },
+        "joint_cds": {
+          "AP": 0.5701882792880767,
+          "F1": 0.5696906624801251,
+          "P": 0.5584593214406425,
+          "R": 0.58138302900099,
+          "threshold": 0.9833943833943833,
+          "positives": 5109929,
+          "candidates": 228150000
+        }
+      },
+      "mean_AP": 0.3434486286204585,
+      "epoch_seconds": 13146.090470790863
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.04268537410580394,
+      "train_splice_loss": 0.0037737694744907307,
+      "train_start_stop_loss": 0.004061231733902152,
+      "train_phase_loss": 0.0,
+      "train_cds_loss": 0.0,
+      "train_joint_frame_loss": 0.3768069935408969,
+      "validation_loss": 0.08958540029660832,
+      "validation_splice_loss": 0.0033355059667105214,
+      "validation_start_stop_loss": 0.004028877644008438,
+      "validation_phase_loss": 0.0,
+      "validation_cds_loss": 0.0,
+      "validation_joint_frame_loss": 0.8472264483146537,
+      "validation_cds": null,
+      "validation_joint_cds": {
+        "AP": 0.6144904913360849,
+        "F1": 0.602068264300453,
+        "P": 0.5900092933398483,
+        "R": 0.6146304576834629,
+        "threshold": 0.9821733821733821,
+        "positives": 5109929,
+        "candidates": 228150000
+      },
+      "train_shared_backbone_gradient_norms": {
+        "splice": {
+          "raw": 1.7888948917388916,
+          "weight": 0.25,
+          "weighted": 0.4472237229347229,
+          "backward_scaled": 0.22361186146736145
+        },
+        "start_stop": {
+          "raw": 0.5631072521209717,
+          "weight": 1.0,
+          "weighted": 0.5631072521209717,
+          "backward_scaled": 0.28155362606048584
+        },
+        "phase": {
+          "raw": 0.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "backward_scaled": 0.0
+        },
+        "cds": {
+          "raw": 0.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "backward_scaled": 0.0
+        },
+        "joint_frame": {
+          "raw": 95.51518249511719,
+          "weight": 0.1,
+          "weighted": 9.55151824951172,
+          "backward_scaled": 4.77575912475586
+        }
+      },
+      "shared_backbone_parameter_count": 4404416,
+      "gradient_probe_file": "/home/bchen103/cnn_mamba_k7_portable/data/processed/human_joint_frame_w10_sharded_v1/train/windows-00110.zip::11_minus_10000000.npz",
+      "validation_chess": {
+        "donor": {
+          "AP": 0.7649258805914954,
+          "F1": 0.7212961578711317,
+          "P": 0.7140372946573923,
+          "R": 0.728704123244223,
+          "threshold": 0.3252747252747253,
+          "positives": 26484,
+          "candidates": 12353539
+        },
+        "acceptor": {
+          "AP": 0.6854487927355353,
+          "F1": 0.6668595818563264,
+          "P": 0.6555022222222222,
+          "R": 0.6786174402768064,
+          "threshold": 0.25518925518925517,
+          "positives": 27167,
+          "candidates": 16138052
+        },
+        "start": {
+          "AP": 0.16307883655065497,
+          "F1": 0.23631239935587758,
+          "P": 0.24478732276897414,
+          "R": 0.22840466926070038,
+          "threshold": 0.21831501831501832,
+          "positives": 5140,
+          "candidates": 4001790
+        },
+        "stop": {
+          "AP": 0.05631474531124573,
+          "F1": 0.1292485549132948,
+          "P": 0.15416436845008274,
+          "R": 0.11126592356687898,
+          "threshold": 0.08205128205128205,
+          "positives": 5024,
+          "candidates": 11657001
+        },
+        "joint_cds": {
+          "AP": 0.6144904913360849,
+          "F1": 0.602068264300453,
+          "P": 0.5900092933398483,
+          "R": 0.6146304576834629,
+          "threshold": 0.9821733821733821,
+          "positives": 5109929,
+          "candidates": 228150000
+        }
+      },
+      "validation_reference": {
+        "donor": {
+          "AP": 0.7649258805914954,
+          "F1": 0.7212961578711317,
+          "P": 0.7140372946573923,
+          "R": 0.728704123244223,
+          "threshold": 0.3252747252747253,
+          "positives": 26484,
+          "candidates": 12353539
+        },
+        "acceptor": {
+          "AP": 0.6854487927355353,
+          "F1": 0.6668595818563264,
+          "P": 0.6555022222222222,
+          "R": 0.6786174402768064,
+          "threshold": 0.25518925518925517,
+          "positives": 27167,
+          "candidates": 16138052
+        },
+        "start": {
+          "AP": 0.16307883655065497,
+          "F1": 0.23631239935587758,
+          "P": 0.24478732276897414,
+          "R": 0.22840466926070038,
+          "threshold": 0.21831501831501832,
+          "positives": 5140,
+          "candidates": 4001790
+        },
+        "stop": {
+          "AP": 0.05631474531124573,
+          "F1": 0.1292485549132948,
+          "P": 0.15416436845008274,
+          "R": 0.11126592356687898,
+          "threshold": 0.08205128205128205,
+          "positives": 5024,
+          "candidates": 11657001
+        },
+        "joint_cds": {
+          "AP": 0.6144904913360849,
+          "F1": 0.602068264300453,
+          "P": 0.5900092933398483,
+          "R": 0.6146304576834629,
+          "threshold": 0.9821733821733821,
+          "positives": 5109929,
+          "candidates": 228150000
+        }
+      },
+      "mean_AP": 0.41744206379723287,
+      "epoch_seconds": 13130.305410385132
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.04255757484404271,
+      "train_splice_loss": 0.003763541099142122,
+      "train_start_stop_loss": 0.004053651413565751,
+      "train_phase_loss": 0.0,
+      "train_cds_loss": 0.0,
+      "train_joint_frame_loss": 0.37563037501661706,
+      "validation_loss": 0.09305784607881341,
+      "validation_splice_loss": 0.0038989461204979375,
+      "validation_start_stop_loss": 0.004288044514881184,
+      "validation_phase_loss": 0.0,
+      "validation_cds_loss": 0.0,
+      "validation_joint_frame_loss": 0.8779506352599475,
+      "validation_cds": null,
+      "validation_joint_cds": {
+        "AP": 0.5797790384791144,
+        "F1": 0.5716616393882679,
+        "P": 0.5698712150721713,
+        "R": 0.5734633494907659,
+        "threshold": 0.9951159951159951,
+        "positives": 5109929,
+        "candidates": 228150000
+      },
+      "train_shared_backbone_gradient_norms": {
+        "splice": {
+          "raw": 1.775842547416687,
+          "weight": 0.25,
+          "weighted": 0.44396063685417175,
+          "backward_scaled": 0.22198031842708588
+        },
+        "start_stop": {
+          "raw": 0.6572790741920471,
+          "weight": 1.0,
+          "weighted": 0.6572790741920471,
+          "backward_scaled": 0.32863953709602356
+        },
+        "phase": {
+          "raw": 0.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "backward_scaled": 0.0
+        },
+        "cds": {
+          "raw": 0.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "backward_scaled": 0.0
+        },
+        "joint_frame": {
+          "raw": 907.6456298828125,
+          "weight": 0.1,
+          "weighted": 90.76456298828126,
+          "backward_scaled": 45.38228149414063
+        }
+      },
+      "shared_backbone_parameter_count": 4404416,
+      "gradient_probe_file": "/home/bchen103/cnn_mamba_k7_portable/data/processed/human_joint_frame_w10_sharded_v1/train/windows-00110.zip::11_minus_10000000.npz",
+      "validation_chess": {
+        "donor": {
+          "AP": 0.6850809237621223,
+          "F1": 0.6529973741549807,
+          "P": 0.644250909491787,
+          "R": 0.6619845944721341,
+          "threshold": 0.4256410256410256,
+          "positives": 26484,
+          "candidates": 12353539
+        },
+        "acceptor": {
+          "AP": 0.6858462780449981,
+          "F1": 0.6587535961285653,
+          "P": 0.6827804107424961,
+          "R": 0.6363602900577907,
+          "threshold": 0.5362637362637362,
+          "positives": 27167,
+          "candidates": 16138052
+        },
+        "start": {
+          "AP": 0.2481977967579956,
+          "F1": 0.3078391600047727,
+          "P": 0.3980253008330762,
+          "R": 0.2509727626459144,
+          "threshold": 0.242002442002442,
+          "positives": 5140,
+          "candidates": 4001790
+        },
+        "stop": {
+          "AP": 0.016951110182050592,
+          "F1": 0.06247347423818012,
+          "P": 0.0544620393665828,
+          "R": 0.0732484076433121,
+          "threshold": 0.12454212454212454,
+          "positives": 5024,
+          "candidates": 11657001
+        },
+        "joint_cds": {
+          "AP": 0.5797790384791144,
+          "F1": 0.5716616393882679,
+          "P": 0.5698712150721713,
+          "R": 0.5734633494907659,
+          "threshold": 0.9951159951159951,
+          "positives": 5109929,
+          "candidates": 228150000
+        }
+      },
+      "validation_reference": {
+        "donor": {
+          "AP": 0.6850809237621223,
+          "F1": 0.6529973741549807,
+          "P": 0.644250909491787,
+          "R": 0.6619845944721341,
+          "threshold": 0.4256410256410256,
+          "positives": 26484,
+          "candidates": 12353539
+        },
+        "acceptor": {
+          "AP": 0.6858462780449981,
+          "F1": 0.6587535961285653,
+          "P": 0.6827804107424961,
+          "R": 0.6363602900577907,
+          "threshold": 0.5362637362637362,
+          "positives": 27167,
+          "candidates": 16138052
+        },
+        "start": {
+          "AP": 0.2481977967579956,
+          "F1": 0.3078391600047727,
+          "P": 0.3980253008330762,
+          "R": 0.2509727626459144,
+          "threshold": 0.242002442002442,
+          "positives": 5140,
+          "candidates": 4001790
+        },
+        "stop": {
+          "AP": 0.016951110182050592,
+          "F1": 0.06247347423818012,
+          "P": 0.0544620393665828,
+          "R": 0.0732484076433121,
+          "threshold": 0.12454212454212454,
+          "positives": 5024,
+          "candidates": 11657001
+        },
+        "joint_cds": {
+          "AP": 0.5797790384791144,
+          "F1": 0.5716616393882679,
+          "P": 0.5698712150721713,
+          "R": 0.5734633494907659,
+          "threshold": 0.9951159951159951,
+          "positives": 5109929,
+          "candidates": 228150000
+        }
+      },
+      "mean_AP": 0.4090190271867916,
+      "epoch_seconds": 13114.020983934402
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.044784724849427526,
+      "train_splice_loss": 0.004278474488476658,
+      "train_start_stop_loss": 0.00418296661328113,
+      "train_phase_loss": 0.0,
+      "train_cds_loss": 0.0,
+      "train_joint_frame_loss": 0.3953213893921087,
+      "validation_loss": 0.08702448642848835,
+      "validation_splice_loss": 0.0038321579625818225,
+      "validation_start_stop_loss": 0.004119648955416054,
+      "validation_phase_loss": 0.0,
+      "validation_cds_loss": 0.0,
+      "validation_joint_frame_loss": 0.8194679667832602,
+      "validation_cds": null,
+      "validation_joint_cds": {
+        "AP": 0.6065517720740771,
+        "F1": 0.5858507708993064,
+        "P": 0.5971559203218669,
+        "R": 0.5749657187017667,
+        "threshold": 0.9914529914529915,
+        "positives": 5109929,
+        "candidates": 228150000
+      },
+      "train_shared_backbone_gradient_norms": {
+        "splice": {
+          "raw": 0.3911080062389374,
+          "weight": 0.25,
+          "weighted": 0.09777700155973434,
+          "backward_scaled": 0.04888850077986717
+        },
+        "start_stop": {
+          "raw": 0.4842570424079895,
+          "weight": 1.0,
+          "weighted": 0.4842570424079895,
+          "backward_scaled": 0.24212852120399475
+        },
+        "phase": {
+          "raw": 0.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "backward_scaled": 0.0
+        },
+        "cds": {
+          "raw": 0.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "backward_scaled": 0.0
+        },
+        "joint_frame": {
+          "raw": 7.753213405609131,
+          "weight": 0.1,
+          "weighted": 0.7753213405609132,
+          "backward_scaled": 0.3876606702804566
+        }
+      },
+      "shared_backbone_parameter_count": 4404416,
+      "gradient_probe_file": "/home/bchen103/cnn_mamba_k7_portable/data/processed/human_joint_frame_w10_sharded_v1/train/windows-00110.zip::11_minus_10000000.npz",
+      "validation_chess": {
+        "donor": {
+          "AP": 0.707432124094787,
+          "F1": 0.6673754103252759,
+          "P": 0.6594058676102019,
+          "R": 0.6755399486482404,
+          "threshold": 0.4341880341880342,
+          "positives": 26484,
+          "candidates": 12353539
+        },
+        "acceptor": {
+          "AP": 0.6299369289025396,
+          "F1": 0.6120504093459662,
+          "P": 0.6118140356039429,
+          "R": 0.6122869658041006,
+          "threshold": 0.3401709401709402,
+          "positives": 27167,
+          "candidates": 16138052
+        },
+        "start": {
+          "AP": 0.20726132981056208,
+          "F1": 0.2688079327441259,
+          "P": 0.3013533107781537,
+          "R": 0.24260700389105058,
+          "threshold": 0.19413919413919414,
+          "positives": 5140,
+          "candidates": 4001790
+        },
+        "stop": {
+          "AP": 0.039715153391623605,
+          "F1": 0.1017168772270813,
+          "P": 0.11116355912202029,
+          "R": 0.09375,
+          "threshold": 0.12722832722832722,
+          "positives": 5024,
+          "candidates": 11657001
+        },
+        "joint_cds": {
+          "AP": 0.6065517720740771,
+          "F1": 0.5858507708993064,
+          "P": 0.5971559203218669,
+          "R": 0.5749657187017667,
+          "threshold": 0.9914529914529915,
+          "positives": 5109929,
+          "candidates": 228150000
+        }
+      },
+      "validation_reference": {
+        "donor": {
+          "AP": 0.707432124094787,
+          "F1": 0.6673754103252759,
+          "P": 0.6594058676102019,
+          "R": 0.6755399486482404,
+          "threshold": 0.4341880341880342,
+          "positives": 26484,
+          "candidates": 12353539
+        },
+        "acceptor": {
+          "AP": 0.6299369289025396,
+          "F1": 0.6120504093459662,
+          "P": 0.6118140356039429,
+          "R": 0.6122869658041006,
+          "threshold": 0.3401709401709402,
+          "positives": 27167,
+          "candidates": 16138052
+        },
+        "start": {
+          "AP": 0.20726132981056208,
+          "F1": 0.2688079327441259,
+          "P": 0.3013533107781537,
+          "R": 0.24260700389105058,
+          "threshold": 0.19413919413919414,
+          "positives": 5140,
+          "candidates": 4001790
+        },
+        "stop": {
+          "AP": 0.039715153391623605,
+          "F1": 0.1017168772270813,
+          "P": 0.11116355912202029,
+          "R": 0.09375,
+          "threshold": 0.12722832722832722,
+          "positives": 5024,
+          "candidates": 11657001
+        },
+        "joint_cds": {
+          "AP": 0.6065517720740771,
+          "F1": 0.5858507708993064,
+          "P": 0.5971559203218669,
+          "R": 0.5749657187017667,
+          "threshold": 0.9914529914529915,
+          "positives": 5109929,
+          "candidates": 228150000
+        }
+      },
+      "mean_AP": 0.39608638404987806,
+      "epoch_seconds": 13120.594688177109
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.04950659133624958,
+      "train_splice_loss": 0.004704800826658427,
+      "train_start_stop_loss": 0.004296751368141987,
+      "train_phase_loss": 0.0,
+      "train_cds_loss": 0.0,
+      "train_joint_frame_loss": 0.44033638993355895,
+      "validation_loss": 0.08402041909497963,
+      "validation_splice_loss": 0.0039390315780383515,
+      "validation_start_stop_loss": 0.004246510215985201,
+      "validation_phase_loss": 0.0,
+      "validation_cds_loss": 0.0,
+      "validation_joint_frame_loss": 0.7878914963888973,
+      "validation_cds": null,
+      "validation_joint_cds": {
+        "AP": 0.6220969403548975,
+        "F1": 0.6024060626703609,
+        "P": 0.6146488370871113,
+        "R": 0.590641474666282,
+        "threshold": 0.9814407814407814,
+        "positives": 5109929,
+        "candidates": 228150000
+      },
+      "train_shared_backbone_gradient_norms": {
+        "splice": {
+          "raw": 1.9224998950958252,
+          "weight": 0.25,
+          "weighted": 0.4806249737739563,
+          "backward_scaled": 0.24031248688697815
+        },
+        "start_stop": {
+          "raw": 0.3217550814151764,
+          "weight": 1.0,
+          "weighted": 0.3217550814151764,
+          "backward_scaled": 0.1608775407075882
+        },
+        "phase": {
+          "raw": 0.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "backward_scaled": 0.0
+        },
+        "cds": {
+          "raw": 0.0,
+          "weight": 0.0,
+          "weighted": 0.0,
+          "backward_scaled": 0.0
+        },
+        "joint_frame": {
+          "raw": 940.5452270507812,
+          "weight": 0.1,
+          "weighted": 94.05452270507813,
+          "backward_scaled": 47.027261352539064
+        }
+      },
+      "shared_backbone_parameter_count": 4404416,
+      "gradient_probe_file": "/home/bchen103/cnn_mamba_k7_portable/data/processed/human_joint_frame_w10_sharded_v1/train/windows-00110.zip::11_minus_10000000.npz",
+      "validation_chess": {
+        "donor": {
+          "AP": 0.6523106385542015,
+          "F1": 0.632069585642456,
+          "P": 0.614851838629061,
+          "R": 0.6502794139858028,
+          "threshold": 0.2608058608058608,
+          "positives": 26484,
+          "candidates": 12353539
+        },
+        "acceptor": {
+          "AP": 0.6504584927807117,
+          "F1": 0.628909426987061,
+          "P": 0.6316414807113949,
+          "R": 0.6262009055103618,
+          "threshold": 0.3094017094017094,
+          "positives": 27167,
+          "candidates": 16138052
+        },
+        "start": {
+          "AP": 0.1953767656893337,
+          "F1": 0.25406958187041173,
+          "P": 0.28034749941300774,
+          "R": 0.23229571984435798,
+          "threshold": 0.14554334554334555,
+          "positives": 5140,
+          "candidates": 4001790
+        },
+        "stop": {
+          "AP": 0.02642612166182834,
+          "F1": 0.08007000656311529,
+          "P": 0.08887809616318601,
+          "R": 0.07285031847133758,
+          "threshold": 0.06031746031746032,
+          "positives": 5024,
+          "candidates": 11657001
+        },
+        "joint_cds": {
+          "AP": 0.6220969403548975,
+          "F1": 0.6024060626703609,
+          "P": 0.6146488370871113,
+          "R": 0.590641474666282,
+          "threshold": 0.9814407814407814,
+          "positives": 5109929,
+          "candidates": 228150000
+        }
+      },
+      "validation_reference": {
+        "donor": {
+          "AP": 0.6523106385542015,
+          "F1": 0.632069585642456,
+          "P": 0.614851838629061,
+          "R": 0.6502794139858028,
+          "threshold": 0.2608058608058608,
+          "positives": 26484,
+          "candidates": 12353539
+        },
+        "acceptor": {
+          "AP": 0.6504584927807117,
+          "F1": 0.628909426987061,
+          "P": 0.6316414807113949,
+          "R": 0.6262009055103618,
+          "threshold": 0.3094017094017094,
+          "positives": 27167,
+          "candidates": 16138052
+        },
+        "start": {
+          "AP": 0.1953767656893337,
+          "F1": 0.25406958187041173,
+          "P": 0.28034749941300774,
+          "R": 0.23229571984435798,
+          "threshold": 0.14554334554334555,
+          "positives": 5140,
+          "candidates": 4001790
+        },
+        "stop": {
+          "AP": 0.02642612166182834,
+          "F1": 0.08007000656311529,
+          "P": 0.08887809616318601,
+          "R": 0.07285031847133758,
+          "threshold": 0.06031746031746032,
+          "positives": 5024,
+          "candidates": 11657001
+        },
+        "joint_cds": {
+          "AP": 0.6220969403548975,
+          "F1": 0.6024060626703609,
+          "P": 0.6146488370871113,
+          "R": 0.590641474666282,
+          "threshold": 0.9814407814407814,
+          "positives": 5109929,
+          "candidates": 228150000
+        }
+      },
+      "mean_AP": 0.38114300467151885,
+      "epoch_seconds": 13132.329975366592
+    }
+  ],
+  "chr1_chess": {
+    "donor": {
+      "AP": 0.7819772695761051,
+      "F1": 0.7311399317406143,
+      "P": 0.737157958487034,
+      "R": 0.7252193695157622,
+      "threshold": 0.3238095238095238,
+      "positives": 18462,
+      "candidates": 7015942
+    },
+    "acceptor": {
+      "AP": 0.699031004416367,
+      "F1": 0.6750479437460046,
+      "P": 0.6822807300920691,
+      "R": 0.6679668968425492,
+      "threshold": 0.27277167277167275,
+      "positives": 18971,
+      "candidates": 9397810
+    },
+    "start": {
+      "AP": 0.16479175723175998,
+      "F1": 0.23645847264945832,
+      "P": 0.22487916560671584,
+      "R": 0.24929498025944727,
+      "threshold": 0.1746031746031746,
+      "positives": 3546,
+      "candidates": 2273294
+    },
+    "stop": {
+      "AP": 0.06122020107573535,
+      "F1": 0.12733195143618598,
+      "P": 0.13093788063337394,
+      "R": 0.1239193083573487,
+      "threshold": 0.0652014652014652,
+      "positives": 3470,
+      "candidates": 6722113
+    },
+    "joint_cds": {
+      "AP": 0.6459960902153962,
+      "F1": 0.6252585093282957,
+      "P": 0.6077552349036266,
+      "R": 0.6437998645594621,
+      "threshold": 0.9777777777777777,
+      "positives": 3538084,
+      "candidates": 131205000
+    }
+  },
+  "test_reference": {
+    "donor": {
+      "AP": 0.7819772695761051,
+      "F1": 0.7311399317406143,
+      "P": 0.737157958487034,
+      "R": 0.7252193695157622,
+      "threshold": 0.3238095238095238,
+      "positives": 18462,
+      "candidates": 7015942
+    },
+    "acceptor": {
+      "AP": 0.699031004416367,
+      "F1": 0.6750479437460046,
+      "P": 0.6822807300920691,
+      "R": 0.6679668968425492,
+      "threshold": 0.27277167277167275,
+      "positives": 18971,
+      "candidates": 9397810
+    },
+    "start": {
+      "AP": 0.16479175723175998,
+      "F1": 0.23645847264945832,
+      "P": 0.22487916560671584,
+      "R": 0.24929498025944727,
+      "threshold": 0.1746031746031746,
+      "positives": 3546,
+      "candidates": 2273294
+    },
+    "stop": {
+      "AP": 0.06122020107573535,
+      "F1": 0.12733195143618598,
+      "P": 0.13093788063337394,
+      "R": 0.1239193083573487,
+      "threshold": 0.0652014652014652,
+      "positives": 3470,
+      "candidates": 6722113
+    },
+    "joint_cds": {
+      "AP": 0.6459960902153962,
+      "F1": 0.6252585093282957,
+      "P": 0.6077552349036266,
+      "R": 0.6437998645594621,
+      "threshold": 0.9777777777777777,
+      "positives": 3538084,
+      "candidates": 131205000
+    }
+  },
+  "test_losses": {
+    "loss": 0.09379398426986522,
+    "splice_loss": 0.003903766775099166,
+    "start_stop_loss": 0.004598602117818973,
+    "phase_loss": 0.0,
+    "cds_loss": 0.0,
+    "joint_frame_loss": 0.8821943902076471
+  },
+  "early_stopped": true,
+  "stopped_epoch": 7,
+  "epochs_without_improvement": 3,
+  "elapsed_seconds": 92580.37221360207
+}

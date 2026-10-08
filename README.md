@@ -363,6 +363,11 @@ working directories remain external.
 
 ## Human pipeline
 
+Completed Rockfish four-state training (job 31705646, 2026-10-08):
+[chr1-held-out results and evaluation caveats](results/human_joint_frame_w10_v1/chr1held/README.md).
+Best epoch 4; early stopping at epoch 7; mean test-window candidate AP 0.426755.
+
+
 The Human external group contains GRCh38, CHESS 3.1.3, the Human EviAnn
 pseudo-label GFF, full Human PSAURON scores, and the current 10 kb
 CNN--Mamba-k7 chr1-in-training checkpoint. Generated NPZ windows and chr1 score

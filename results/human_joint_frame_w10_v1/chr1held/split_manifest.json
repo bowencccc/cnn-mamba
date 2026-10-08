@@ -1,0 +1,165 @@
+{
+  "schema": "human_eviann_windows_v2",
+  "phase_labels": true,
+  "shard_size": 1024,
+  "complete_match_policy": {
+    "evidence": "complete",
+    "class": [
+      "=",
+      "k"
+    ],
+    "site_membership": "any qualifying transcript on the same chromosome and strand",
+    "arrays": [
+      "complete_match_labels",
+      "complete_match_start_stop_labels"
+    ]
+  },
+  "complete_match_transcripts": 59449,
+  "eviann_annotation": "/home/bchen103/cnn_mamba_k7_portable/data/raw/GCF_000001405.40_GRCh38.p14_genomic.noalpsnopatches.fna.pseudo_label.gff.gz",
+  "chess_annotation": "/home/bchen103/cnn_mamba_k7_portable/data/raw/human_chess3.1.3.gtf",
+  "fasta": "/home/bchen103/cnn_mamba_k7_portable/data/raw/human_grch38.fa",
+  "seed": 42,
+  "window_size": 10000,
+  "stride": 5000,
+  "region_policy": "full_10kb_intersects_EviAnn_transcript_span_with_CDS",
+  "region_overlap_bp": 10000,
+  "max_windows_per_chrom_strand": 0,
+  "splits": {
+    "train": [
+      "chr2",
+      "chr3",
+      "chr4",
+      "chr6",
+      "chr7",
+      "chr8",
+      "chr11",
+      "chr12",
+      "chr13",
+      "chr14",
+      "chr15",
+      "chr16",
+      "chr17",
+      "chr18",
+      "chr19",
+      "chr20",
+      "chr21",
+      "chrX",
+      "chrY"
+    ],
+    "val": [
+      "chr5",
+      "chr9",
+      "chr10",
+      "chr22"
+    ],
+    "test": [
+      "chr1"
+    ]
+  },
+  "summary": {
+    "train": {
+      "windows": 218005,
+      "eviann_positive_positions": {
+        "donor": 280015,
+        "acceptor": 286421,
+        "start": 64447,
+        "stop": 58829
+      },
+      "chess_positive_positions": {
+        "donor": 269178,
+        "acceptor": 276373,
+        "start": 51530,
+        "stop": 50812
+      },
+      "ignored_chess_only_positions": {
+        "donor": 9154,
+        "acceptor": 13273,
+        "start": 13853,
+        "stop": 14640
+      },
+      "by_chrom": {
+        "chr2": 22895,
+        "chr3": 19893,
+        "chr4": 15320,
+        "chr6": 16439,
+        "chr7": 17805,
+        "chr8": 12813,
+        "chr11": 14621,
+        "chr12": 14433,
+        "chr13": 7296,
+        "chr14": 9012,
+        "chr15": 9740,
+        "chr16": 9344,
+        "chr17": 11514,
+        "chr18": 6186,
+        "chr19": 8492,
+        "chr20": 6690,
+        "chr21": 3329,
+        "chrX": 11340,
+        "chrY": 843
+      }
+    },
+    "val": {
+      "windows": 45630,
+      "eviann_positive_positions": {
+        "donor": 55261,
+        "acceptor": 56496,
+        "start": 12803,
+        "stop": 11808
+      },
+      "chess_positive_positions": {
+        "donor": 52957,
+        "acceptor": 54315,
+        "start": 10275,
+        "stop": 10036
+      },
+      "ignored_chess_only_positions": {
+        "donor": 1928,
+        "acceptor": 2697,
+        "start": 2903,
+        "stop": 3035
+      },
+      "by_chrom": {
+        "chr5": 15311,
+        "chr9": 11701,
+        "chr10": 13689,
+        "chr22": 4929
+      }
+    },
+    "test": {
+      "windows": 26241,
+      "eviann_positive_positions": {
+        "donor": 37851,
+        "acceptor": 38805,
+        "start": 8766,
+        "stop": 8025
+      },
+      "chess_positive_positions": {
+        "donor": 36914,
+        "acceptor": 37944,
+        "start": 7080,
+        "stop": 6931
+      },
+      "ignored_chess_only_positions": {
+        "donor": 1742,
+        "acceptor": 2237,
+        "start": 1955,
+        "stop": 1940
+      },
+      "by_chrom": {
+        "chr1": 26241
+      }
+    }
+  },
+  "eviann_rejected": {
+    "splice": 9065,
+    "start": 91,
+    "stop": 141
+  },
+  "chess_rejected": {
+    "splice": 8788,
+    "stop": 1333,
+    "start": 641
+  },
+  "elapsed_seconds": 999.8846170902252
+}
