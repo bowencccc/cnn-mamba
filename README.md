@@ -414,6 +414,47 @@ epochs and effective batch of eight windows. On Rockfish, submit the same run
 with `scripts/rockfish_human_joint_frame_pretrain.slurm` after generating or
 transferring the processed windows.
 
+Train the matched chr1-included model from scratch while retaining the same
+validation chromosomes for model selection:
+
+```bash
+CNN_MAMBA_PYTHON=/path/to/python \
+  bash scripts/run_human_joint_frame_chr1train_local.sh
+```
+
+This merges the original chr1 test windows into training via
+`--include-test-in-train`; it does not evaluate chr1 as held out and does not
+initialize from the chr1-held-out checkpoint.
+
+#### Four-state temperature scaling
+
+Fit one positive scalar temperature on the CHESS validation chromosomes from
+the chr1-held-out split. The fitter samples only the non-overlapping, owned
+5 kb center of each 10 kb validation window and excludes CDS bases with
+ambiguous reference phase. Chr1 is never used to choose the temperature.
+
+```bash
+CNN_MAMBA_PYTHON=/path/to/python \
+  bash scripts/run_human_joint_frame_temperature_scaling.sh
+```
+
+The fitted transformation is `softmax(joint_frame_logits / T)`. It is applied
+only to the four-state head, preserves every per-base argmax exactly, and does
+not change the splice or start/stop heads. `temperature.json` records NLL,
+Brier score, ECE, confidence/extreme-probability summaries, and a diagnostic
+temperature using the training loss's group-balanced objective. The standard
+empirical-validation NLL temperature is the one used downstream.
+
+Apply the saved temperature during chromosome-wide four-state scoring with:
+
+```bash
+python -m cnn_mamba.score_joint_frame_chromosome \
+  --checkpoint runs/human/human_joint_frame_beta010_v1/chr1held/best_model.pt \
+  --fasta data/raw/human_grch38.fa --chrom chr1 --display-chrom chr1 \
+  --calibration-json results/human_joint_frame_beta010_v1/temperature_scaling/temperature.json \
+  --output-dir artifacts/joint_frame_predictions/human_beta010/chr1_plus_calibrated
+```
+
 Reuse and evaluate the existing chr1-in-training checkpoint:
 
 ```bash

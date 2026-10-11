@@ -24,7 +24,20 @@ def main():
     parser.add_argument("--display-chrom", default="chrX")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=8)
+    temperature_group = parser.add_mutually_exclusive_group()
+    temperature_group.add_argument("--temperature", type=float, default=None)
+    temperature_group.add_argument("--calibration-json", type=Path, default=None)
     args = parser.parse_args()
+
+    if args.calibration_json is not None:
+        calibration = json.loads(args.calibration_json.read_text())
+        temperature = float(calibration["temperature"])
+        calibration_path = str(args.calibration_json.resolve())
+    else:
+        temperature = 1.0 if args.temperature is None else float(args.temperature)
+        calibration_path = None
+    if temperature <= 0:
+        parser.error("temperature must be positive")
 
     sentinel = args.output_dir / ".complete.json"
     if sentinel.is_file():
@@ -74,7 +87,7 @@ def main():
                 encoded.append(encode(text + "N" * (window - len(text))))
             sequence = torch.from_numpy(np.stack(encoded)).long().to(device)
             outputs = model(sequence, return_joint_frame=True)
-            values = outputs[2].softmax(-1).float().cpu().numpy()
+            values = (outputs[2] / temperature).softmax(-1).float().cpu().numpy()
 
             for local_index, start in enumerate(batch_starts):
                 window_index = batch_start + local_index
@@ -116,6 +129,9 @@ def main():
         "window_size": window,
         "stride": stride,
         "class_order": ["non_CDS", "frame_0", "frame_1", "frame_2"],
+        "temperature": temperature,
+        "calibration_json": calibration_path,
+        "temperature_scope": "joint_frame_head_only",
         "coding_probability": "1 - P(non_CDS)",
         "position_convention": "row i is zero-based genomic position i",
         "overlap_resolution": "midpoint ownership of overlapping windows",

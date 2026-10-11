@@ -26,6 +26,7 @@ cnn-mamba-score = "cnn_mamba.score_chromosome:main"
 cnn-mamba-auprc = "cnn_mamba.evaluate_candidates:main"
 cnn-mamba-export-uniann = "cnn_mamba.export_uniann_scores:main"
 cnn-mamba-uniann-eval = "cnn_mamba.uniann_evaluate:main"
+cnn-mamba-calibrate-joint-frame = "cnn_mamba.calibrate_joint_frame:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

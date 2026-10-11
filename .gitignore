@@ -30,5 +30,9 @@ artifacts/joint_frame_predictions/
 *.csv
 *.tsv.gz
 
+# Small inference-only checkpoints intentionally published for reproducible tests.
+!models/*.pt
+/results/**/run.log
+
 # Curated result tables under results/ are intentionally versioned.
 !results/**/*.tsv.gz

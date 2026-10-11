@@ -17,6 +17,9 @@ from cnn_mamba.train import (
     PUDataset, boundary_weighted_cds_loss, candidate_loss, masked_phase_loss,
     group_balanced_joint_frame_loss, shared_backbone_gradient_norm,
 )
+from cnn_mamba.temperature_scaling import (
+    calibration_metrics, fit_temperature, joint_frame_targets,
+)
 from cnn_mamba.uniann_evaluate import parse_stats
 
 
@@ -96,6 +99,31 @@ class CoreTests(unittest.TestCase):
         # The final CDS base has conflicting/unknown phase and is excluded.
         self.assertTrue(torch.equal(logits.grad[0, 5], torch.zeros(4)))
         self.assertIsNotNone(logits.grad)
+
+    def test_joint_frame_targets_exclude_ambiguous_cds(self):
+        phase = torch.tensor([[0, 1, 2, 0, 0]])
+        phase_mask = torch.tensor([[True, True, True, False, False]])
+        cds = torch.tensor([[True, True, True, False, True]])
+        targets, valid = joint_frame_targets(phase, phase_mask, cds)
+        self.assertEqual(targets.tolist(), [[1, 2, 3, 0, 0]])
+        self.assertEqual(valid.tolist(), [[True, True, True, True, False]])
+
+    def test_temperature_scaling_softens_without_changing_argmax(self):
+        torch.manual_seed(7)
+        base = torch.randn(4000, 4)
+        targets = torch.distributions.Categorical(logits=base).sample()
+        overconfident = base * 3.0
+        temperature = fit_temperature(overconfident, targets)
+        before = calibration_metrics(overconfident, targets)
+        after = calibration_metrics(overconfident, targets, temperature)
+        self.assertGreater(temperature, 1.5)
+        self.assertLess(after["nll"], before["nll"])
+        self.assertLess(
+            after["mean_max_probability"], before["mean_max_probability"]
+        )
+        self.assertTrue(torch.equal(
+            overconfident.argmax(-1), (overconfident / temperature).argmax(-1)
+        ))
 
     def test_phase_tracks_follow_transcript_direction(self):
         plus = build_phase_track([(2, 8, 0)], 10, "+")
