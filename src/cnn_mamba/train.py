@@ -31,6 +31,17 @@ DEFAULT_DATA = ROOT / "data" / "processed" / "w10"
 SEED = 42
 
 
+def cosine_learning_rate(step, base_lr, schedule_steps, warmup_steps):
+    """Warm up, cosine-decay to 0.1x, then remain at that floor."""
+    if step < warmup_steps:
+        return base_lr * (step + 1) / warmup_steps
+    progress = min(
+        1.0,
+        (step - warmup_steps) / max(schedule_steps - warmup_steps, 1),
+    )
+    return base_lr * (0.1 + 0.45 * (1 + math.cos(math.pi * progress)))
+
+
 class PUDataset(Dataset):
     def __init__(
         self, directory, require_phase=False, require_cds=False,
@@ -344,6 +355,13 @@ def main():
     parser.add_argument("--mode", choices=("baseline", "ignore"), required=True)
     parser.add_argument("--output-dir", type=Path)
     parser.add_argument("--epochs", type=int, default=2)
+    parser.add_argument(
+        "--scheduler-epochs", type=int,
+        help=(
+            "Epoch horizon for cosine LR decay. Defaults to --epochs. If the "
+            "training maximum is longer, LR remains at 0.1x after this horizon."
+        ),
+    )
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--grad-accum", type=int, default=2)
     parser.add_argument("--workers", type=int, default=4)
@@ -447,6 +465,8 @@ def main():
         )
     if args.early_stopping_patience < 0:
         parser.error("--early-stopping-patience must be non-negative")
+    if args.scheduler_epochs is not None and args.scheduler_epochs <= 0:
+        parser.error("--scheduler-epochs must be positive")
     if args.early_stopping_min_delta < 0:
         parser.error("--early-stopping-min-delta must be non-negative")
     if args.frame_dilation < 0:
@@ -623,14 +643,12 @@ def main():
     )
     scaler = GradScaler(enabled=args.amp)
     steps_per_epoch = math.ceil(len(train_loader) / args.grad_accum)
-    total_steps = args.epochs * steps_per_epoch
-    warmup = max(20, min(200, total_steps // 10))
+    scheduler_epochs = args.scheduler_epochs or args.epochs
+    scheduler_steps = scheduler_epochs * steps_per_epoch
+    warmup = max(20, min(200, scheduler_steps // 10))
 
     def scheduled_lr(step):
-        if step < warmup:
-            return args.lr * (step + 1) / warmup
-        progress = (step - warmup) / max(total_steps - warmup, 1)
-        return args.lr * (0.1 + 0.45 * (1 + math.cos(math.pi * progress)))
+        return cosine_learning_rate(step, args.lr, scheduler_steps, warmup)
 
     history, best_score, optimizer_step, start_epoch = [], -1.0, 0, 1
     epochs_without_improvement = 0
@@ -659,6 +677,7 @@ def main():
         f"mode={args.mode} device={torch.cuda.get_device_name(0)} train={len(train_data):,} "
         f"val={len(val_data) if val_data is not None else 0:,} "
         f"test={len(test_data) if test_data is not None else 0:,} epochs={args.epochs} "
+        f"scheduler_epochs={scheduler_epochs} scheduler_steps={scheduler_steps} "
         f"start_epoch={start_epoch} early_stopping_patience={args.early_stopping_patience} "
         f"early_stopping_min_delta={args.early_stopping_min_delta:g} "
         f"frame_dilation={args.frame_dilation} phase_aux_weight={args.phase_aux_weight:g} "

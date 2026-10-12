@@ -22,6 +22,7 @@ def main():
     parser.add_argument("--experiment-tag", default="")
     parser.add_argument("--data-root", type=Path)
     parser.add_argument("--epochs", type=int)
+    parser.add_argument("--scheduler-epochs", type=int)
     parser.add_argument("--frame-dilation", type=int, default=0)
     parser.add_argument("--joint-frame-aux-weight", type=float, default=0.0)
     parser.add_argument("--joint-noncoding-weight", type=float, default=0.1)
@@ -64,6 +65,8 @@ def main():
                    "--joint-noncoding-weight", str(args.joint_noncoding_weight),
                    "--early-stopping-patience", str(args.early_stopping_patience),
                    "--early-stopping-min-delta", str(args.early_stopping_min_delta)]
+        if args.scheduler_epochs is not None:
+            command.extend(("--scheduler-epochs", str(args.scheduler_epochs)))
         if args.record_gradient_norms:
             command.append("--record-gradient-norms")
         if args.regime == "chr1train":

@@ -14,8 +14,9 @@ from cnn_mamba.prepare_droso import (
 )
 from cnn_mamba.score_chromosome import keep_bounds
 from cnn_mamba.train import (
-    PUDataset, boundary_weighted_cds_loss, candidate_loss, masked_phase_loss,
-    group_balanced_joint_frame_loss, shared_backbone_gradient_norm,
+    PUDataset, boundary_weighted_cds_loss, candidate_loss,
+    cosine_learning_rate, masked_phase_loss, group_balanced_joint_frame_loss,
+    shared_backbone_gradient_norm,
 )
 from cnn_mamba.temperature_scaling import (
     calibration_metrics, fit_temperature, joint_frame_targets,
@@ -24,6 +25,12 @@ from cnn_mamba.uniann_evaluate import parse_stats
 
 
 class CoreTests(unittest.TestCase):
+    def test_cosine_learning_rate_stays_at_floor_after_horizon(self):
+        base = 3e-4
+        self.assertAlmostEqual(cosine_learning_rate(0, base, 1000, 100), 3e-6)
+        self.assertAlmostEqual(cosine_learning_rate(1000, base, 1000, 100), 3e-5)
+        self.assertAlmostEqual(cosine_learning_rate(2000, base, 1000, 100), 3e-5)
+
     def test_human_phase_parser_normalizes_accession_and_chr_names(self):
         eviann = (
             "NC_000001.11\tEviAnn\tCDS\t2\t5\t.\t+\t1\tParent=x\n"
