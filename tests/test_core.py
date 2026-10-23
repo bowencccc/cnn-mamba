@@ -9,6 +9,7 @@ from cnn_mamba.common import splice_candidate_masks, start_stop_candidate_masks
 from cnn_mamba.evaluate_gated_phase import BinnedBinaryMetrics
 from cnn_mamba.prepare_human import parse_cds_phase_records as parse_human_phase
 from cnn_mamba.model import SpliceMamba
+from cnn_mamba.mlm_pretrain import CNNMambaMLM, corrupt_for_mlm
 from cnn_mamba.prepare_droso import (
     build_cds_boundary_mask, build_cds_track, build_phase_track,
 )
@@ -58,12 +59,78 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(torch.where(start[0])[0].tolist(), [8])
         self.assertEqual(torch.where(stop[0])[0].tolist(), [5, 11])
 
+    def test_candidate_negative_weight_preserves_legacy_at_one(self):
+        sequence = torch.tensor([[2, 3, 2, 3, 0, 2]])  # GT, GT, AG
+        labels = torch.tensor([[1, 0, 0, 0, 2, 0]])
+        logits = torch.tensor(
+            [[[0.1, 1.2, -0.2], [0.0, 0.0, 0.0],
+              [1.0, -0.1, -0.2], [0.0, 0.0, 0.0],
+              [-0.3, 0.2, 1.1], [0.0, 0.0, 0.0]]]
+        )
+        legacy = candidate_loss(logits, labels, sequence, "splice")
+        explicit = candidate_loss(
+            logits, labels, sequence, "splice", negative_weight=1.0
+        )
+        self.assertTrue(torch.equal(legacy, explicit))
+
+    def test_candidate_negative_weight_uses_weighted_mean(self):
+        sequence = torch.tensor([[2, 3, 2, 3, 0, 2]])  # GT, GT, AG
+        labels = torch.tensor([[1, 0, 0, 0, 2, 0]])
+        logits = torch.tensor(
+            [[[0.1, 1.2, -0.2], [0.0, 0.0, 0.0],
+              [1.0, -0.1, -0.2], [0.0, 0.0, 0.0],
+              [-0.3, 0.2, 1.1], [0.0, 0.0, 0.0]]],
+            requires_grad=True,
+        )
+        loss = candidate_loss(
+            logits, labels, sequence, "splice", negative_weight=0.25
+        )
+        selected_logits = logits[0, [0, 2, 4]]
+        selected_labels = labels[0, [0, 2, 4]]
+        per_candidate = torch.nn.functional.cross_entropy(
+            selected_logits, selected_labels, reduction="none"
+        )
+        weights = torch.tensor([1.0, 0.25, 1.0])
+        expected = (per_candidate * weights).sum() / weights.sum()
+        self.assertAlmostEqual(loss.item(), expected.item(), places=7)
+        loss.backward()
+        self.assertIsNotNone(logits.grad)
+
     def test_model_shapes_without_mamba_layers(self):
         model = SpliceMamba(d_model=16, d_state=8, n_layers=0, dropout=0.0,
                             architecture="cnn_mamba", cnn_kernel_size=7)
         outputs = model(torch.randint(0, 5, (2, 101)))
         self.assertEqual(outputs[0].shape, (2, 101, 3))
         self.assertEqual(outputs[1].shape, (2, 101, 3))
+
+    def test_mlm_corruption_masks_only_acgt_and_uses_mask_token(self):
+        sequence = torch.tensor([[0, 1, 2, 3, 4] * 200])
+        generator = torch.Generator().manual_seed(7)
+        corrupted, targets = corrupt_for_mlm(
+            sequence, mask_rate=0.15, span_length=3, generator=generator
+        )
+        chosen = targets != -100
+        self.assertTrue(chosen.any())
+        self.assertTrue((sequence[chosen] < 4).all())
+        self.assertTrue((targets[sequence == 4] == -100).all())
+        self.assertTrue((corrupted <= 5).all())
+        self.assertTrue((corrupted == 5).any())
+
+    def test_mlm_transfer_discards_mask_embedding_and_task_heads(self):
+        model = CNNMambaMLM(
+            d_model=16, d_state=8, n_layers=0, dropout=0.0,
+            cnn_kernel_size=7,
+        )
+        transferred = model.transfer_state_dict()
+        self.assertEqual(transferred["embedding.weight"].shape, (5, 16))
+        self.assertFalse(any("head" in name for name in transferred))
+        downstream = SpliceMamba(
+            d_model=16, d_state=8, n_layers=0, dropout=0.0,
+            architecture="cnn_mamba", cnn_kernel_size=7,
+        )
+        incompatible = downstream.load_state_dict(transferred, strict=False)
+        self.assertFalse(incompatible.unexpected_keys)
+        self.assertTrue(all("head" in name for name in incompatible.missing_keys))
 
     def test_frame_branch_and_phase_head_shapes(self):
         model = SpliceMamba(

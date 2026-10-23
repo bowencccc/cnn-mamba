@@ -1,0 +1,86 @@
+{
+  "score_dir": "/home/bowencccc/cnn_mamba_k7_portable/artifacts/scores/coleoptera_eviann_v1/retrained/chrxtrain/w10",
+  "eviann_gff": "/home/bowencccc/cnn_mamba_k7_portable/data/raw/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.pseudo_label.coleoptera.gff.gz",
+  "reference_gtf": "/home/bowencccc/ssm_splice_site/drosophila_annotation.gtf",
+  "fasta": "/home/bowencccc/ssm_splice_site/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna",
+  "chromosome": "NC_004354.4",
+  "strand": "+",
+  "negative_definition": "canonical candidates absent from reference",
+  "supported_definition": "Reference intersection EviAnn",
+  "missed_definition": "Reference minus EviAnn",
+  "eviann_rejected": {
+    "splice": 422,
+    "start": 19,
+    "stop": 18
+  },
+  "reference_rejected": {
+    "splice": 1012,
+    "start": 37
+  },
+  "tasks": [
+    {
+      "task": "donor",
+      "candidates": 1236362,
+      "reference_sites": 3403,
+      "eviann_sites": 2551,
+      "supported_sites": 2522,
+      "missed_sites": 881,
+      "eviann_only_sites": 29,
+      "overall_auprc": 0.955913900798515,
+      "supported_auprc": 0.9793945319674611,
+      "supported_recall_at_p90": 0.9603489294210944,
+      "supported_recall_at_p95": 0.9258524980174465,
+      "missed_auprc": 0.7968286136770524,
+      "missed_recall_at_p90": 0.6469920544835415,
+      "missed_recall_at_p95": 0.5266742338251986
+    },
+    {
+      "task": "acceptor",
+      "candidates": 1245749,
+      "reference_sites": 3438,
+      "eviann_sites": 2580,
+      "supported_sites": 2543,
+      "missed_sites": 895,
+      "eviann_only_sites": 37,
+      "overall_auprc": 0.9555701794508077,
+      "supported_auprc": 0.9771554475408983,
+      "supported_recall_at_p90": 0.9535981124655918,
+      "supported_recall_at_p95": 0.9189933149823044,
+      "missed_auprc": 0.7931152375952889,
+      "missed_recall_at_p90": 0.5854748603351956,
+      "missed_recall_at_p95": 0.46368715083798884
+    },
+    {
+      "task": "start",
+      "candidates": 411520,
+      "reference_sites": 1281,
+      "eviann_sites": 956,
+      "supported_sites": 765,
+      "missed_sites": 516,
+      "eviann_only_sites": 191,
+      "overall_auprc": 0.8387482353872923,
+      "supported_auprc": 0.9230730593430774,
+      "supported_recall_at_p90": 0.8209150326797385,
+      "supported_recall_at_p95": 0.7202614379084967,
+      "missed_auprc": 0.5156647835962357,
+      "missed_recall_at_p90": 0.07945736434108527,
+      "missed_recall_at_p95": 0.01937984496124031
+    },
+    {
+      "task": "stop",
+      "candidates": 1060569,
+      "reference_sites": 1265,
+      "eviann_sites": 839,
+      "supported_sites": 771,
+      "missed_sites": 494,
+      "eviann_only_sites": 68,
+      "overall_auprc": 0.8779095925399277,
+      "supported_auprc": 0.9694973607849356,
+      "supported_recall_at_p90": 0.9442282749675746,
+      "supported_recall_at_p95": 0.8962386511024644,
+      "missed_auprc": 0.6101443021246784,
+      "missed_recall_at_p90": 0.29959514170040485,
+      "missed_recall_at_p95": 0.020242914979757085
+    }
+  ]
+}

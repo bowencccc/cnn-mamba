@@ -1,0 +1,21 @@
+condition	family	scale	coding_bias	description	method	sn	pr	f1	predicted_loci	matched_loci	missed_loci	novel_loci
+emission_s0p125_b0p020	direct_emission_affine	0.125	0.02	Direct emission scale=0.125, coding bias=0.02	UniAnn	77.4	79.8	78.58167938931298	1038	828	56	21
+emission_s0p125_b0p020	direct_emission_affine	0.125	0.02	Direct emission scale=0.125, coding bias=0.02	EviAnn+UniAnn	90.5	90.0	90.24930747922437	1065	968	29	30
+emission_s0p150_b0p000	direct_emission_affine	0.15	0.0	Direct emission scale=0.15, coding bias=0.00	UniAnn	75.7	79.1	77.36266149870801	1024	810	66	18
+emission_s0p150_b0p000	direct_emission_affine	0.15	0.0	Direct emission scale=0.15, coding bias=0.00	EviAnn+UniAnn	90.3	90.1	90.19988913525499	1062	966	29	27
+emission_s0p150_b0p010	direct_emission_affine	0.15	0.01	Direct emission scale=0.15, coding bias=0.01	UniAnn	75.8	79.1	77.41484828921885	1025	811	65	18
+emission_s0p150_b0p010	direct_emission_affine	0.15	0.01	Direct emission scale=0.15, coding bias=0.01	EviAnn+UniAnn	90.3	90.1	90.19988913525499	1062	966	29	27
+emission_s0p150_b0p020	direct_emission_affine	0.15	0.02	Direct emission scale=0.15, coding bias=0.02	UniAnn	76.0	79.2	77.56701030927836	1027	813	63	18
+emission_s0p150_b0p020	direct_emission_affine	0.15	0.02	Direct emission scale=0.15, coding bias=0.02	EviAnn+UniAnn	90.3	90.1	90.19988913525499	1062	966	29	27
+emission_s0p175_b0p000	direct_emission_affine	0.175	0.0	Direct emission scale=0.175, coding bias=0.00	UniAnn	73.2	78.4	75.71081794195251	999	783	85	17
+emission_s0p175_b0p000	direct_emission_affine	0.175	0.0	Direct emission scale=0.175, coding bias=0.00	EviAnn+UniAnn	89.9	90.2	90.04975013881176	1056	962	33	26
+emission_s0p175_b0p010	direct_emission_affine	0.175	0.01	Direct emission scale=0.175, coding bias=0.01	UniAnn	73.4	78.4	75.81765480895916	1001	785	83	17
+emission_s0p175_b0p010	direct_emission_affine	0.175	0.01	Direct emission scale=0.175, coding bias=0.01	EviAnn+UniAnn	89.9	90.2	90.04975013881176	1056	962	33	26
+emission_s0p175_b0p020	direct_emission_affine	0.175	0.02	Direct emission scale=0.175, coding bias=0.02	UniAnn	73.6	78.6	76.01787122207621	1003	788	81	17
+emission_s0p175_b0p020	direct_emission_affine	0.175	0.02	Direct emission scale=0.175, coding bias=0.02	EviAnn+UniAnn	89.9	90.2	90.04975013881176	1056	962	33	26
+emission_s0p200_b0p000	direct_emission_affine	0.2	0.0	Direct emission scale=0.2, coding bias=0.00	UniAnn	71.7	77.9	74.67152406417111	985	767	95	16
+emission_s0p200_b0p000	direct_emission_affine	0.2	0.0	Direct emission scale=0.2, coding bias=0.00	EviAnn+UniAnn	89.4	90.1	89.74863509749304	1051	957	35	25
+emission_s0p200_b0p010	direct_emission_affine	0.2	0.01	Direct emission scale=0.2, coding bias=0.01	UniAnn	72.1	78.0	74.9340439706862	988	771	93	16
+emission_s0p200_b0p010	direct_emission_affine	0.2	0.01	Direct emission scale=0.2, coding bias=0.01	EviAnn+UniAnn	89.5	90.1	89.79899777282851	1052	958	35	25
+emission_s0p200_b0p020	direct_emission_affine	0.2	0.02	Direct emission scale=0.2, coding bias=0.02	UniAnn	72.2	78.2	75.08031914893618	989	773	92	16
+emission_s0p200_b0p020	direct_emission_affine	0.2	0.02	Direct emission scale=0.2, coding bias=0.02	EviAnn+UniAnn	89.5	90.1	89.79899777282851	1052	958	35	25

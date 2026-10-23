@@ -1,0 +1,3 @@
+annotation	method	sn	pr	f1	predicted_loci	matched_loci	missed_loci	novel_loci
+coleoptera_eviann	EviAnn	62.3	89.9	73.59750328515113	740	667	335	9
+coleoptera_eviann	EviAnn+UniAnn	87.2	88.3	87.7465527065527	1051	933	37	28

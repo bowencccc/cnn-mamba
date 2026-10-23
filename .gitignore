@@ -17,6 +17,8 @@ artifacts/phase_predictions/*
 !artifacts/phase_predictions/.gitkeep
 artifacts/cds_predictions/
 artifacts/joint_frame_predictions/
+artifacts/uniann_coding_scores/
+data/propensity/
 /runs/
 /work/
 *.pt
@@ -33,6 +35,18 @@ artifacts/joint_frame_predictions/
 # Small inference-only checkpoints intentionally published for reproducible tests.
 !models/*.pt
 /results/**/run.log
+/results/**/runner.log
+/results/*.runner.log
+/results/**/*.runner.log
+/results/*.postprocess.log
+/results/**/*.postprocess.log
+/results/**/*.gffcompare.log
+/results/**/*.gffread.log
+/results/**/*.tracking
+/results/**/*.loci
+/results/**/*.refmap
+/results/**/*.tmap
+/results/**/*.stats
 
 # Curated result tables under results/ are intentionally versioned.
 !results/**/*.tsv.gz

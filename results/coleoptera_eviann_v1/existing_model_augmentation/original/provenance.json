@@ -1,0 +1,30 @@
+{
+  "label": "original_eviann",
+  "eviann_gff": "/home/bowencccc/eviann_uniann_combined_strict_20260824/shared/NC_004354.4.plus.EviAnn.CDS.raw.gff",
+  "uniann_gff": "/home/bowencccc/cnn_mamba_k7_portable/work/uniann/frame_scaling_extended_grid_v1/joint_s9p000_b0p000/genome.fa.uniann.gff",
+  "reference": "/home/bowencccc/uniann_droso_chrx_benchmark_20260824/shared/NC_004354.4.p.CDS.uniq.gtf",
+  "metrics": [
+    {
+      "annotation": "original_eviann",
+      "method": "EviAnn",
+      "sn": 81.9,
+      "pr": 90.8,
+      "f1": 86.1206716850029,
+      "predicted_loci": 963,
+      "matched_loci": 876,
+      "missed_loci": 122,
+      "novel_loci": 12
+    },
+    {
+      "annotation": "original_eviann",
+      "method": "EviAnn+UniAnn",
+      "sn": 90.7,
+      "pr": 90.1,
+      "f1": 90.39900442477875,
+      "predicted_loci": 1067,
+      "matched_loci": 970,
+      "missed_loci": 27,
+      "novel_loci": 30
+    }
+  ]
+}

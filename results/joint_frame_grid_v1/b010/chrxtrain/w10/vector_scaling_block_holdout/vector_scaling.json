@@ -1,0 +1,89 @@
+{
+  "schema": "droso_joint_frame_vector_scaling_block_holdout_v1",
+  "checkpoint": "/home/bowencccc/cnn_mamba_k7_portable/runs/joint_frame_grid_v1/b010/chrxtrain/w10/best_model.pt",
+  "source_sample": "/home/bowencccc/cnn_mamba_k7_portable/results/joint_frame_grid_v1/b010/chrxtrain/w10/temperature_scaling/calibration_sample.npz",
+  "validation_chromosome": "3L",
+  "block_size_bp": 2000000,
+  "split_rule": "even non-crossing blocks fit; odd non-crossing blocks evaluate",
+  "dropped_boundary_crossing_windows": 15,
+  "calibration_samples": 103327,
+  "evaluation_samples": 83643,
+  "calibration_class_counts": {
+    "non_CDS": 87648,
+    "frame_0": 5280,
+    "frame_1": 5214,
+    "frame_2": 5185
+  },
+  "evaluation_class_counts": {
+    "non_CDS": 71678,
+    "frame_0": 4014,
+    "frame_1": 3941,
+    "frame_2": 4010
+  },
+  "scalar_temperature_fit_on_calibration_blocks": 1.487239690956765,
+  "vector_scale": {
+    "non_CDS": 0.922251148735755,
+    "frame_0": 0.779449512647887,
+    "frame_1": 0.765719478156287,
+    "frame_2": 0.8009517502722927
+  },
+  "vector_bias": {
+    "non_CDS": 1.865368693490734,
+    "frame_0": -0.661409659412644,
+    "frame_1": -0.4263591751684157,
+    "frame_2": -0.7775998589096745
+  },
+  "vector_regularization": 0.0001,
+  "evaluation_metrics": {
+    "raw": {
+      "samples": 83643,
+      "accuracy": 0.9794603254306995,
+      "nll": 0.06891653456379934,
+      "brier": 0.03340789490190478,
+      "top_label_ece": 0.010614653424771164,
+      "classwise_ece_mean": 0.010135799787765831,
+      "classwise_ece": {
+        "non_CDS": 0.02022619081891915,
+        "frame_0": 0.006558181670049372,
+        "frame_1": 0.006984629799544046,
+        "frame_2": 0.006774196862550755
+      },
+      "mean_max_probability": 0.9894994536544436
+    },
+    "scalar": {
+      "samples": 83643,
+      "accuracy": 0.9794603254306995,
+      "nll": 0.06139724977086829,
+      "brier": 0.032157332772461314,
+      "top_label_ece": 0.0041797431187066995,
+      "classwise_ece_mean": 0.012689734171908466,
+      "classwise_ece": {
+        "non_CDS": 0.02537946834381696,
+        "frame_0": 0.00787444956342729,
+        "frame_1": 0.008789125527139615,
+        "frame_2": 0.008715893253249998
+      },
+      "mean_max_probability": 0.9798039416422383
+    },
+    "vector": {
+      "samples": 83643,
+      "accuracy": 0.9894910512535419,
+      "nll": 0.036730265561516894,
+      "brier": 0.016703644475683805,
+      "top_label_ece": 0.003051913836167889,
+      "classwise_ece_mean": 0.002741041200422568,
+      "classwise_ece": {
+        "non_CDS": 0.0048740655574715614,
+        "frame_0": 0.002129072155863733,
+        "frame_1": 0.0017932766043603238,
+        "frame_2": 0.002167750483994654
+      },
+      "mean_max_probability": 0.9882533671807758
+    }
+  },
+  "evaluation_argmax_changes_vs_raw": {
+    "raw": 0,
+    "scalar": 0,
+    "vector": 1447
+  }
+}

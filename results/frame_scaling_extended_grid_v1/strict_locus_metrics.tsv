@@ -1,0 +1,59 @@
+condition	family	scale	coding_bias	description	method	sn	pr	f1	predicted_loci	matched_loci	missed_loci	novel_loci
+joint_s6p000_b0p000	joint_softmax_no_gate	6.0	0.0	Joint softmax T=6, no extra gate	UniAnn	74.2	79.0	76.5248041775457	1005	794	80	17
+joint_s6p000_b0p000	joint_softmax_no_gate	6.0	0.0	Joint softmax T=6, no extra gate	EviAnn+UniAnn	89.9	90.2	90.04975013881176	1057	962	33	26
+joint_s7p000_b0p000	joint_softmax_no_gate	7.0	0.0	Joint softmax T=7, no extra gate	UniAnn	76.4	79.4	77.87111681643132	1030	818	60	18
+joint_s7p000_b0p000	joint_softmax_no_gate	7.0	0.0	Joint softmax T=7, no extra gate	EviAnn+UniAnn	90.4	90.2	90.29988925802878	1062	967	29	27
+joint_s8p000_b0p000	joint_softmax_no_gate	8.0	0.0	Joint softmax T=8, no extra gate	UniAnn	77.3	79.7	78.48165605095542	1037	827	56	21
+joint_s8p000_b0p000	joint_softmax_no_gate	8.0	0.0	Joint softmax T=8, no extra gate	EviAnn+UniAnn	90.5	90.0	90.24930747922437	1065	968	29	30
+joint_s9p000_b0p000	joint_softmax_no_gate	9.0	0.0	Joint softmax T=9, no extra gate	UniAnn	77.9	79.9	78.8873257287706	1043	833	50	21
+joint_s9p000_b0p000	joint_softmax_no_gate	9.0	0.0	Joint softmax T=9, no extra gate	EviAnn+UniAnn	90.7	90.1	90.39900442477875	1067	970	27	30
+joint_s10p000_b0p000	joint_softmax_no_gate	10.0	0.0	Joint softmax T=10, no extra gate	UniAnn	78.1	79.8	78.94084863837872	1048	836	49	21
+joint_s10p000_b0p000	joint_softmax_no_gate	10.0	0.0	Joint softmax T=10, no extra gate	EviAnn+UniAnn	90.7	89.9	90.29822812846069	1070	971	27	30
+joint_s7p000_b0p010	joint_softmax_coding_bias	7.0	0.01	Joint softmax T=7, coding bias=0.01	UniAnn	76.4	79.4	77.87111681643132	1030	818	60	18
+joint_s7p000_b0p010	joint_softmax_coding_bias	7.0	0.01	Joint softmax T=7, coding bias=0.01	EviAnn+UniAnn	90.4	90.2	90.29988925802878	1062	967	29	27
+joint_s7p000_b0p020	joint_softmax_coding_bias	7.0	0.02	Joint softmax T=7, coding bias=0.02	UniAnn	76.6	79.5	78.02306213965407	1032	820	58	18
+joint_s7p000_b0p020	joint_softmax_coding_bias	7.0	0.02	Joint softmax T=7, coding bias=0.02	EviAnn+UniAnn	90.5	90.3	90.39988938053096	1062	968	29	27
+joint_s7p000_b0p030	joint_softmax_coding_bias	7.0	0.03	Joint softmax T=7, coding bias=0.03	UniAnn	76.6	79.4	77.97487179487179	1033	820	58	19
+joint_s7p000_b0p030	joint_softmax_coding_bias	7.0	0.03	Joint softmax T=7, coding bias=0.03	EviAnn+UniAnn	90.5	90.2	90.34975096845601	1063	968	29	28
+joint_s8p000_b0p010	joint_softmax_coding_bias	8.0	0.01	Joint softmax T=8, coding bias=0.01	UniAnn	77.3	79.7	78.48165605095542	1037	827	56	21
+joint_s8p000_b0p010	joint_softmax_coding_bias	8.0	0.01	Joint softmax T=8, coding bias=0.01	EviAnn+UniAnn	90.5	90.0	90.24930747922437	1065	968	29	30
+joint_s8p000_b0p020	joint_softmax_coding_bias	8.0	0.02	Joint softmax T=8, coding bias=0.02	UniAnn	77.3	79.7	78.48165605095542	1037	827	56	21
+joint_s8p000_b0p020	joint_softmax_coding_bias	8.0	0.02	Joint softmax T=8, coding bias=0.02	EviAnn+UniAnn	90.5	90.0	90.24930747922437	1065	968	29	30
+joint_s8p000_b0p030	joint_softmax_coding_bias	8.0	0.03	Joint softmax T=8, coding bias=0.03	UniAnn	77.5	79.9	78.68170266836086	1038	829	55	21
+joint_s8p000_b0p030	joint_softmax_coding_bias	8.0	0.03	Joint softmax T=8, coding bias=0.03	EviAnn+UniAnn	90.6	90.1	90.34930824571111	1066	969	28	30
+joint_s9p000_b0p010	joint_softmax_coding_bias	9.0	0.01	Joint softmax T=9, coding bias=0.01	UniAnn	77.9	79.9	78.8873257287706	1044	834	50	21
+joint_s9p000_b0p010	joint_softmax_coding_bias	9.0	0.01	Joint softmax T=9, coding bias=0.01	EviAnn+UniAnn	90.7	90.1	90.39900442477875	1068	971	27	30
+joint_s9p000_b0p020	joint_softmax_coding_bias	9.0	0.02	Joint softmax T=9, coding bias=0.02	UniAnn	78.0	80.0	78.9873417721519	1044	835	50	21
+joint_s9p000_b0p020	joint_softmax_coding_bias	9.0	0.02	Joint softmax T=9, coding bias=0.02	EviAnn+UniAnn	90.7	90.1	90.39900442477875	1068	971	27	30
+joint_s9p000_b0p030	joint_softmax_coding_bias	9.0	0.03	Joint softmax T=9, coding bias=0.03	UniAnn	78.0	80.0	78.9873417721519	1044	835	50	21
+joint_s9p000_b0p030	joint_softmax_coding_bias	9.0	0.03	Joint softmax T=9, coding bias=0.03	EviAnn+UniAnn	90.7	90.1	90.39900442477875	1068	971	27	30
+emission_s0p100_b0p000	direct_emission_affine	0.1	0.0	Direct emission scale=0.1, coding bias=0.00	UniAnn	78.2	79.9	79.04086021505375	1048	837	49	21
+emission_s0p100_b0p000	direct_emission_affine	0.1	0.0	Direct emission scale=0.1, coding bias=0.00	EviAnn+UniAnn	90.7	89.9	90.29822812846069	1070	971	27	30
+emission_s0p100_b0p010	direct_emission_affine	0.1	0.01	Direct emission scale=0.1, coding bias=0.01	UniAnn	78.3	80.0	79.14087176247631	1048	838	49	21
+emission_s0p100_b0p010	direct_emission_affine	0.1	0.01	Direct emission scale=0.1, coding bias=0.01	EviAnn+UniAnn	90.7	89.9	90.29822812846069	1070	971	27	30
+emission_s0p100_b0p020	direct_emission_affine	0.1	0.02	Direct emission scale=0.1, coding bias=0.02	UniAnn	78.5	80.1	79.29192938209331	1049	840	48	21
+emission_s0p100_b0p020	direct_emission_affine	0.1	0.02	Direct emission scale=0.1, coding bias=0.02	EviAnn+UniAnn	90.7	89.9	90.29822812846069	1070	971	27	30
+emission_s0p125_b0p000	direct_emission_affine	0.125	0.0	Direct emission scale=0.125, coding bias=0.00	UniAnn	77.4	79.8	78.58167938931298	1038	828	56	21
+emission_s0p125_b0p000	direct_emission_affine	0.125	0.0	Direct emission scale=0.125, coding bias=0.00	EviAnn+UniAnn	90.5	90.0	90.24930747922437	1065	968	29	30
+emission_s0p125_b0p010	direct_emission_affine	0.125	0.01	Direct emission scale=0.125, coding bias=0.01	UniAnn	77.4	79.8	78.58167938931298	1038	828	56	21
+emission_s0p125_b0p010	direct_emission_affine	0.125	0.01	Direct emission scale=0.125, coding bias=0.01	EviAnn+UniAnn	90.5	90.0	90.24930747922437	1065	968	29	30
+emission_s0p125_b0p020	direct_emission_affine	0.125	0.02	Direct emission scale=0.125, coding bias=0.02	UniAnn	77.4	79.8	78.58167938931298	1038	828	56	21
+emission_s0p125_b0p020	direct_emission_affine	0.125	0.02	Direct emission scale=0.125, coding bias=0.02	EviAnn+UniAnn	90.5	90.0	90.24930747922437	1065	968	29	30
+emission_s0p150_b0p000	direct_emission_affine	0.15	0.0	Direct emission scale=0.15, coding bias=0.00	UniAnn	75.7	79.1	77.36266149870801	1024	810	66	18
+emission_s0p150_b0p000	direct_emission_affine	0.15	0.0	Direct emission scale=0.15, coding bias=0.00	EviAnn+UniAnn	90.3	90.1	90.19988913525499	1062	966	29	27
+emission_s0p150_b0p010	direct_emission_affine	0.15	0.01	Direct emission scale=0.15, coding bias=0.01	UniAnn	75.8	79.1	77.41484828921885	1025	811	65	18
+emission_s0p150_b0p010	direct_emission_affine	0.15	0.01	Direct emission scale=0.15, coding bias=0.01	EviAnn+UniAnn	90.3	90.1	90.19988913525499	1062	966	29	27
+emission_s0p150_b0p020	direct_emission_affine	0.15	0.02	Direct emission scale=0.15, coding bias=0.02	UniAnn	76.0	79.2	77.56701030927836	1027	813	63	18
+emission_s0p150_b0p020	direct_emission_affine	0.15	0.02	Direct emission scale=0.15, coding bias=0.02	EviAnn+UniAnn	90.3	90.1	90.19988913525499	1062	966	29	27
+emission_s0p175_b0p000	direct_emission_affine	0.175	0.0	Direct emission scale=0.175, coding bias=0.00	UniAnn	73.2	78.4	75.71081794195251	999	783	85	17
+emission_s0p175_b0p000	direct_emission_affine	0.175	0.0	Direct emission scale=0.175, coding bias=0.00	EviAnn+UniAnn	89.9	90.2	90.04975013881176	1056	962	33	26
+emission_s0p175_b0p010	direct_emission_affine	0.175	0.01	Direct emission scale=0.175, coding bias=0.01	UniAnn	73.4	78.4	75.81765480895916	1001	785	83	17
+emission_s0p175_b0p010	direct_emission_affine	0.175	0.01	Direct emission scale=0.175, coding bias=0.01	EviAnn+UniAnn	89.9	90.2	90.04975013881176	1056	962	33	26
+emission_s0p175_b0p020	direct_emission_affine	0.175	0.02	Direct emission scale=0.175, coding bias=0.02	UniAnn	73.6	78.6	76.01787122207621	1003	788	81	17
+emission_s0p175_b0p020	direct_emission_affine	0.175	0.02	Direct emission scale=0.175, coding bias=0.02	EviAnn+UniAnn	89.9	90.2	90.04975013881176	1056	962	33	26
+emission_s0p200_b0p000	direct_emission_affine	0.2	0.0	Direct emission scale=0.2, coding bias=0.00	UniAnn	71.7	77.9	74.67152406417111	985	767	95	16
+emission_s0p200_b0p000	direct_emission_affine	0.2	0.0	Direct emission scale=0.2, coding bias=0.00	EviAnn+UniAnn	89.4	90.1	89.74863509749304	1051	957	35	25
+emission_s0p200_b0p010	direct_emission_affine	0.2	0.01	Direct emission scale=0.2, coding bias=0.01	UniAnn	72.1	78.0	74.9340439706862	988	771	93	16
+emission_s0p200_b0p010	direct_emission_affine	0.2	0.01	Direct emission scale=0.2, coding bias=0.01	EviAnn+UniAnn	89.5	90.1	89.79899777282851	1052	958	35	25
+emission_s0p200_b0p020	direct_emission_affine	0.2	0.02	Direct emission scale=0.2, coding bias=0.02	UniAnn	72.2	78.2	75.08031914893618	989	773	92	16
+emission_s0p200_b0p020	direct_emission_affine	0.2	0.02	Direct emission scale=0.2, coding bias=0.02	EviAnn+UniAnn	89.5	90.1	89.79899777282851	1052	958	35	25

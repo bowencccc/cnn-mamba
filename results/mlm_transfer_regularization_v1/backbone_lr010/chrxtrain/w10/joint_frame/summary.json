@@ -1,0 +1,48 @@
+{
+  "schema": "joint_frame_evaluation_v1",
+  "prediction_directory": "/home/bowencccc/cnn_mamba_k7_portable/artifacts/joint_frame_predictions/mlm_transfer_regularization_v1/backbone_lr010/chrxtrain/w10/chrX_plus",
+  "reference": "/home/bowencccc/ssm_splice_site/drosophila_annotation.gtf",
+  "chromosome": "NC_004354.4",
+  "strand": "+",
+  "metric": "4096-bin bounded-memory average precision",
+  "cds_metrics": {
+    "AP": 0.9853342913452295,
+    "best_F1": 0.9547460829463528,
+    "precision": 0.9482901257802453,
+    "recall": 0.9612905469522405,
+    "threshold": 0.9904761904761905,
+    "positives": 2012790,
+    "evaluated_bases": 23542271
+  },
+  "frame_macro_AP": 0.9945234413747611,
+  "joint_confusion_matrix_rows_reference_columns_prediction": [
+    [
+      21066223,
+      153304,
+      158234,
+      151720
+    ],
+    [
+      5538,
+      661731,
+      743,
+      2459
+    ],
+    [
+      5784,
+      2436,
+      661507,
+      763
+    ],
+    [
+      5242,
+      733,
+      2451,
+      662060
+    ]
+  ],
+  "joint_macro_F1": 0.913456074949815,
+  "maximum_probability_sum_error": 2.384185791015625e-07,
+  "argmax_mismatches": 0,
+  "excluded_reference_phase_conflict_bases": 1343
+}

@@ -7,6 +7,7 @@ paths (real files or symlinks are both accepted):
 data/raw/dmel_genome.fa
 data/raw/dmel_genome.fa.fai
 data/raw/dmel_eviann_pseudo_label.gff
+data/raw/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.pseudo_label.coleoptera.gff.gz
 data/raw/dmel_reference.gtf
 data/raw/dmel_chrX.fa
 data/raw/psauron_score_droso.csv

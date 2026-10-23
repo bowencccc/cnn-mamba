@@ -1,0 +1,9 @@
+condition	family	scale	coding_bias	description	method	sn	pr	f1	predicted_loci	matched_loci	missed_loci	novel_loci
+emission_s0p100_b0p010	direct_emission_affine	0.1	0.01	Direct emission scale=0.1, coding bias=0.01	UniAnn	78.3	80.0	79.14087176247631	1048	838	49	21
+emission_s0p100_b0p010	direct_emission_affine	0.1	0.01	Direct emission scale=0.1, coding bias=0.01	EviAnn+UniAnn	90.7	89.9	90.29822812846069	1070	971	27	30
+emission_s0p100_b0p020	direct_emission_affine	0.1	0.02	Direct emission scale=0.1, coding bias=0.02	UniAnn	78.5	80.1	79.29192938209331	1049	840	48	21
+emission_s0p100_b0p020	direct_emission_affine	0.1	0.02	Direct emission scale=0.1, coding bias=0.02	EviAnn+UniAnn	90.7	89.9	90.29822812846069	1070	971	27	30
+emission_s0p125_b0p000	direct_emission_affine	0.125	0.0	Direct emission scale=0.125, coding bias=0.00	UniAnn	77.4	79.8	78.58167938931298	1038	828	56	21
+emission_s0p125_b0p000	direct_emission_affine	0.125	0.0	Direct emission scale=0.125, coding bias=0.00	EviAnn+UniAnn	90.5	90.0	90.24930747922437	1065	968	29	30
+emission_s0p125_b0p010	direct_emission_affine	0.125	0.01	Direct emission scale=0.125, coding bias=0.01	UniAnn	77.4	79.8	78.58167938931298	1038	828	56	21
+emission_s0p125_b0p010	direct_emission_affine	0.125	0.01	Direct emission scale=0.125, coding bias=0.01	EviAnn+UniAnn	90.5	90.0	90.24930747922437	1065	968	29	30

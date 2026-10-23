@@ -45,7 +45,7 @@ def cosine_learning_rate(step, base_lr, schedule_steps, warmup_steps):
 class PUDataset(Dataset):
     def __init__(
         self, directory, require_phase=False, require_cds=False,
-        require_cds_boundary=False,
+        require_cds_boundary=False, propensity_root=None,
     ):
         directories = directory if isinstance(directory, (list, tuple)) else [directory]
         self.files = sorted(
@@ -57,6 +57,9 @@ class PUDataset(Dataset):
         self.require_phase = require_phase
         self.require_cds = require_cds
         self.require_cds_boundary = require_cds_boundary
+        self.propensity_root = (
+            None if propensity_root is None else Path(propensity_root)
+        )
         if require_cds_boundary and not require_cds:
             raise ValueError("CDS boundary masks require CDS labels")
 
@@ -123,10 +126,43 @@ class PUDataset(Dataset):
                     arrays.append(
                         torch.from_numpy(data[key].astype(np.int64, copy=False))
                     )
+            if self.propensity_root is not None:
+                source = Path(self.files[index])
+                sidecar = self.propensity_root / source.parent.name / source.name
+                if not sidecar.is_file():
+                    raise FileNotFoundError(
+                        f"missing propensity sidecar for {source}: {sidecar}"
+                    )
+                with np.load(sidecar) as propensity:
+                    for key in ("splice_propensity", "start_stop_propensity"):
+                        if key not in propensity:
+                            raise KeyError(f"missing {key!r} in {sidecar}")
+                        value = propensity[key]
+                        if value.shape != sequence.shape:
+                            raise ValueError(
+                                f"{sidecar} {key} shape {value.shape} != "
+                                f"sequence shape {sequence.shape}"
+                            )
+                        arrays.append(torch.from_numpy(
+                            value.astype(np.int64, copy=False)
+                        ))
             return tuple(arrays)
 
 
-def candidate_loss(logits, labels, sequence, task, ignore=None):
+def candidate_loss(
+    logits, labels, sequence, task, ignore=None, negative_weight=1.0,
+    propensity=None, propensity_negative_weight=1.0,
+):
+    """Cross-entropy over canonical candidates and annotated positives.
+
+    ``labels == 0`` is only an observed negative under incomplete EviAnn
+    supervision: it can contain a real site that EviAnn missed.  A
+    ``negative_weight`` below one downweights those unlabeled candidates while
+    retaining unit weight for EviAnn positives.  The weighted mean is
+    normalized by the sum of weights so the component's overall scale remains
+    comparable across settings.  ``negative_weight=1`` is exactly the legacy
+    loss.
+    """
     if task == "splice":
         first, second = splice_candidate_masks(sequence)
     else:
@@ -138,7 +174,37 @@ def candidate_loss(logits, labels, sequence, task, ignore=None):
         mask &= (~ignore.bool()) | positive
     if not mask.any():
         return logits.sum() * 0.0
-    return F.cross_entropy(logits[mask], labels[mask])
+    selected_logits = logits[mask]
+    selected_labels = labels[mask]
+    if negative_weight == 1.0 and (
+        propensity is None or propensity_negative_weight == 1.0
+    ):
+        return F.cross_entropy(selected_logits, selected_labels)
+    per_candidate = F.cross_entropy(
+        selected_logits, selected_labels, reduction="none"
+    )
+    weights = torch.where(
+        selected_labels == 0,
+        torch.as_tensor(
+            negative_weight,
+            dtype=per_candidate.dtype,
+            device=per_candidate.device,
+        ),
+        torch.ones((), dtype=per_candidate.dtype, device=per_candidate.device),
+    )
+    if propensity is not None and propensity_negative_weight != 1.0:
+        selected_propensity = propensity.bool()[mask]
+        selective = (selected_labels == 0) & selected_propensity
+        weights = torch.where(
+            selective,
+            torch.as_tensor(
+                propensity_negative_weight,
+                dtype=per_candidate.dtype,
+                device=per_candidate.device,
+            ),
+            weights,
+        )
+    return (per_candidate * weights).sum() / weights.sum().clamp_min(1.0)
 
 
 def masked_phase_loss(logits, labels, mask):
@@ -367,8 +433,49 @@ def main():
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument(
+        "--backbone-lr-multiplier", type=float, default=1.0,
+        help=(
+            "Learning-rate multiplier for the transferred embedding, input "
+            "projection, CNN-Mamba layers, and final norm. Newly initialized "
+            "task branches and heads retain --lr."
+        ),
+    )
+    parser.add_argument(
+        "--freeze-pretrained-layers", type=int, default=0,
+        help=(
+            "Freeze the transferred embedding/input projection and this many "
+            "lowest CNN-Mamba layers during the initial freeze epochs."
+        ),
+    )
+    parser.add_argument(
+        "--freeze-pretrained-epochs", type=int, default=0,
+        help="Number of initial epochs before staged unfreezing.",
+    )
+    parser.add_argument(
         "--splice-loss-weight", type=float, default=0.25,
         help="Weight applied to splice loss; start/stop loss has weight 1.0.",
+    )
+    parser.add_argument(
+        "--candidate-negative-weight", type=float, default=1.0,
+        help=(
+            "Training-only weight for canonical candidates not labeled by "
+            "EviAnn. Positives retain weight 1.0; validation/test reference "
+            "losses remain unweighted."
+        ),
+    )
+    parser.add_argument(
+        "--candidate-propensity-root", type=Path,
+        help=(
+            "Optional sidecar root containing train/test NPZ files with "
+            "splice_propensity and start_stop_propensity masks."
+        ),
+    )
+    parser.add_argument(
+        "--candidate-propensity-negative-weight", type=float, default=1.0,
+        help=(
+            "Training weight applied only to EviAnn-unlabeled canonical "
+            "candidates selected by propensity masks."
+        ),
     )
     parser.add_argument(
         "--early-stopping-patience", type=int, default=0,
@@ -441,6 +548,21 @@ def main():
         ),
     )
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument(
+        "--init-checkpoint", type=Path,
+        help=(
+            "Initialize model weights from a compatible checkpoint while "
+            "starting a fresh optimizer, scheduler, history, and epoch count."
+        ),
+    )
+    parser.add_argument(
+        "--init-backbone-checkpoint", type=Path,
+        help=(
+            "Initialize only embedding/input projection/CNN-Mamba/final norm "
+            "from a pretraining checkpoint containing backbone_state_dict. "
+            "All task-specific branches and heads remain freshly initialized."
+        ),
+    )
     parser.add_argument("--reference-name", default="CHESS")
     parser.add_argument("--test-name", default="chr1")
     parser.add_argument(
@@ -463,12 +585,59 @@ def main():
         parser.error(
             "--all-splits-as-train and --include-test-in-train are mutually exclusive"
         )
+    initialization_options = [
+        args.resume,
+        args.init_checkpoint is not None,
+        args.init_backbone_checkpoint is not None,
+    ]
+    if sum(bool(value) for value in initialization_options) > 1:
+        parser.error(
+            "--resume, --init-checkpoint, and --init-backbone-checkpoint "
+            "are mutually exclusive"
+        )
+    if args.init_checkpoint is not None and not args.init_checkpoint.is_file():
+        parser.error(f"initialization checkpoint not found: {args.init_checkpoint}")
+    if (
+        args.init_backbone_checkpoint is not None
+        and not args.init_backbone_checkpoint.is_file()
+    ):
+        parser.error(
+            "backbone initialization checkpoint not found: "
+            f"{args.init_backbone_checkpoint}"
+        )
     if args.early_stopping_patience < 0:
         parser.error("--early-stopping-patience must be non-negative")
     if args.scheduler_epochs is not None and args.scheduler_epochs <= 0:
         parser.error("--scheduler-epochs must be positive")
     if args.early_stopping_min_delta < 0:
         parser.error("--early-stopping-min-delta must be non-negative")
+    if args.backbone_lr_multiplier <= 0:
+        parser.error("--backbone-lr-multiplier must be positive")
+    if not 0 <= args.freeze_pretrained_layers <= 8:
+        parser.error("--freeze-pretrained-layers must be between 0 and 8")
+    if args.freeze_pretrained_epochs < 0:
+        parser.error("--freeze-pretrained-epochs must be non-negative")
+    if bool(args.freeze_pretrained_layers) != bool(args.freeze_pretrained_epochs):
+        parser.error(
+            "--freeze-pretrained-layers and --freeze-pretrained-epochs must "
+            "both be zero or both be positive"
+        )
+    if args.freeze_pretrained_layers and args.init_backbone_checkpoint is None:
+        parser.error("staged freezing requires --init-backbone-checkpoint")
+    if not 0 < args.candidate_negative_weight <= 1:
+        parser.error("--candidate-negative-weight must be in (0, 1]")
+    if not 0 < args.candidate_propensity_negative_weight <= 1:
+        parser.error(
+            "--candidate-propensity-negative-weight must be in (0, 1]"
+        )
+    if (
+        args.candidate_propensity_negative_weight < 1
+        and args.candidate_propensity_root is None
+    ):
+        parser.error(
+            "--candidate-propensity-negative-weight < 1 requires "
+            "--candidate-propensity-root"
+        )
     if args.frame_dilation < 0:
         parser.error("--frame-dilation must be non-negative")
     if args.phase_aux_weight < 0:
@@ -530,6 +699,7 @@ def main():
             require_phase=require_phase,
             require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
+            propensity_root=args.candidate_propensity_root,
         )
         val_data = test_data = None
     elif args.include_test_in_train:
@@ -538,6 +708,7 @@ def main():
             require_phase=require_phase,
             require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
+            propensity_root=args.candidate_propensity_root,
         )
         val_data = PUDataset(
             args.data_root / "val", require_phase=require_phase,
@@ -550,6 +721,7 @@ def main():
             args.data_root / "train", require_phase=require_phase,
             require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
+            propensity_root=args.candidate_propensity_root,
         )
         val_data = PUDataset(
             args.data_root / "val", require_phase=require_phase,
@@ -586,6 +758,7 @@ def main():
             require_phase=require_phase,
             require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
+            propensity_root=args.candidate_propensity_root,
         )
         for probe_index in range(len(probe_data)):
             candidate = probe_data[probe_index]
@@ -623,6 +796,74 @@ def main():
     ).to(device)
     model.gradient_checkpointing = args.gradient_checkpointing
     initialize_like_original(model)
+    backbone_prefixes = (
+        "embedding.", "input_proj.", "layers.", "norms.", "final_norm.",
+    )
+    initialization = None
+    if args.init_checkpoint is not None:
+        initialized_from = torch.load(
+            args.init_checkpoint, map_location="cpu", weights_only=True
+        )
+        model.load_state_dict(initialized_from["model_state_dict"], strict=True)
+        initialization = {
+            "checkpoint": str(args.init_checkpoint.resolve()),
+            "source_epoch": int(initialized_from["epoch"]),
+            "source_best_validation_mean_AP": initialized_from.get(
+                "best_validation_mean_AP"
+            ),
+            "loaded": "model_state_dict_only",
+            "optimizer": "fresh",
+            "scheduler": "fresh",
+            "history": "fresh",
+        }
+    elif args.init_backbone_checkpoint is not None:
+        initialized_from = torch.load(
+            args.init_backbone_checkpoint, map_location="cpu", weights_only=False
+        )
+        if "backbone_state_dict" not in initialized_from:
+            raise KeyError(
+                f"{args.init_backbone_checkpoint} has no backbone_state_dict"
+            )
+        backbone_state = initialized_from["backbone_state_dict"]
+        current_state = model.state_dict()
+        expected = {
+            name for name in current_state if name.startswith(backbone_prefixes)
+        }
+        supplied = set(backbone_state)
+        if supplied != expected:
+            raise RuntimeError(
+                "pretrained backbone key mismatch: "
+                f"missing={sorted(expected - supplied)} "
+                f"unexpected={sorted(supplied - expected)}"
+            )
+        shape_mismatch = {
+            name: (tuple(backbone_state[name].shape), tuple(current_state[name].shape))
+            for name in expected
+            if backbone_state[name].shape != current_state[name].shape
+        }
+        if shape_mismatch:
+            raise RuntimeError(
+                f"pretrained backbone shape mismatch: {shape_mismatch}"
+            )
+        incompatible = model.load_state_dict(backbone_state, strict=False)
+        if incompatible.unexpected_keys:
+            raise RuntimeError(
+                f"unexpected backbone keys: {incompatible.unexpected_keys}"
+            )
+        initialization = {
+            "checkpoint": str(args.init_backbone_checkpoint.resolve()),
+            "source_schema": initialized_from.get("schema"),
+            "source_epoch": int(initialized_from["epoch"]),
+            "source_best_validation_loss": initialized_from.get(
+                "best_validation_loss"
+            ),
+            "loaded": "shared_backbone_state_dict_only",
+            "loaded_parameter_keys": len(backbone_state),
+            "task_heads": "fresh",
+            "optimizer": "fresh",
+            "scheduler": "fresh",
+            "history": "fresh",
+        }
     excluded_from_shared = (
         "splice_head.", "start_stop_head.", "phase_head.", "cds_head.",
         "joint_frame_head.", "frame_branch.",
@@ -634,12 +875,51 @@ def main():
     shared_backbone_parameter_count = sum(
         parameter.numel() for parameter in shared_backbone_parameters
     )
-    decay, no_decay = [], []
+    parameter_groups = {
+        (False, True): [],
+        (False, False): [],
+        (True, True): [],
+        (True, False): [],
+    }
     for name, parameter in model.named_parameters():
-        (no_decay if name.endswith(".bias") or "norm" in name.lower() or "embedding" in name.lower() else decay).append(parameter)
+        is_backbone = name.startswith(backbone_prefixes)
+        use_decay = not (
+            name.endswith(".bias") or "norm" in name.lower()
+            or "embedding" in name.lower()
+        )
+        parameter_groups[(is_backbone, use_decay)].append(parameter)
+    optimizer_groups = []
+    for (is_backbone, use_decay), parameters in parameter_groups.items():
+        if not parameters:
+            continue
+        multiplier = args.backbone_lr_multiplier if is_backbone else 1.0
+        optimizer_groups.append({
+            "params": parameters,
+            "weight_decay": 1e-4 if use_decay else 0.0,
+            "lr": args.lr * multiplier,
+            "lr_multiplier": multiplier,
+            "group_name": (
+                ("backbone" if is_backbone else "head")
+                + ("_decay" if use_decay else "_no_decay")
+            ),
+        })
     optimizer = torch.optim.AdamW(
-        [{"params": decay, "weight_decay": 1e-4}, {"params": no_decay, "weight_decay": 0.0}],
-        lr=args.lr, betas=(0.9, 0.95),
+        optimizer_groups, lr=args.lr, betas=(0.9, 0.95),
+    )
+    frozen_prefixes = (
+        ("embedding.", "input_proj.") + tuple(
+            prefix
+            for layer_index in range(args.freeze_pretrained_layers)
+            for prefix in (f"layers.{layer_index}.", f"norms.{layer_index}.")
+        )
+        if args.freeze_pretrained_layers else ()
+    )
+    frozen_parameters = tuple(
+        (name, parameter) for name, parameter in model.named_parameters()
+        if frozen_prefixes and name.startswith(frozen_prefixes)
+    )
+    frozen_parameter_count = sum(
+        parameter.numel() for _, parameter in frozen_parameters
     )
     scaler = GradScaler(enabled=args.amp)
     steps_per_epoch = math.ceil(len(train_loader) / args.grad_accum)
@@ -680,16 +960,30 @@ def main():
         f"scheduler_epochs={scheduler_epochs} scheduler_steps={scheduler_steps} "
         f"start_epoch={start_epoch} early_stopping_patience={args.early_stopping_patience} "
         f"early_stopping_min_delta={args.early_stopping_min_delta:g} "
+        f"candidate_negative_weight={args.candidate_negative_weight:g} "
+        f"candidate_propensity_root={args.candidate_propensity_root} "
+        f"candidate_propensity_negative_weight="
+        f"{args.candidate_propensity_negative_weight:g} "
         f"frame_dilation={args.frame_dilation} phase_aux_weight={args.phase_aux_weight:g} "
         f"cds_aux_weight={args.cds_aux_weight:g} "
         f"cds_boundary_radius={args.cds_boundary_radius} "
         f"cds_far_loss_weight={args.cds_far_loss_weight:g} "
         f"joint_frame_aux_weight={args.joint_frame_aux_weight:g} "
         f"joint_noncoding_weight={args.joint_noncoding_weight:g} "
+        f"backbone_lr_multiplier={args.backbone_lr_multiplier:g} "
+        f"freeze_pretrained_layers={args.freeze_pretrained_layers} "
+        f"freeze_pretrained_epochs={args.freeze_pretrained_epochs} "
+        f"frozen_parameter_count={frozen_parameter_count:,} "
         f"record_gradient_norms={args.record_gradient_norms} "
         f"shared_backbone_parameters={shared_backbone_parameter_count:,} "
         f"gradient_probe={gradient_probe_file}"
     )
+    if initialization is not None:
+        logger.info(
+            f"initialized {initialization['loaded']} from "
+            f"{initialization['checkpoint']} epoch={initialization['source_epoch']}; "
+            "optimizer/scheduler/history start fresh"
+        )
 
     def measure_gradient_probe(epoch, use_ignore):
         cuda_device_index = (
@@ -749,10 +1043,16 @@ def main():
                 probe_splice_loss = candidate_loss(
                     probe_splice, probe_batch[1], probe_sequence, "splice",
                     probe_batch[3] if use_ignore else None,
+                    args.candidate_negative_weight,
+                    probe_batch[-2] if args.candidate_propensity_root else None,
+                    args.candidate_propensity_negative_weight,
                 )
                 probe_ss_loss = candidate_loss(
                     probe_ss, probe_batch[2], probe_sequence, "start_stop",
                     probe_batch[4] if use_ignore else None,
+                    args.candidate_negative_weight,
+                    probe_batch[-1] if args.candidate_propensity_root else None,
+                    args.candidate_propensity_negative_weight,
                 )
             component_losses = (
                 ("splice", probe_splice_loss, args.splice_loss_weight),
@@ -795,6 +1095,14 @@ def main():
         )
     epoch_iterator = () if early_stopped else range(start_epoch, args.epochs + 1)
     for epoch in epoch_iterator:
+        freeze_active = epoch <= args.freeze_pretrained_epochs
+        for _, parameter in frozen_parameters:
+            parameter.requires_grad_(not freeze_active)
+        if frozen_parameters:
+            logger.info(
+                f"epoch={epoch} staged_freeze_active={freeze_active} "
+                f"frozen_parameters={frozen_parameter_count:,}"
+            )
         model.train()
         optimizer.zero_grad(set_to_none=True)
         totals = {
@@ -808,9 +1116,14 @@ def main():
             sequence, splice_labels, ss_labels, splice_ignore, ss_ignore = (
                 tensor.to(device, non_blocking=True) for tensor in batch[:5]
             )
+            if args.candidate_propensity_root is not None:
+                splice_propensity = batch[-2].to(device, non_blocking=True)
+                ss_propensity = batch[-1].to(device, non_blocking=True)
+            else:
+                splice_propensity = ss_propensity = None
             lr = scheduled_lr(optimizer_step)
             for group in optimizer.param_groups:
-                group["lr"] = lr
+                group["lr"] = lr * group.get("lr_multiplier", 1.0)
             use_ignore = args.mode == "ignore"
             if args.record_gradient_norms and batch_index == 1:
                 epoch_gradient_norms = measure_gradient_probe(epoch, use_ignore)
@@ -881,10 +1194,16 @@ def main():
                 splice_loss = candidate_loss(
                     splice_logits, splice_labels, sequence, "splice",
                     splice_ignore if use_ignore else None,
+                    args.candidate_negative_weight,
+                    splice_propensity,
+                    args.candidate_propensity_negative_weight,
                 )
                 ss_loss = candidate_loss(
                     ss_logits, ss_labels, sequence, "start_stop",
                     ss_ignore if use_ignore else None,
+                    args.candidate_negative_weight,
+                    ss_propensity,
+                    args.candidate_propensity_negative_weight,
                 )
                 loss = (
                     args.splice_loss_weight * splice_loss + ss_loss
@@ -988,6 +1307,12 @@ def main():
             ),
             "train_shared_backbone_gradient_norms": epoch_gradient_norms,
             "shared_backbone_parameter_count": shared_backbone_parameter_count,
+            "backbone_learning_rate": lr * args.backbone_lr_multiplier,
+            "head_learning_rate": lr,
+            "staged_freeze_active": freeze_active,
+            "frozen_pretrained_parameter_count": (
+                frozen_parameter_count if freeze_active else 0
+            ),
             "gradient_probe_file": gradient_probe_file,
             "validation_chess": metrics,
             "validation_reference": metrics,
@@ -1045,6 +1370,15 @@ def main():
             "epochs_without_improvement": epochs_without_improvement,
             "config": vars(args) | {
                 "data_root": str(args.data_root), "output_dir": str(output_dir),
+                "init_checkpoint": (
+                    None if args.init_checkpoint is None
+                    else str(args.init_checkpoint.resolve())
+                ),
+                "init_backbone_checkpoint": (
+                    None if args.init_backbone_checkpoint is None
+                    else str(args.init_backbone_checkpoint.resolve())
+                ),
+                "initialization": initialization,
                 "d_model": 192, "d_state": 64, "n_layers": 8, "dropout": 0.1,
                 "regime": "chrxtrain" if args.include_test_in_train else "heldout",
             },

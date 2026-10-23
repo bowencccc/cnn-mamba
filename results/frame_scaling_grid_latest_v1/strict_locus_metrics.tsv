@@ -1,0 +1,13 @@
+condition	description	method	sn	pr	f1	predicted_loci	matched_loci	missed_loci	novel_loci
+raw_double_gate	Raw + frame*(1-nonCDS)	UniAnn	15.6	37.4	22.016603773584905	447	167	523	4
+raw_double_gate	Raw + frame*(1-nonCDS)	EviAnn+UniAnn	85.0	91.2	87.99091940976164	908	910	78	15
+binary_t6	Independent binary-odds T=6	UniAnn	72.8	78.4	75.49629629629631	993	779	89	16
+binary_t6	Independent binary-odds T=6	EviAnn+UniAnn	89.7	90.1	89.89955506117907	1054	960	33	25
+binary_t7	Independent binary-odds T=7	UniAnn	74.8	79.3	76.98429591174562	1009	800	76	17
+binary_t7	Independent binary-odds T=7	EviAnn+UniAnn	90.0	90.1	90.04997223764575	1059	963	31	26
+softmax_t6	Multiclass softmax T=6	UniAnn	72.1	78.2	75.02621423819028	986	771	94	15
+softmax_t6	Multiclass softmax T=6	EviAnn+UniAnn	89.5	90.1	89.79899777282851	1052	958	35	25
+softmax_t7	Multiclass softmax T=7	UniAnn	72.9	78.4	75.55003304692664	995	780	87	16
+softmax_t7	Multiclass softmax T=7	EviAnn+UniAnn	89.7	90.1	89.89955506117907	1054	960	33	25
+raw_joint	Raw joint P(state), no extra gate	UniAnn	15.6	37.3	21.999243856332704	448	167	522	4
+raw_joint	Raw joint P(state), no extra gate	EviAnn+UniAnn	85.0	91.2	87.99091940976164	908	910	78	15

@@ -1,0 +1,7 @@
+evidence	method	sn	pr	f1	predicted_loci	matched_loci	missed_loci	novel_loci
+Drosophila protein evidence	EviAnn	81.900000000	90.800000000	86.120671685	963	876	122	12
+Drosophila protein evidence	UniAnn	77.900000000	79.900000000	78.887325729	1043	833	50	21
+Drosophila protein evidence	EviAnn+UniAnn	90.700000000	90.100000000	90.399004425	1067	970	27	30
+Coleoptera protein evidence	EviAnn	62.300000000	89.900000000	73.597503285	740	667	335	9
+Coleoptera protein evidence	UniAnn	68.700000000	76.500000000	72.390495868	961	735	128	19
+Coleoptera protein evidence	EviAnn+UniAnn	80.600000000	86.800000000	83.585185185	985	862	99	25

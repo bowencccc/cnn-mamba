@@ -39,7 +39,16 @@ def main():
     parser.add_argument("--cds-far-loss-weight", type=float, default=0.1)
     parser.add_argument("--joint-frame-aux-weight", type=float, default=0.0)
     parser.add_argument("--joint-noncoding-weight", type=float, default=0.1)
+    parser.add_argument("--candidate-negative-weight", type=float, default=1.0)
+    parser.add_argument("--candidate-propensity-root", type=Path)
+    parser.add_argument(
+        "--candidate-propensity-negative-weight", type=float, default=1.0
+    )
     parser.add_argument("--record-gradient-norms", action="store_true")
+    parser.add_argument("--init-backbone-checkpoint", type=Path)
+    parser.add_argument("--backbone-lr-multiplier", type=float, default=1.0)
+    parser.add_argument("--freeze-pretrained-layers", type=int, default=0)
+    parser.add_argument("--freeze-pretrained-epochs", type=int, default=0)
     args = parser.parse_args()
     config_path = args.config if args.config.is_absolute() else root / args.config
     config = json.loads(config_path.read_text())
@@ -79,7 +88,18 @@ def main():
             "--cds-far-loss-weight", str(args.cds_far_loss_weight),
             "--joint-frame-aux-weight", str(args.joint_frame_aux_weight),
             "--joint-noncoding-weight", str(args.joint_noncoding_weight),
+            "--candidate-negative-weight", str(args.candidate_negative_weight),
+            "--backbone-lr-multiplier", str(args.backbone_lr_multiplier),
+            "--freeze-pretrained-layers", str(args.freeze_pretrained_layers),
+            "--freeze-pretrained-epochs", str(args.freeze_pretrained_epochs),
         ])
+        if args.candidate_propensity_root is not None:
+            command.extend([
+                "--candidate-propensity-root",
+                str(args.candidate_propensity_root),
+                "--candidate-propensity-negative-weight",
+                str(args.candidate_propensity_negative_weight),
+            ])
         if args.record_gradient_norms:
             command.append("--record-gradient-norms")
         early_stopping = config.get("early_stopping")
@@ -94,6 +114,11 @@ def main():
             command.append("--gradient-checkpointing")
         if (run_dir / "last_model.pt").is_file():
             command.append("--resume")
+        elif args.init_backbone_checkpoint is not None:
+            command.extend([
+                "--init-backbone-checkpoint",
+                str(args.init_backbone_checkpoint),
+            ])
         call(command)
     elif not checkpoint.is_file():
         external = root / "artifacts/checkpoints" / args.regime / args.cell / "best_model.pt"

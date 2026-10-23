@@ -1,0 +1,21 @@
+{
+  "schema": "cnn_mamba_k7_droso_coleoptera_w10_v1",
+  "seed": 42,
+  "epochs": 30,
+  "early_stopping": {
+    "monitor": "validation_mean_AP_donor_acceptor_start_stop",
+    "mode": "max",
+    "patience": 3,
+    "min_delta": 0.0001
+  },
+  "cells": [
+    {
+      "id": "w10",
+      "window_bp": 10000,
+      "stride_bp": 5000,
+      "micro_batch": 4,
+      "grad_accum": 2,
+      "score_batch": 8
+    }
+  ]
+}

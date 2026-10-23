@@ -1,0 +1,31 @@
+rank	condition	family	scale	coding_bias	sn	pr	f1	description
+1	joint_s7p000_b0p020	joint_softmax_coding_bias	7.0	0.02	90.5	90.3	90.39988938053096	Joint softmax T=7, coding bias=0.02
+2	joint_s9p000_b0p000	joint_softmax_no_gate	9.0	0.0	90.7	90.1	90.39900442477875	Joint softmax T=9, no extra gate
+3	joint_s9p000_b0p010	joint_softmax_coding_bias	9.0	0.01	90.7	90.1	90.39900442477875	Joint softmax T=9, coding bias=0.01
+4	joint_s9p000_b0p020	joint_softmax_coding_bias	9.0	0.02	90.7	90.1	90.39900442477875	Joint softmax T=9, coding bias=0.02
+5	joint_s9p000_b0p030	joint_softmax_coding_bias	9.0	0.03	90.7	90.1	90.39900442477875	Joint softmax T=9, coding bias=0.03
+6	joint_s7p000_b0p030	joint_softmax_coding_bias	7.0	0.03	90.5	90.2	90.34975096845601	Joint softmax T=7, coding bias=0.03
+7	joint_s8p000_b0p030	joint_softmax_coding_bias	8.0	0.03	90.6	90.1	90.34930824571111	Joint softmax T=8, coding bias=0.03
+8	joint_s7p000_b0p000	joint_softmax_no_gate	7.0	0.0	90.4	90.2	90.29988925802878	Joint softmax T=7, no extra gate
+9	joint_s7p000_b0p010	joint_softmax_coding_bias	7.0	0.01	90.4	90.2	90.29988925802878	Joint softmax T=7, coding bias=0.01
+10	joint_s10p000_b0p000	joint_softmax_no_gate	10.0	0.0	90.7	89.9	90.29822812846069	Joint softmax T=10, no extra gate
+11	emission_s0p100_b0p000	direct_emission_affine	0.1	0.0	90.7	89.9	90.29822812846069	Direct emission scale=0.1, coding bias=0.00
+12	emission_s0p100_b0p010	direct_emission_affine	0.1	0.01	90.7	89.9	90.29822812846069	Direct emission scale=0.1, coding bias=0.01
+13	emission_s0p100_b0p020	direct_emission_affine	0.1	0.02	90.7	89.9	90.29822812846069	Direct emission scale=0.1, coding bias=0.02
+14	joint_s8p000_b0p000	joint_softmax_no_gate	8.0	0.0	90.5	90.0	90.24930747922437	Joint softmax T=8, no extra gate
+15	joint_s8p000_b0p010	joint_softmax_coding_bias	8.0	0.01	90.5	90.0	90.24930747922437	Joint softmax T=8, coding bias=0.01
+16	joint_s8p000_b0p020	joint_softmax_coding_bias	8.0	0.02	90.5	90.0	90.24930747922437	Joint softmax T=8, coding bias=0.02
+17	emission_s0p125_b0p000	direct_emission_affine	0.125	0.0	90.5	90.0	90.24930747922437	Direct emission scale=0.125, coding bias=0.00
+18	emission_s0p125_b0p010	direct_emission_affine	0.125	0.01	90.5	90.0	90.24930747922437	Direct emission scale=0.125, coding bias=0.01
+19	emission_s0p125_b0p020	direct_emission_affine	0.125	0.02	90.5	90.0	90.24930747922437	Direct emission scale=0.125, coding bias=0.02
+20	emission_s0p150_b0p000	direct_emission_affine	0.15	0.0	90.3	90.1	90.19988913525499	Direct emission scale=0.15, coding bias=0.00
+21	emission_s0p150_b0p010	direct_emission_affine	0.15	0.01	90.3	90.1	90.19988913525499	Direct emission scale=0.15, coding bias=0.01
+22	emission_s0p150_b0p020	direct_emission_affine	0.15	0.02	90.3	90.1	90.19988913525499	Direct emission scale=0.15, coding bias=0.02
+23	joint_s6p000_b0p000	joint_softmax_no_gate	6.0	0.0	89.9	90.2	90.04975013881176	Joint softmax T=6, no extra gate
+24	emission_s0p175_b0p000	direct_emission_affine	0.175	0.0	89.9	90.2	90.04975013881176	Direct emission scale=0.175, coding bias=0.00
+25	emission_s0p175_b0p010	direct_emission_affine	0.175	0.01	89.9	90.2	90.04975013881176	Direct emission scale=0.175, coding bias=0.01
+26	emission_s0p175_b0p020	direct_emission_affine	0.175	0.02	89.9	90.2	90.04975013881176	Direct emission scale=0.175, coding bias=0.02
+27	emission_s0p200_b0p010	direct_emission_affine	0.2	0.01	89.5	90.1	89.79899777282851	Direct emission scale=0.2, coding bias=0.01
+28	emission_s0p200_b0p020	direct_emission_affine	0.2	0.02	89.5	90.1	89.79899777282851	Direct emission scale=0.2, coding bias=0.02
+29	emission_s0p200_b0p000	direct_emission_affine	0.2	0.0	89.4	90.1	89.74863509749304	Direct emission scale=0.2, coding bias=0.00
+30	vector_scaling_block_holdout	learned_vector_scaling	nan	nan	82.6	90.9	86.551469740634	Vector scaling fit on held chr3L 2-Mb blocks

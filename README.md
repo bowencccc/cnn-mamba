@@ -27,6 +27,21 @@ The preserved recipe is:
 The window experiment is a legacy-recipe ablation, not a compute-normalized
 comparison: larger windows receive fewer optimizer updates in five epochs.
 
+## Current published Drosophila models
+
+Two compact inference checkpoints are tracked under `models/`:
+
+- `drosophila_joint_frame_beta010_chrxtrain_epoch23_inference.pt`: current
+  best four-state Drosophila-evidence model for UniAnn augmentation;
+- `drosophila_coleoptera_evidence_joint_frame_beta010_chrxtrain_epoch21_inference.pt`:
+  matched model trained from Coleoptera-protein-evidence EviAnn pseudo-labels.
+
+Both use CNN--Mamba-k7, 10 kb windows, 5 kb stride, dilation 3, four-state
+weight 0.1 and noncoding weight 0.1, with chrX included for the downstream
+annotation setting. Full resumable checkpoints remain external. See
+`models/README.md` and `results/evidence_source_comparison_v1/` for provenance,
+PR--Sn curves, EviAnn operating points and strict locus results.
+
 ## 1. Install
 
 The recorded environment used Python 3.10, PyTorch 2.6.0+cu124 and a Git build

@@ -1,0 +1,80 @@
+[
+  {
+    "temperature": 1,
+    "partial_nll": 22.53479753961145,
+    "accepted": 58,
+    "rejected": 6
+  },
+  {
+    "temperature": 2,
+    "partial_nll": 11.350950432288773,
+    "accepted": 58,
+    "rejected": 6
+  },
+  {
+    "temperature": 3,
+    "partial_nll": 7.690879744746967,
+    "accepted": 58,
+    "rejected": 6
+  },
+  {
+    "temperature": 4,
+    "partial_nll": 5.8983742379847035,
+    "accepted": 58,
+    "rejected": 6
+  },
+  {
+    "temperature": 5,
+    "partial_nll": 4.88266921677592,
+    "accepted": 58,
+    "rejected": 6
+  },
+  {
+    "temperature": 6,
+    "partial_nll": 4.207066725664151,
+    "accepted": 58,
+    "rejected": 6
+  },
+  {
+    "temperature": 7,
+    "partial_nll": 3.714224556358099,
+    "accepted": 58,
+    "rejected": 6
+  },
+  {
+    "temperature": 8,
+    "partial_nll": 3.346778588978751,
+    "accepted": 58,
+    "rejected": 6
+  },
+  {
+    "temperature": 9,
+    "partial_nll": 3.064089186358613,
+    "accepted": 58,
+    "rejected": 6
+  },
+  {
+    "temperature": 10,
+    "partial_nll": 2.8399545433400646,
+    "accepted": 58,
+    "rejected": 6
+  },
+  {
+    "temperature": 12,
+    "partial_nll": 2.5062802955579815,
+    "accepted": 58,
+    "rejected": 6
+  },
+  {
+    "temperature": 15,
+    "partial_nll": 2.1741107229528795,
+    "accepted": 58,
+    "rejected": 6
+  },
+  {
+    "temperature": 20,
+    "partial_nll": 1.8413430919006446,
+    "accepted": 58,
+    "rejected": 6
+  }
+]

@@ -1,0 +1,44 @@
+{
+  "schema": "structured_hmm_frame_calibration_v1",
+  "method": "scalar frame scale and class bias fitted by partial HMM likelihood",
+  "class_order": [
+    "noncoding",
+    "frame0",
+    "frame1",
+    "frame2"
+  ],
+  "vector_scale": {
+    "noncoding": 0.1111111119389534,
+    "frame0": 0.1111111119389534,
+    "frame1": 0.1111111119389534,
+    "frame2": 0.1111111119389534
+  },
+  "vector_bias": {
+    "noncoding": 0.0,
+    "frame0": 0.0,
+    "frame1": 0.0,
+    "frame2": 0.0
+  },
+  "checkpoint": "/home/bowencccc/cnn_mamba_k7_portable/runs/joint_frame_grid_v1/b010/chrxtrain/w10/best_model.pt",
+  "data_root": "/home/bowencccc/cnn_mamba_k7_portable/data/processed/cds_gating/w10_frame",
+  "split": "EviAnn train/val; positive constraints only",
+  "crop_length": 512,
+  "train_windows": 256,
+  "val_windows": 64,
+  "seed": 42,
+  "baseline_validation": {
+    "partial_nll_per_example": 3.064089204160871,
+    "accepted_examples": 58,
+    "rejected_examples": 6,
+    "constrained_bases": 16343
+  },
+  "best_validation_partial_nll": 3.064089204160871,
+  "final_validation": {
+    "partial_nll_per_example": 3.064089204160871,
+    "accepted_examples": 58,
+    "rejected_examples": 6,
+    "constrained_bases": 16343
+  },
+  "stop_state_coordinate": "third nucleotide; source stop logit shifted +2 bp",
+  "acceptor_state_coordinate": "G of AG; source acceptor logit shifted +1 bp"
+}

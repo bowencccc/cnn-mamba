@@ -24,18 +24,42 @@ def main():
     parser.add_argument("--display-chrom", default="chrX")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=8)
+    parser.add_argument(
+        "--save-logits", action="store_true",
+        help="Save owned, uncalibrated four-state logits for future calibration",
+    )
     temperature_group = parser.add_mutually_exclusive_group()
     temperature_group.add_argument("--temperature", type=float, default=None)
     temperature_group.add_argument("--calibration-json", type=Path, default=None)
+    temperature_group.add_argument(
+        "--vector-calibration-json", type=Path, default=None,
+        help="JSON containing classwise vector_scale and vector_bias",
+    )
     args = parser.parse_args()
 
-    if args.calibration_json is not None:
+    class_order = ["non_CDS", "frame_0", "frame_1", "frame_2"]
+    vector_scale = vector_bias = None
+    if args.vector_calibration_json is not None:
+        calibration = json.loads(args.vector_calibration_json.read_text())
+        try:
+            vector_scale = [float(calibration["vector_scale"][name]) for name in class_order]
+            vector_bias = [float(calibration["vector_bias"][name]) for name in class_order]
+        except (KeyError, TypeError, ValueError) as error:
+            parser.error(f"invalid vector calibration JSON: {error}")
+        if not all(np.isfinite(vector_scale)) or not all(np.isfinite(vector_bias)):
+            parser.error("vector calibration parameters must be finite")
+        temperature = 1.0
+        calibration_path = str(args.vector_calibration_json.resolve())
+        calibration_method = "vector_scaling"
+    elif args.calibration_json is not None:
         calibration = json.loads(args.calibration_json.read_text())
         temperature = float(calibration["temperature"])
         calibration_path = str(args.calibration_json.resolve())
+        calibration_method = "scalar_temperature"
     else:
         temperature = 1.0 if args.temperature is None else float(args.temperature)
         calibration_path = None
+        calibration_method = "raw" if temperature == 1.0 else "scalar_temperature"
     if temperature <= 0:
         parser.error("temperature must be positive")
 
@@ -71,9 +95,23 @@ def main():
         args.output_dir / "joint_frame_argmax.npy", mode="w+",
         dtype=np.uint8, shape=(chrom_len,),
     )
+    saved_logits = None
+    if args.save_logits:
+        saved_logits = np.lib.format.open_memmap(
+            args.output_dir / "joint_frame_logits.npy", mode="w+",
+            dtype=np.float32, shape=(chrom_len, 4),
+        )
 
     device = torch.device("cuda")
     model = model_from_checkpoint(checkpoint, device).eval()
+    vector_scale_tensor = (
+        None if vector_scale is None
+        else torch.tensor(vector_scale, dtype=torch.float32, device=device)
+    )
+    vector_bias_tensor = (
+        None if vector_bias is None
+        else torch.tensor(vector_bias, dtype=torch.float32, device=device)
+    )
     expected_position = 0
     started = time.time()
     with torch.inference_mode():
@@ -87,7 +125,15 @@ def main():
                 encoded.append(encode(text + "N" * (window - len(text))))
             sequence = torch.from_numpy(np.stack(encoded)).long().to(device)
             outputs = model(sequence, return_joint_frame=True)
-            values = (outputs[2] / temperature).softmax(-1).float().cpu().numpy()
+            raw_logits = outputs[2].float()
+            if vector_scale_tensor is not None:
+                calibrated_logits = (
+                    raw_logits * vector_scale_tensor + vector_bias_tensor
+                )
+            else:
+                calibrated_logits = raw_logits / temperature
+            values = calibrated_logits.softmax(-1).cpu().numpy()
+            raw_values = raw_logits.cpu().numpy() if saved_logits is not None else None
 
             for local_index, start in enumerate(batch_starts):
                 window_index = batch_start + local_index
@@ -107,6 +153,10 @@ def main():
                 local = values[local_index, left:valid_right]
                 probabilities[destination_start:destination_end] = local
                 argmax[destination_start:destination_end] = local.argmax(1)
+                if saved_logits is not None:
+                    saved_logits[destination_start:destination_end] = raw_values[
+                        local_index, left:valid_right
+                    ]
                 expected_position = destination_end
             done = min(batch_start + args.batch_size, len(starts))
             if done % 500 < args.batch_size or done == len(starts):
@@ -117,6 +167,8 @@ def main():
         raise RuntimeError(f"incomplete coverage: {expected_position}/{chrom_len}")
     probabilities.flush()
     argmax.flush()
+    if saved_logits is not None:
+        saved_logits.flush()
     metadata = {
         "schema": "joint_frame_probabilities_v1",
         "checkpoint": str(args.checkpoint.resolve()),
@@ -128,16 +180,27 @@ def main():
         "chromosome_length": chrom_len,
         "window_size": window,
         "stride": stride,
-        "class_order": ["non_CDS", "frame_0", "frame_1", "frame_2"],
-        "temperature": temperature,
+        "class_order": class_order,
+        "calibration_method": calibration_method,
+        "temperature": temperature if vector_scale is None else None,
         "calibration_json": calibration_path,
-        "temperature_scope": "joint_frame_head_only",
+        "temperature_scope": (
+            "joint_frame_head_only" if vector_scale is None else None
+        ),
+        "vector_scale": (
+            None if vector_scale is None else dict(zip(class_order, vector_scale))
+        ),
+        "vector_bias": (
+            None if vector_bias is None else dict(zip(class_order, vector_bias))
+        ),
+        "calibration_scope": "joint_frame_head_only",
         "coding_probability": "1 - P(non_CDS)",
         "position_convention": "row i is zero-based genomic position i",
         "overlap_resolution": "midpoint ownership of overlapping windows",
         "files": {
             "probabilities": "joint_frame_probabilities.npy",
             "argmax": "joint_frame_argmax.npy",
+            "raw_logits": "joint_frame_logits.npy" if saved_logits is not None else None,
         },
         "elapsed_seconds": time.time() - started,
     }

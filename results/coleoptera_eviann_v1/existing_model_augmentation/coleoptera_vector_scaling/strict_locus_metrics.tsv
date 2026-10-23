@@ -1,0 +1,3 @@
+annotation	method	sn	pr	f1	predicted_loci	matched_loci	missed_loci	novel_loci
+coleoptera_eviann_vector_scaling	EviAnn	62.3	89.9	73.59750328515113	740	667	335	9
+coleoptera_eviann_vector_scaling	EviAnn+UniAnn	64.9	87.4	74.48798424162837	736	694	255	10

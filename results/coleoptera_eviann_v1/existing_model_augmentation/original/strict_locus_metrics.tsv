@@ -1,0 +1,3 @@
+annotation	method	sn	pr	f1	predicted_loci	matched_loci	missed_loci	novel_loci
+original_eviann	EviAnn	81.9	90.8	86.1206716850029	963	876	122	12
+original_eviann	EviAnn+UniAnn	90.7	90.1	90.39900442477875	1067	970	27	30

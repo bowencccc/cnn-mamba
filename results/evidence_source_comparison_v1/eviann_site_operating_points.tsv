@@ -1,0 +1,9 @@
+evidence	task	sensitivity	precision	matched_sites	reference_sites	eviann_sites
+Drosophila protein evidence	donor	0.896561857	0.986739974	3051	3403	3092
+Coleoptera protein evidence	donor	0.741110785	0.988631909	2522	3403	2551
+Drosophila protein evidence	acceptor	0.894415358	0.985892914	3075	3438	3119
+Coleoptera protein evidence	acceptor	0.739674229	0.985658915	2543	3438	2580
+Drosophila protein evidence	start	0.781420765	0.858490566	1001	1281	1166
+Coleoptera protein evidence	start	0.597189696	0.800209205	765	1281	956
+Drosophila protein evidence	stop	0.800000000	0.944029851	1012	1265	1072
+Coleoptera protein evidence	stop	0.609486166	0.918951132	771	1265	839

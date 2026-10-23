@@ -82,13 +82,14 @@ class SpliceMamba(nn.Module):
     def __init__(self, d_model=192, d_state=64, n_layers=8, dropout=0.1,
                  architecture="cnn_mamba", cnn_kernel_size=7,
                  frame_dilation=0, phase_auxiliary=False,
-                 cds_auxiliary=False, joint_frame_auxiliary=False):
+                 cds_auxiliary=False, joint_frame_auxiliary=False,
+                 vocab_size=5):
         super().__init__()
         if architecture not in {"mamba", "cnn_mamba"}:
             raise ValueError(f"unsupported architecture: {architecture}")
         self.architecture = architecture
         self.gradient_checkpointing = False
-        self.embedding = nn.Embedding(5, d_model)
+        self.embedding = nn.Embedding(vocab_size, d_model)
         self.input_proj = nn.Sequential(
             nn.Linear(d_model, d_model), nn.GELU(), nn.Dropout(dropout)
         )
@@ -128,10 +129,8 @@ class SpliceMamba(nn.Module):
             nn.Linear(d_model, 4) if joint_frame_auxiliary else None
         )
 
-    def forward(
-        self, sequence, return_phase=False, return_cds=False,
-        return_joint_frame=False,
-    ):
+    def encode(self, sequence):
+        """Return shared per-base features before task-specific branches."""
         x = self.embed_drop(self.input_proj(self.embedding(sequence)))
         if self.architecture == "mamba":
             for norm, layer, drop in zip(self.norms, self.layers, self.drops):
@@ -142,7 +141,13 @@ class SpliceMamba(nn.Module):
                     x = checkpoint(layer, x, use_reentrant=True, preserve_rng_state=True)
                 else:
                     x = layer(x)
-        x = self.final_norm(x)
+        return self.final_norm(x)
+
+    def forward(
+        self, sequence, return_phase=False, return_cds=False,
+        return_joint_frame=False,
+    ):
+        x = self.encode(sequence)
         start_stop_features = self.frame_branch(x) if self.frame_branch is not None else x
         outputs = self.splice_head(x), self.start_stop_head(start_stop_features)
         if return_phase:

@@ -1,0 +1,34 @@
+{
+  "label": null,
+  "tag": "coleoptera_eviann_v1/retrained",
+  "temperature": 9.0,
+  "coding_transform": "joint_softmax_no_extra_gate",
+  "checkpoint": "/home/bowencccc/cnn_mamba_k7_portable/runs/coleoptera_eviann_v1/retrained/chrxtrain/w10/best_model.pt",
+  "site_scores": "/home/bowencccc/cnn_mamba_k7_portable/artifacts/scores/coleoptera_eviann_v1/retrained/chrxtrain/w10/chrX_plus_scores.tsv",
+  "frame_probabilities": "/home/bowencccc/cnn_mamba_k7_portable/artifacts/joint_frame_predictions/coleoptera_eviann_v1/retrained/chrxtrain/w10/chrX_plus/chrX_plus_joint_frame_probabilities.tsv",
+  "eviann_gff": "/home/bowencccc/cnn_mamba_k7_portable/data/processed/coleoptera_eviann_v1/chrX_plus_EviAnn_CDS.gff",
+  "uniann_commit": "d0f9c650f40e4cdf5ce36850ab8ef9c2f9a57328",
+  "elapsed_seconds": 119.90977644920349,
+  "metrics": [
+    {
+      "method": "UniAnn",
+      "sn": 68.7,
+      "pr": 76.5,
+      "f1": 72.3904958677686,
+      "predicted_loci": 961,
+      "matched_loci": 735,
+      "missed_loci": 128,
+      "novel_loci": 19
+    },
+    {
+      "method": "EviAnn+UniAnn",
+      "sn": 80.6,
+      "pr": 86.8,
+      "f1": 83.58518518518518,
+      "predicted_loci": 985,
+      "matched_loci": 862,
+      "missed_loci": 99,
+      "novel_loci": 25
+    }
+  ]
+}

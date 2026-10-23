@@ -1,0 +1,9 @@
+evidence	task	AUPRC
+Drosophila protein evidence	donor	0.968424403
+Coleoptera protein evidence	donor	0.955913901
+Drosophila protein evidence	acceptor	0.964707835
+Coleoptera protein evidence	acceptor	0.955570179
+Drosophila protein evidence	start	0.890828859
+Coleoptera protein evidence	start	0.838748235
+Drosophila protein evidence	stop	0.907509238
+Coleoptera protein evidence	stop	0.877909593

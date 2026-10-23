@@ -1,0 +1,48 @@
+{
+  "schema": "joint_frame_evaluation_v1",
+  "prediction_directory": "/home/bowencccc/cnn_mamba_k7_portable/artifacts/joint_frame_predictions/coleoptera_eviann_v1/retrained/chrxtrain/w10/chrX_plus",
+  "reference": "/home/bowencccc/ssm_splice_site/drosophila_annotation.gtf",
+  "chromosome": "NC_004354.4",
+  "strand": "+",
+  "metric": "4096-bin bounded-memory average precision",
+  "cds_metrics": {
+    "AP": 0.9787346818024506,
+    "best_F1": 0.9374941089882299,
+    "precision": 0.9461397797340334,
+    "recall": 0.9290050129422344,
+    "threshold": 0.9706959706959707,
+    "positives": 2012790,
+    "evaluated_bases": 23542271
+  },
+  "frame_macro_AP": 0.9928826706154849,
+  "joint_confusion_matrix_rows_reference_columns_prediction": [
+    [
+      21083988,
+      144794,
+      151379,
+      149320
+    ],
+    [
+      16423,
+      649192,
+      860,
+      3996
+    ],
+    [
+      15254,
+      3950,
+      650394,
+      892
+    ],
+    [
+      15021,
+      847,
+      3961,
+      650657
+    ]
+  ],
+  "joint_macro_F1": 0.90871205197214,
+  "maximum_probability_sum_error": 2.384185791015625e-07,
+  "argmax_mismatches": 0,
+  "excluded_reference_phase_conflict_bases": 1343
+}

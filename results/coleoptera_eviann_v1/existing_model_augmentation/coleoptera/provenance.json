@@ -1,0 +1,30 @@
+{
+  "label": "coleoptera_eviann",
+  "eviann_gff": "/home/bowencccc/cnn_mamba_k7_portable/data/processed/coleoptera_eviann_v1/chrX_plus_EviAnn_CDS.gff",
+  "uniann_gff": "/home/bowencccc/cnn_mamba_k7_portable/work/uniann/frame_scaling_extended_grid_v1/joint_s9p000_b0p000/genome.fa.uniann.gff",
+  "reference": "/home/bowencccc/uniann_droso_chrx_benchmark_20260824/shared/NC_004354.4.p.CDS.uniq.gtf",
+  "metrics": [
+    {
+      "annotation": "coleoptera_eviann",
+      "method": "EviAnn",
+      "sn": 62.3,
+      "pr": 89.9,
+      "f1": 73.59750328515113,
+      "predicted_loci": 740,
+      "matched_loci": 667,
+      "missed_loci": 335,
+      "novel_loci": 9
+    },
+    {
+      "annotation": "coleoptera_eviann",
+      "method": "EviAnn+UniAnn",
+      "sn": 87.2,
+      "pr": 88.3,
+      "f1": 87.7465527065527,
+      "predicted_loci": 1051,
+      "matched_loci": 933,
+      "missed_loci": 37,
+      "novel_loci": 28
+    }
+  ]
+}

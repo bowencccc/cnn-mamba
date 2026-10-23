@@ -1,0 +1,3 @@
+method	sn	pr	f1	predicted_loci	matched_loci	missed_loci	novel_loci
+UniAnn	77.5	79.4	78.4384958572339	1044	829	47	18
+EviAnn+UniAnn	90.4	89.6	89.99822222222222	1069	967	26	29

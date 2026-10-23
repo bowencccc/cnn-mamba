@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import bisect
 from collections import defaultdict
+import gzip
 import hashlib
 import json
 import math
@@ -37,6 +38,11 @@ ENCODE = np.full(256, 4, dtype=np.uint8)
 for _base, _value in (("A", 0), ("C", 1), ("G", 2), ("T", 3)):
     ENCODE[ord(_base)] = _value
 COMPLEMENT = str.maketrans("ACGTN", "TGCAN")
+
+
+def open_text(path: Path):
+    """Open plain-text or gzip-compressed annotation input."""
+    return gzip.open(path, "rt") if path.suffix == ".gz" else path.open()
 
 
 def sha256(path: Path) -> str:
@@ -78,7 +84,7 @@ def gtf_attrs(text: str) -> dict[str, str]:
 def parse_eviann(path: Path):
     accessions = set(CHROMS.values())
     meta, exons, cds = {}, defaultdict(list), defaultdict(list)
-    with path.open() as handle:
+    with open_text(path) as handle:
         for line in handle:
             if line.startswith("#") or not line.strip():
                 continue
@@ -101,7 +107,7 @@ def parse_reference(path: Path):
     accessions = set(CHROMS.values())
     meta, exons, cds = {}, defaultdict(list), defaultdict(list)
     explicit = {"start": set(), "stop": set()}
-    with path.open() as handle:
+    with open_text(path) as handle:
         for line in handle:
             if line.startswith("#") or not line.strip():
                 continue
@@ -133,7 +139,7 @@ def parse_cds_phase_records(path: Path):
     """Collect CDS intervals and their GFF/GTF phase without changing site parsing."""
     accessions = set(CHROMS.values())
     records = defaultdict(lambda: {"+": [], "-": []})
-    with path.open() as handle:
+    with open_text(path) as handle:
         for line in handle:
             if line.startswith("#") or not line.strip():
                 continue
