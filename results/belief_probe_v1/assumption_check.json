@@ -1,0 +1,51 @@
+{
+  "status": "passed_with_documented_supervised_split_exception",
+  "mlm_checkpoint": {
+    "path": "runs/mlm_pretrain/human_grch38_w10_v1/best_model.pt",
+    "sha256": "2492aa34830af0a75954ba9064dc01f6ec99ed7b133b070931d9ecf7a083cae0",
+    "has_backbone_state_dict": true,
+    "epoch": 10,
+    "validation_chromosome": "chr22",
+    "training_chromosomes": [
+      "chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8",
+      "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15",
+      "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chrX", "chrY"
+    ],
+    "mask_embedding_handling": "backbone_state_dict is the five-token transfer state produced after removing the MASK embedding"
+  },
+  "window_manifest": {
+    "path": "data/processed/human_joint_frame_w10_chr1held/split_manifest.json",
+    "sha256": "e285a6508220a69d34496d7c5342b14aa45294de40d97720efd58236df39090a",
+    "window_size": 10000,
+    "stride": 5000,
+    "region_overlap_bp": 10000,
+    "max_windows_per_chrom_strand": 0,
+    "train_windows": 195072,
+    "val_windows": 68555,
+    "test_windows": 26252,
+    "representative_chromosome_strand_arrays_checked": 48,
+    "required_arrays_present": true,
+    "all_representative_array_lengths": 10000,
+    "all_window_starts_on_stride_grid": true,
+    "chr2_source": "val/",
+    "chr2_windows_reassigned_to_probe_train_without_regeneration": 22895
+  },
+  "orientation": {
+    "plus": "genomic forward",
+    "minus": "sequence reverse-complemented and label arrays reversed into transcript orientation"
+  },
+  "phase_encoding": {
+    "valid_states": [0, 1, 2],
+    "unknown": -1,
+    "conflict": -2,
+    "saved_validity_authority": "reference_phase_mask"
+  },
+  "supervised_checkpoint_split_audit": {
+    "checkpoint": "models/human_joint_frame_beta010_chr1held_epoch4_inference.pt",
+    "checkpoint_data_root": "data/processed/human_joint_frame_w10_chr1held",
+    "training_log_train_windows": 195072,
+    "training_manifest_chr2_split": "val",
+    "chr2_in_supervised_backbone_training": false,
+    "note": "The probe still includes existing val/chr2 windows in probe training, as requested. The supervised upper-reference backbone did not train on chr2."
+  }
+}

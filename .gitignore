@@ -19,6 +19,9 @@ artifacts/cds_predictions/
 artifacts/joint_frame_predictions/
 artifacts/uniann_coding_scores/
 artifacts/uniann_emissions/
+artifacts/belief_probe_v1*/
+results/belief_probe_v1/smoke*/
+results/belief_probe_v1/**/*.log
 data/propensity/
 data/weights/
 /runs/
