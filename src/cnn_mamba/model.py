@@ -138,7 +138,9 @@ class SpliceMamba(nn.Module):
         else:
             for layer in self.layers:
                 if self.gradient_checkpointing and self.training:
-                    x = checkpoint(layer, x, use_reentrant=True, preserve_rng_state=True)
+                    x = checkpoint(
+                        layer, x, use_reentrant=True, preserve_rng_state=True
+                    )
                 else:
                     x = layer(x)
         return self.final_norm(x)

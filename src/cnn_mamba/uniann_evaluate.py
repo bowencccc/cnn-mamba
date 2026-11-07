@@ -55,14 +55,30 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--uniann-root", type=Path, required=True)
     parser.add_argument("--fasta", type=Path, required=True)
-    parser.add_argument("--psauron", type=Path, required=True)
+    parser.add_argument(
+        "--coding-frame", "--psauron", dest="coding_frame", type=Path,
+        required=True,
+        help=(
+            "Per-base coding-frame input. --psauron is retained only as a "
+            "deprecated command-line alias."
+        ),
+    )
+    parser.add_argument(
+        "--precomputed-emissions", type=Path,
+        help=(
+            "Validated out.ps.txt emissions generated from the coding-frame "
+            "input; skips UniAnn's built-in converter."
+        ),
+    )
     parser.add_argument("--scores", type=Path, required=True)
     parser.add_argument("--reference-gtf", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--eviann-gff", type=Path,
                         help="plus-strand EviAnn GFF to evaluate EviAnn+UniAnn")
     args = parser.parse_args()
-    required = [args.fasta, args.psauron, args.scores, args.reference_gtf]
+    required = [args.fasta, args.coding_frame, args.scores, args.reference_gtf]
+    if args.precomputed_emissions:
+        required.append(args.precomputed_emissions)
     if args.eviann_gff:
         required.append(args.eviann_gff)
     for path in required:
@@ -78,13 +94,17 @@ def main():
     work = args.output_dir.resolve()
     work.mkdir(parents=True, exist_ok=True)
     local_fasta = work / "genome.fa"
-    local_psauron = work / "psauron_score.csv"
+    local_coding = work / "coding.txt"
     local_scores = work / "scores.txt"
     link(args.fasta, local_fasta)
-    link(args.psauron, local_psauron)
+    link(args.coding_frame, local_coding)
     link(args.scores, local_scores)
+    if args.precomputed_emissions:
+        link(args.precomputed_emissions, work / "out.ps.txt")
     raw = Path(str(local_fasta) + ".uniann.gff")
-    run([uniann, "-f", local_fasta.name, "-p", local_psauron.name, "-s", local_scores.name],
+    # Current UniAnn uses -c/--coding for the coding-frame probability file.
+    run([uniann, "-f", local_fasta.name, "-c", local_coding.name,
+         "-s", local_scores.name, "-n"],
         work, work / "uniann.log")
     alone_stats = strict_compare(gffread, gffcompare, args.reference_gtf.resolve(), raw,
                                  "uniann", work)
@@ -103,8 +123,10 @@ def main():
 
     frame = pd.DataFrame(rows)
     frame.to_csv(work / "locus_metrics.tsv", sep="\t", index=False, float_format="%.9g")
-    inputs = {"fasta": args.fasta, "psauron": args.psauron,
+    inputs = {"fasta": args.fasta, "coding_frame": args.coding_frame,
               "scores": args.scores, "reference_gtf": args.reference_gtf}
+    if args.precomputed_emissions:
+        inputs["precomputed_emissions"] = args.precomputed_emissions
     if args.eviann_gff:
         inputs["eviann_gff"] = args.eviann_gff
     provenance = {"uniann_root": str(args.uniann_root.resolve()),

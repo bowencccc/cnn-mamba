@@ -12,8 +12,8 @@ cd "$repo_dir"
 exec "$python_bin" scripts/run_human.py \
     --regime chr1held \
     --stages train \
-    --experiment-tag human_joint_frame_beta010_v1 \
-    --data-root data/processed/human_joint_frame_w10_chr1held \
+    --experiment-tag human_joint_frame_beta010_refseq_v1 \
+    --data-root data/processed/human_joint_frame_w10_refseq_chr1held \
     --epochs 5 \
     --workers "${CNN_MAMBA_WORKERS:-4}" \
     --frame-dilation 3 \

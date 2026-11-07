@@ -156,7 +156,10 @@ def main() -> None:
             array.flush()
     metadata = {
         "schema": "droso_chrx_all_candidate_scores_v1", "checkpoint": str(args.checkpoint.resolve()),
-        "checkpoint_step": checkpoint["optimizer_step"], "checkpoint_epoch": None,
+        "checkpoint_step": checkpoint["optimizer_step"],
+        "checkpoint_epoch": (
+            int(checkpoint["epoch"]) if checkpoint.get("epoch") is not None else None
+        ),
         "fasta": str(args.fasta.resolve()), "chromosome": args.display_chrom,
         "fasta_sequence_name": args.chrom, "chromosome_length": chrom_len,
         "strand": "+", "window_size": window, "stride": stride,

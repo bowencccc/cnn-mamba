@@ -94,9 +94,9 @@ def quarantine_stale_sentinel(path):
 
 def reference_sites(species, reference_gtf, fasta_path, chrom_key):
     if species == "human":
-        from .human_annotations import extract_sites, parse_chess
+        from .human_annotations import extract_sites, parse_reference
 
-        meta, exons, cds = parse_chess(Path(reference_gtf))
+        meta, exons, cds = parse_reference(Path(reference_gtf))
         sites, rejected = extract_sites(meta, exons, cds, Path(fasta_path))
     else:
         from . import prepare_droso

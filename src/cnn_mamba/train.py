@@ -6,7 +6,7 @@ import json
 import logging
 import math
 import os
-from pathlib import Path
+from pathlib import Path, PosixPath
 import sys
 import time
 
@@ -28,7 +28,13 @@ from .common import (
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DATA = ROOT / "data" / "processed" / "w10"
-SEED = 42
+DEFAULT_SEED = 42
+
+
+def load_weights_checkpoint(path):
+    """Safely load project checkpoints whose metadata may contain PosixPath."""
+    with torch.serialization.safe_globals([PosixPath]):
+        return torch.load(path, map_location="cpu", weights_only=True)
 
 
 def cosine_learning_rate(step, base_lr, schedule_steps, warmup_steps):
@@ -45,7 +51,9 @@ def cosine_learning_rate(step, base_lr, schedule_steps, warmup_steps):
 class PUDataset(Dataset):
     def __init__(
         self, directory, require_phase=False, require_cds=False,
-        require_cds_boundary=False, propensity_root=None,
+        require_cds_boundary=False, require_start_stop_weights=False,
+        start_stop_weight_root=None,
+        propensity_root=None,
     ):
         directories = directory if isinstance(directory, (list, tuple)) else [directory]
         self.files = sorted(
@@ -57,6 +65,11 @@ class PUDataset(Dataset):
         self.require_phase = require_phase
         self.require_cds = require_cds
         self.require_cds_boundary = require_cds_boundary
+        self.require_start_stop_weights = require_start_stop_weights
+        self.start_stop_weight_root = (
+            None if start_stop_weight_root is None
+            else Path(start_stop_weight_root)
+        )
         self.propensity_root = (
             None if propensity_root is None else Path(propensity_root)
         )
@@ -74,8 +87,8 @@ class PUDataset(Dataset):
                 "start_stop_labels",
                 "splice_ignore",
                 "start_stop_ignore",
-                "chess_labels",
-                "chess_start_stop_labels",
+                "reference_labels",
+                "reference_start_stop_labels",
             )
             # Some regenerated baseline-only grids omit PU-ignore arrays. They
             # are unused in baseline mode, so materialize all-false masks while
@@ -83,8 +96,14 @@ class PUDataset(Dataset):
             sequence = data["sequence"]
             arrays = []
             for key in keys:
+                legacy_key = {
+                    "reference_labels": "chess_labels",
+                    "reference_start_stop_labels": "chess_start_stop_labels",
+                }.get(key)
                 if key in data:
                     value = data[key]
+                elif legacy_key is not None and legacy_key in data:
+                    value = data[legacy_key]
                 elif key in {"splice_ignore", "start_stop_ignore"}:
                     value = np.zeros_like(sequence)
                 else:
@@ -113,6 +132,17 @@ class PUDataset(Dataset):
                     arrays.append(
                         torch.from_numpy(data[key].astype(np.int64, copy=False))
                     )
+            if self.require_phase and self.require_cds:
+                for key in (
+                    "joint_frame_mask", "reference_joint_frame_mask",
+                ):
+                    value = (
+                        data[key] if key in data
+                        else np.ones_like(sequence, dtype=np.bool_)
+                    )
+                    arrays.append(
+                        torch.from_numpy(value.astype(np.int64, copy=False))
+                    )
             if self.require_cds_boundary:
                 for key in (
                     "cds_boundary_mask", "reference_cds_boundary_mask",
@@ -126,6 +156,38 @@ class PUDataset(Dataset):
                     arrays.append(
                         torch.from_numpy(data[key].astype(np.int64, copy=False))
                     )
+            if self.require_start_stop_weights:
+                key = "start_stop_weights"
+                if key in data:
+                    value = data[key]
+                elif self.start_stop_weight_root is not None:
+                    source = Path(self.files[index])
+                    sidecar = (
+                        self.start_stop_weight_root / source.parent.name / source.name
+                    )
+                    if not sidecar.is_file():
+                        raise FileNotFoundError(
+                            f"missing start/stop weight sidecar for {source}: {sidecar}"
+                        )
+                    with np.load(sidecar) as weight_data:
+                        if key not in weight_data:
+                            raise KeyError(f"missing {key!r} in {sidecar}")
+                        value = weight_data[key]
+                else:
+                    raise KeyError(
+                        f"missing training weight array {key!r} in "
+                        f"{self.files[index]}; regenerate with "
+                        "--label-policy task_soft or supply "
+                        "--start-stop-weight-root"
+                    )
+                if value.shape != sequence.shape:
+                    raise ValueError(
+                        f"{self.files[index]} {key} shape {value.shape} != "
+                        f"sequence shape {sequence.shape}"
+                    )
+                arrays.append(torch.from_numpy(
+                    value.astype(np.float32, copy=False)
+                ))
             if self.propensity_root is not None:
                 source = Path(self.files[index])
                 sidecar = self.propensity_root / source.parent.name / source.name
@@ -152,6 +214,7 @@ class PUDataset(Dataset):
 def candidate_loss(
     logits, labels, sequence, task, ignore=None, negative_weight=1.0,
     propensity=None, propensity_negative_weight=1.0,
+    candidate_weights=None,
 ):
     """Cross-entropy over canonical candidates and annotated positives.
 
@@ -160,8 +223,10 @@ def candidate_loss(
     ``negative_weight`` below one downweights those unlabeled candidates while
     retaining unit weight for EviAnn positives.  The weighted mean is
     normalized by the sum of weights so the component's overall scale remains
-    comparable across settings.  ``negative_weight=1`` is exactly the legacy
-    loss.
+    comparable across settings. ``candidate_weights`` optionally supplies a
+    per-position training weight (for example 0.3 for medium-confidence
+    positives); it is never used in validation. ``negative_weight=1`` with no
+    candidate weights is exactly the legacy loss.
     """
     if task == "splice":
         first, second = splice_candidate_masks(sequence)
@@ -176,7 +241,12 @@ def candidate_loss(
         return logits.sum() * 0.0
     selected_logits = logits[mask]
     selected_labels = labels[mask]
-    if negative_weight == 1.0 and (
+    if candidate_weights is not None and candidate_weights.shape != labels.shape:
+        raise ValueError(
+            f"candidate_weights shape {candidate_weights.shape} != "
+            f"labels shape {labels.shape}"
+        )
+    if candidate_weights is None and negative_weight == 1.0 and (
         propensity is None or propensity_negative_weight == 1.0
     ):
         return F.cross_entropy(selected_logits, selected_labels)
@@ -192,6 +262,10 @@ def candidate_loss(
         ),
         torch.ones((), dtype=per_candidate.dtype, device=per_candidate.device),
     )
+    if candidate_weights is not None:
+        weights = weights * candidate_weights[mask].to(
+            dtype=per_candidate.dtype, device=per_candidate.device
+        )
     if propensity is not None and propensity_negative_weight != 1.0:
         selected_propensity = propensity.bool()[mask]
         selective = (selected_labels == 0) & selected_propensity
@@ -216,6 +290,7 @@ def masked_phase_loss(logits, labels, mask):
 
 def group_balanced_joint_frame_loss(
     logits, phase_labels, phase_mask, cds_labels, noncoding_weight=0.1,
+    valid_mask=None,
 ):
     """Four-state CE: non-CDS=0 and valid CDS phases=1/2/3.
 
@@ -225,8 +300,12 @@ def group_balanced_joint_frame_loss(
     """
     phase_mask = phase_mask.bool()
     cds_mask = cds_labels.bool()
-    coding_mask = cds_mask & phase_mask
-    noncoding_mask = ~cds_mask
+    valid_mask = (
+        torch.ones_like(cds_mask) if valid_mask is None
+        else valid_mask.bool()
+    )
+    coding_mask = cds_mask & phase_mask & valid_mask
+    noncoding_mask = (~cds_mask) & valid_mask
     loss = logits.sum() * 0.0
     if coding_mask.any():
         loss = loss + F.cross_entropy(
@@ -352,6 +431,7 @@ def evaluate(
                     joint_logits, reference_phase_labels,
                     reference_phase_mask, reference_cds,
                     joint_noncoding_weight,
+                    batch[14].to(device, non_blocking=True),
                 )
             else:
                 joint_logits = None
@@ -478,6 +558,20 @@ def main():
         ),
     )
     parser.add_argument(
+        "--use-start-stop-weights", action="store_true",
+        help=(
+            "Read start_stop_weights from training NPZ files and apply them "
+            "only to the start/stop candidate loss."
+        ),
+    )
+    parser.add_argument(
+        "--start-stop-weight-root", type=Path,
+        help=(
+            "Optional sidecar root containing split/name.npz files with a "
+            "start_stop_weights array. Implies --use-start-stop-weights."
+        ),
+    )
+    parser.add_argument(
         "--early-stopping-patience", type=int, default=0,
         help=(
             "Stop after this many consecutive epochs without sufficient "
@@ -487,6 +581,10 @@ def main():
     parser.add_argument(
         "--early-stopping-min-delta", type=float, default=0.0,
         help="Minimum validation mean-AP increase that resets early stopping.",
+    )
+    parser.add_argument(
+        "--seed", type=int, default=DEFAULT_SEED,
+        help="Random seed used for initialization, shuffling, and epoch RNG.",
     )
     parser.add_argument(
         "--architecture", choices=("cnn_mamba", "mamba"), default="cnn_mamba"
@@ -563,7 +661,7 @@ def main():
             "All task-specific branches and heads remain freshly initialized."
         ),
     )
-    parser.add_argument("--reference-name", default="CHESS")
+    parser.add_argument("--reference-name", default="RefSeq")
     parser.add_argument("--test-name", default="chr1")
     parser.add_argument(
         "--all-splits-as-train", action="store_true",
@@ -670,8 +768,8 @@ def main():
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA GPU is required")
 
-    torch.manual_seed(SEED)
-    torch.cuda.manual_seed_all(SEED)
+    torch.manual_seed(args.seed)
+    torch.cuda.manual_seed_all(args.seed)
     device = torch.device("cuda")
     output_dir = (args.output_dir or (
         ROOT / f"checkpoints_hsap_eviann_pu_pilot_{args.mode}"
@@ -693,12 +791,16 @@ def main():
     require_cds = (
         args.cds_aux_weight > 0 or args.joint_frame_aux_weight > 0
     )
+    if args.start_stop_weight_root is not None:
+        args.use_start_stop_weights = True
     if args.all_splits_as_train:
         train_data = PUDataset(
             [args.data_root / name for name in ("train", "val", "test")],
             require_phase=require_phase,
             require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
+            require_start_stop_weights=args.use_start_stop_weights,
+            start_stop_weight_root=args.start_stop_weight_root,
             propensity_root=args.candidate_propensity_root,
         )
         val_data = test_data = None
@@ -708,6 +810,8 @@ def main():
             require_phase=require_phase,
             require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
+            require_start_stop_weights=args.use_start_stop_weights,
+            start_stop_weight_root=args.start_stop_weight_root,
             propensity_root=args.candidate_propensity_root,
         )
         val_data = PUDataset(
@@ -721,6 +825,8 @@ def main():
             args.data_root / "train", require_phase=require_phase,
             require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
+            require_start_stop_weights=args.use_start_stop_weights,
+            start_stop_weight_root=args.start_stop_weight_root,
             propensity_root=args.candidate_propensity_root,
         )
         val_data = PUDataset(
@@ -733,7 +839,7 @@ def main():
             require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
         )
-    generator = torch.Generator().manual_seed(SEED)
+    generator = torch.Generator().manual_seed(args.seed)
     loader_kwargs = dict(
         num_workers=args.workers,
         pin_memory=True,
@@ -758,6 +864,8 @@ def main():
             require_phase=require_phase,
             require_cds=require_cds,
             require_cds_boundary=args.cds_boundary_radius > 0,
+            require_start_stop_weights=args.use_start_stop_weights,
+            start_stop_weight_root=args.start_stop_weight_root,
             propensity_root=args.candidate_propensity_root,
         )
         for probe_index in range(len(probe_data)):
@@ -801,9 +909,7 @@ def main():
     )
     initialization = None
     if args.init_checkpoint is not None:
-        initialized_from = torch.load(
-            args.init_checkpoint, map_location="cpu", weights_only=True
-        )
+        initialized_from = load_weights_checkpoint(args.init_checkpoint)
         model.load_state_dict(initialized_from["model_state_dict"], strict=True)
         initialization = {
             "checkpoint": str(args.init_checkpoint.resolve()),
@@ -934,7 +1040,7 @@ def main():
     epochs_without_improvement = 0
     last_checkpoint = output_dir / "last_model.pt"
     if args.resume and last_checkpoint.exists():
-        saved = torch.load(last_checkpoint, map_location="cpu", weights_only=True)
+        saved = load_weights_checkpoint(last_checkpoint)
         model.load_state_dict(saved["model_state_dict"])
         optimizer.load_state_dict(saved["optimizer_state_dict"])
         if args.amp and "scaler_state_dict" in saved:
@@ -964,6 +1070,7 @@ def main():
         f"candidate_propensity_root={args.candidate_propensity_root} "
         f"candidate_propensity_negative_weight="
         f"{args.candidate_propensity_negative_weight:g} "
+        f"use_start_stop_weights={args.use_start_stop_weights} "
         f"frame_dilation={args.frame_dilation} phase_aux_weight={args.phase_aux_weight:g} "
         f"cds_aux_weight={args.cds_aux_weight:g} "
         f"cds_boundary_radius={args.cds_boundary_radius} "
@@ -991,8 +1098,8 @@ def main():
             else torch.cuda.current_device()
         )
         with torch.random.fork_rng(devices=[cuda_device_index]):
-            torch.manual_seed(SEED + epoch)
-            torch.cuda.manual_seed_all(SEED + epoch)
+            torch.manual_seed(args.seed + epoch)
+            torch.cuda.manual_seed_all(args.seed + epoch)
             probe_batch = tuple(
                 tensor.unsqueeze(0).to(device, non_blocking=True)
                 for tensor in gradient_probe
@@ -1037,6 +1144,7 @@ def main():
                     probe_joint_loss = group_balanced_joint_frame_loss(
                         probe_joint, probe_batch[7], probe_batch[8],
                         probe_batch[11], args.joint_noncoding_weight,
+                        probe_batch[13],
                     )
                 else:
                     probe_joint_loss = probe_splice.sum() * 0.0
@@ -1053,6 +1161,8 @@ def main():
                     args.candidate_negative_weight,
                     probe_batch[-1] if args.candidate_propensity_root else None,
                     args.candidate_propensity_negative_weight,
+                    probe_batch[-3 if args.candidate_propensity_root else -1]
+                    if args.use_start_stop_weights else None,
                 )
             component_losses = (
                 ("splice", probe_splice_loss, args.splice_loss_weight),
@@ -1121,6 +1231,12 @@ def main():
                 ss_propensity = batch[-1].to(device, non_blocking=True)
             else:
                 splice_propensity = ss_propensity = None
+            ss_candidate_weights = (
+                batch[-3 if args.candidate_propensity_root is not None else -1].to(
+                    device, non_blocking=True
+                )
+                if args.use_start_stop_weights else None
+            )
             lr = scheduled_lr(optimizer_step)
             for group in optimizer.param_groups:
                 group["lr"] = lr * group.get("lr_multiplier", 1.0)
@@ -1188,6 +1304,7 @@ def main():
                         batch[8].to(device, non_blocking=True),
                         batch[11].to(device, non_blocking=True),
                         args.joint_noncoding_weight,
+                        batch[13].to(device, non_blocking=True),
                     )
                 else:
                     joint_frame_loss = splice_logits.sum() * 0.0
@@ -1204,6 +1321,7 @@ def main():
                     args.candidate_negative_weight,
                     ss_propensity,
                     args.candidate_propensity_negative_weight,
+                    ss_candidate_weights,
                 )
                 loss = (
                     args.splice_loss_weight * splice_loss + ss_loss
@@ -1314,7 +1432,6 @@ def main():
                 frozen_parameter_count if freeze_active else 0
             ),
             "gradient_probe_file": gradient_probe_file,
-            "validation_chess": metrics,
             "validation_reference": metrics,
             "mean_AP": mean_ap,
             "epoch_seconds": time.time() - epoch_start,
@@ -1368,7 +1485,10 @@ def main():
             "mean_AP": mean_ap,
             "best_validation_mean_AP": None if metrics is None else best_score,
             "epochs_without_improvement": epochs_without_improvement,
-            "config": vars(args) | {
+            "config": {
+                key: str(value) if isinstance(value, Path) else value
+                for key, value in vars(args).items()
+            } | {
                 "data_root": str(args.data_root), "output_dir": str(output_dir),
                 "init_checkpoint": (
                     None if args.init_checkpoint is None
@@ -1408,7 +1528,7 @@ def main():
     test_metrics = None
     test_losses = None
     if test_loader is not None:
-        saved = torch.load(output_dir / "best_model.pt", map_location="cpu", weights_only=True)
+        saved = load_weights_checkpoint(output_dir / "best_model.pt")
         model.load_state_dict(saved["model_state_dict"])
         model.to(device)
         test_metrics, test_losses = evaluate(
@@ -1425,7 +1545,6 @@ def main():
         "mode": args.mode,
         "best_validation_mean_AP": None if args.all_splits_as_train else best_score,
         "history": history,
-        "chr1_chess": test_metrics,
         "test_reference": test_metrics,
         "test_losses": test_losses,
         "early_stopped": early_stopped,

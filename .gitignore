@@ -18,9 +18,12 @@ artifacts/phase_predictions/*
 artifacts/cds_predictions/
 artifacts/joint_frame_predictions/
 artifacts/uniann_coding_scores/
+artifacts/uniann_emissions/
 data/propensity/
+data/weights/
 /runs/
 /work/
+.tmux-codex.sock
 *.pt
 *.npy
 *.npz
@@ -47,6 +50,7 @@ data/propensity/
 /results/**/*.refmap
 /results/**/*.tmap
 /results/**/*.stats
+/results/**/chunks/
 
 # Curated result tables under results/ are intentionally versioned.
 !results/**/*.tsv.gz

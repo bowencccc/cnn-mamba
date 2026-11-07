@@ -81,9 +81,179 @@ def gtf_attrs(text: str) -> dict[str, str]:
     return result
 
 
-def parse_eviann(path: Path):
+def cds_length(segments) -> int:
+    """Return transcript CDS length after removing duplicate intervals."""
+    return sum(end - start for start, end in set(segments) if end > start)
+
+
+def select_eviann_transcripts(meta, exons, cds, annotations):
+    """Select one high-confidence coding transcript per EviAnn locus.
+
+    Selection is intentionally lexicographic rather than score based:
+
+    1. longest CDS among ``evidence=complete`` and ``class=`` ``=``;
+    2. if absent, longest CDS among ``evidence=complete`` and ``class=k``;
+    3. otherwise the locus is excluded from label generation.
+
+    Ties are resolved by transcript ID so repeated preprocessing is stable.
+    """
+    per_locus = defaultdict(list)
+    for tid in meta:
+        record = annotations.get(tid, {})
+        locus = record.get("locus") or tid
+        per_locus[locus].append(tid)
+
+    selected = set()
+    selected_by_class = {"=": 0, "k": 0}
+    skipped_no_eligible = 0
+    for locus, tids in per_locus.items():
+        complete = [
+            tid for tid in tids
+            if annotations.get(tid, {}).get("evidence", "").lower() == "complete"
+        ]
+        exact = [
+            tid for tid in complete
+            if annotations.get(tid, {}).get("class") == "=" and cds.get(tid)
+        ]
+        fallback = [
+            tid for tid in complete
+            if annotations.get(tid, {}).get("class") == "k" and cds.get(tid)
+        ]
+        candidates = exact or fallback
+        if not candidates:
+            skipped_no_eligible += 1
+            continue
+        # A lexical tie break is deterministic and does not change the stated
+        # biological priority, which is CDS length only within a class tier.
+        chosen = sorted(candidates, key=lambda tid: (-cds_length(cds[tid]), tid))[0]
+        selected.add(chosen)
+        selected_by_class[annotations[chosen]["class"]] += 1
+
+    filtered_meta = {tid: meta[tid] for tid in selected}
+    filtered_exons = defaultdict(
+        list, {tid: exons[tid] for tid in selected if tid in exons}
+    )
+    filtered_cds = defaultdict(
+        list, {tid: cds[tid] for tid in selected if tid in cds}
+    )
+    summary = {
+        "mode": "longest_complete_class_equal_else_k_per_locus",
+        "input_transcripts": len(meta),
+        "input_loci": len(per_locus),
+        "selected_transcripts": len(selected),
+        "selected_loci": len(selected),
+        "selected_complete_class_equal": selected_by_class["="],
+        "selected_complete_class_k": selected_by_class["k"],
+        "skipped_loci_without_complete_equal_or_k": skipped_no_eligible,
+        "cds_length_definition": "sum of unique CDS interval lengths",
+        "tie_break": "lexicographically smallest transcript ID",
+    }
+    return filtered_meta, filtered_exons, filtered_cds, summary
+
+
+def select_complete_equal_else_k_with_fallback(meta, exons, cds, annotations):
+    """Prefer complete =/k transcripts while retaining every coding locus."""
+    per_locus = defaultdict(list)
+    for tid in meta:
+        record = annotations.get(tid, {})
+        locus = record.get("locus") or tid
+        per_locus[locus].append(tid)
+
+    selected = set()
+    selected_by_tier = {"complete_equal": 0, "complete_k": 0, "fallback": 0}
+    skipped_without_cds = 0
+    for tids in per_locus.values():
+        coding = [tid for tid in tids if cds.get(tid)]
+        if not coding:
+            skipped_without_cds += 1
+            continue
+        complete = [
+            tid for tid in coding
+            if annotations.get(tid, {}).get("evidence", "").lower() == "complete"
+        ]
+        exact = [
+            tid for tid in complete
+            if annotations.get(tid, {}).get("class") == "="
+        ]
+        contained = [
+            tid for tid in complete
+            if annotations.get(tid, {}).get("class") == "k"
+        ]
+        if exact:
+            candidates, tier = exact, "complete_equal"
+        elif contained:
+            candidates, tier = contained, "complete_k"
+        else:
+            candidates, tier = coding, "fallback"
+        chosen = sorted(candidates, key=lambda tid: (-cds_length(cds[tid]), tid))[0]
+        selected.add(chosen)
+        selected_by_tier[tier] += 1
+
+    filtered_meta = {tid: meta[tid] for tid in selected}
+    filtered_exons = defaultdict(
+        list, {tid: exons[tid] for tid in selected if tid in exons}
+    )
+    filtered_cds = defaultdict(
+        list, {tid: cds[tid] for tid in selected if tid in cds}
+    )
+    summary = {
+        "mode": "complete_equal_else_k_with_longest_cds_fallback_per_locus",
+        "input_transcripts": len(meta),
+        "input_loci": len(per_locus),
+        "selected_transcripts": len(selected),
+        "selected_loci": len(selected),
+        "selected_complete_class_equal": selected_by_tier["complete_equal"],
+        "selected_complete_class_k": selected_by_tier["complete_k"],
+        "selected_longest_cds_fallback": selected_by_tier["fallback"],
+        "skipped_loci_without_cds": skipped_without_cds,
+        "cds_length_definition": "sum of unique CDS interval lengths",
+        "tie_break": "lexicographically smallest transcript ID",
+    }
+    return filtered_meta, filtered_exons, filtered_cds, summary
+
+
+def select_longest_cds_per_locus(meta, exons, cds, annotations):
+    """Select the transcript with the longest spliced CDS in every locus."""
+    per_locus = defaultdict(list)
+    for tid in meta:
+        record = annotations.get(tid, {})
+        locus = record.get("locus") or tid
+        per_locus[locus].append(tid)
+
+    selected = set()
+    skipped_without_cds = 0
+    for tids in per_locus.values():
+        candidates = [tid for tid in tids if cds.get(tid)]
+        if not candidates:
+            skipped_without_cds += 1
+            continue
+        chosen = sorted(candidates, key=lambda tid: (-cds_length(cds[tid]), tid))[0]
+        selected.add(chosen)
+
+    filtered_meta = {tid: meta[tid] for tid in selected}
+    filtered_exons = defaultdict(
+        list, {tid: exons[tid] for tid in selected if tid in exons}
+    )
+    filtered_cds = defaultdict(
+        list, {tid: cds[tid] for tid in selected if tid in cds}
+    )
+    summary = {
+        "mode": "longest_cds_per_locus",
+        "input_transcripts": len(meta),
+        "input_loci": len(per_locus),
+        "selected_transcripts": len(selected),
+        "selected_loci": len(selected),
+        "skipped_loci_without_cds": skipped_without_cds,
+        "cds_length_definition": "sum of unique CDS interval lengths",
+        "tie_break": "lexicographically smallest transcript ID",
+    }
+    return filtered_meta, filtered_exons, filtered_cds, summary
+
+
+def parse_eviann(path: Path, transcript_selection: str = "all"):
     accessions = set(CHROMS.values())
     meta, exons, cds = {}, defaultdict(list), defaultdict(list)
+    annotations = {}
     with open_text(path) as handle:
         for line in handle:
             if line.startswith("#") or not line.strip():
@@ -94,13 +264,35 @@ def parse_eviann(path: Path):
             attrs = gff_attrs(fields[8])
             start0, end0 = int(fields[3]) - 1, int(fields[4])
             if fields[2] == "mRNA" and attrs.get("ID"):
-                meta[attrs["ID"]] = (fields[0], fields[6])
+                tid = attrs["ID"]
+                meta[tid] = (fields[0], fields[6])
+                annotations[tid] = {
+                    "locus": attrs.get("Parent") or attrs.get("geneID") or tid,
+                    "evidence": attrs.get("evidence", attrs.get("Evidence", "")),
+                    "class": attrs.get(
+                        "class", attrs.get("class_code", attrs.get("Class", ""))
+                    ),
+                }
             elif fields[2] in ("exon", "CDS"):
                 target = exons if fields[2] == "exon" else cds
                 for tid in attrs.get("Parent", "").split(","):
                     if tid:
                         target[tid].append((start0, end0))
-    return meta, exons, cds, None
+    if transcript_selection == "all":
+        return meta, exons, cds, {
+            "mode": "all_transcripts",
+            "input_transcripts": len(meta),
+            "selected_transcripts": len(meta),
+        }
+    if transcript_selection == "longest-cds-per-locus":
+        return select_longest_cds_per_locus(meta, exons, cds, annotations)
+    if transcript_selection == "complete-equal-else-k-with-fallback":
+        return select_complete_equal_else_k_with_fallback(
+            meta, exons, cds, annotations
+        )
+    if transcript_selection == "longest-complete-equal-else-k":
+        return select_eviann_transcripts(meta, exons, cds, annotations)
+    raise ValueError(f"unknown EviAnn transcript selection: {transcript_selection}")
 
 
 def parse_reference(path: Path):
@@ -135,7 +327,7 @@ def parse_reference(path: Path):
     return meta, exons, cds, explicit
 
 
-def parse_cds_phase_records(path: Path):
+def parse_cds_phase_records(path: Path, allowed_transcripts=None):
     """Collect CDS intervals and their GFF/GTF phase without changing site parsing."""
     accessions = set(CHROMS.values())
     records = defaultdict(lambda: {"+": [], "-": []})
@@ -150,6 +342,14 @@ def parse_cds_phase_records(path: Path):
                 or fields[7] not in {"0", "1", "2"}
             ):
                 continue
+            if allowed_transcripts is not None:
+                attrs = (
+                    gff_attrs(fields[8]) if "=" in fields[8]
+                    else gtf_attrs(fields[8])
+                )
+                parents = attrs.get("Parent", attrs.get("transcript_id", "")).split(",")
+                if not any(tid in allowed_transcripts for tid in parents):
+                    continue
             records[fields[0]][fields[6]].append(
                 (int(fields[3]) - 1, int(fields[4]), int(fields[7]))
             )
@@ -323,6 +523,7 @@ def labels_for_window(start: int, strand: str, indexed, window: int):
 def generate_cell(
     output: Path, cell: dict, regions, eviann, reference,
     eviann_phase=None, reference_phase=None, cds_boundary_radius=0,
+    eviann_transcript_selection=None,
 ) -> dict:
     window, stride = int(cell["window_bp"]), int(cell["stride_bp"])
     summary = {}
@@ -471,6 +672,7 @@ def generate_cell(
             }
             if cds_boundary_radius else None
         ),
+        "eviann_transcript_selection": eviann_transcript_selection,
         "owned_local_interval": [(window - stride) // 2, (window - stride) // 2 + stride],
         "splits": SPLITS, "accessions": CHROMS, "summary": summary,
         "sources": {
@@ -489,6 +691,20 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=CONFIG)
     parser.add_argument("--fasta", type=Path, default=FASTA)
     parser.add_argument("--eviann-gff", type=Path, default=EVIANN_GFF)
+    parser.add_argument(
+        "--eviann-transcript-selection",
+        choices=(
+            "all", "longest-cds-per-locus",
+            "longest-complete-equal-else-k",
+            "complete-equal-else-k-with-fallback",
+        ),
+        default="all",
+        help=(
+            "Select representative EviAnn transcripts for start/stop labels "
+            "only. Donor/acceptor, CDS, phase, and window-region labels always "
+            "retain all EviAnn transcripts."
+        ),
+    )
     parser.add_argument("--reference-gtf", type=Path, default=REFERENCE_GTF)
     parser.add_argument("--output-root", type=Path, default=ROOT / "data" / "processed")
     parser.add_argument(
@@ -518,13 +734,35 @@ def main() -> None:
     args.output_root.mkdir(parents=True, exist_ok=True)
     started = time.time()
     print("Parsing annotations once...", flush=True)
-    e_meta, e_exons, e_cds, _ = parse_eviann(EVIANN_GFF)
+    e_meta, e_exons, e_cds, _all_selection = parse_eviann(EVIANN_GFF, "all")
+    if args.eviann_transcript_selection == "all":
+        ss_meta, ss_exons, ss_cds = e_meta, e_exons, e_cds
+        eviann_selection = _all_selection
+    else:
+        ss_meta, ss_exons, ss_cds, eviann_selection = parse_eviann(
+            EVIANN_GFF, args.eviann_transcript_selection
+        )
+    eviann_selection = {
+        **eviann_selection,
+        "applies_to": ["start", "stop"],
+        "donor_acceptor_source": "all EviAnn transcripts (union)",
+        "cds_phase_source": "all EviAnn transcripts (union; conflicts masked)",
+        "window_region_source": "all EviAnn coding transcripts",
+    }
     r_meta, r_exons, r_cds, explicit = parse_reference(REFERENCE_GTF)
     regions = coding_regions(e_meta, e_exons, e_cds)
     e_sites, e_rejected = extract_sites(e_meta, e_exons, e_cds)
+    if args.eviann_transcript_selection != "all":
+        ss_sites, ss_rejected = extract_sites(ss_meta, ss_exons, ss_cds)
+        for site in ("start", "stop"):
+            e_sites[site] = ss_sites[site]
+            e_rejected[site] = ss_rejected.get(site, 0)
     r_sites, r_rejected = extract_sites(r_meta, r_exons, r_cds, explicit)
     e_index, r_index = index_sites(e_sites), index_sites(r_sites)
-    e_phase = parse_cds_phase_records(EVIANN_GFF) if args.include_phase_labels else None
+    e_phase = (
+        parse_cds_phase_records(EVIANN_GFF)
+        if args.include_phase_labels else None
+    )
     r_phase = parse_cds_phase_records(REFERENCE_GTF) if args.include_phase_labels else None
     completed = []
     for cell in config["cells"]:
@@ -543,10 +781,12 @@ def main() -> None:
             manifest = generate_cell(
                 cell_dir, cell, regions, e_index, r_index, e_phase, r_phase,
                 args.cds_boundary_radius,
+                eviann_selection,
             )
         completed.append({"cell": cell["id"], "manifest": str(manifest_path.resolve()), "windows": sum(manifest["summary"][s]["windows"] for s in SPLITS)})
     atomic_json(args.output_root / ".complete.json", {
         "schema": "droso_window_generation_complete_v1", "cells": completed,
+        "eviann_transcript_selection": eviann_selection,
         "eviann_rejected": e_rejected, "reference_rejected": r_rejected,
         "elapsed_seconds_current_invocation": time.time() - started,
     })

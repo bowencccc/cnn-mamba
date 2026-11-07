@@ -17,7 +17,10 @@ def call(command):
 def main():
     root = Path(__file__).resolve().parents[1]
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cell", choices=("w5", "w10", "w20", "w30", "w40", "w80"), required=True)
+    parser.add_argument(
+        "--cell", required=True,
+        help="Cell ID defined in the selected JSON config.",
+    )
     parser.add_argument("--regime", choices=("heldout", "chrxtrain"), required=True)
     parser.add_argument("--config", type=Path,
                         default=Path("configs/droso_window_grid.json"))
@@ -28,6 +31,10 @@ def main():
     parser.add_argument("--uniann-root", type=Path,
                         default=Path(os.environ.get("UNIANN_ROOT", root.parent / "UniAnn")))
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument(
+        "--seed", type=int,
+        help="Training random seed; defaults to the selected config's seed.",
+    )
     parser.add_argument(
         "--data-root", type=Path,
         help="Override the processed cell directory used for training.",
@@ -41,6 +48,7 @@ def main():
     parser.add_argument("--joint-noncoding-weight", type=float, default=0.1)
     parser.add_argument("--candidate-negative-weight", type=float, default=1.0)
     parser.add_argument("--candidate-propensity-root", type=Path)
+    parser.add_argument("--start-stop-weight-root", type=Path)
     parser.add_argument(
         "--candidate-propensity-negative-weight", type=float, default=1.0
     )
@@ -52,7 +60,14 @@ def main():
     args = parser.parse_args()
     config_path = args.config if args.config.is_absolute() else root / args.config
     config = json.loads(config_path.read_text())
-    cell = next(row for row in config["cells"] if row["id"] == args.cell)
+    seed = config.get("seed", 42) if args.seed is None else args.seed
+    try:
+        cell = next(row for row in config["cells"] if row["id"] == args.cell)
+    except StopIteration:
+        parser.error(
+            f"cell {args.cell!r} is not defined in {config_path}; "
+            f"available cells: {[row['id'] for row in config['cells']]}"
+        )
     stages = [x.strip() for x in args.stages.split(",") if x.strip()]
     unknown = set(stages) - {"train", "score", "auprc", "export", "uniann"}
     if unknown:
@@ -79,6 +94,7 @@ def main():
                    "--epochs", str(config["epochs"]), "--batch-size", str(cell["micro_batch"]),
                    "--grad-accum", str(cell["grad_accum"]), "--window-size", str(cell["window_bp"]),
                    "--stride", str(cell["stride_bp"]), "--workers", str(args.workers),
+                   "--seed", str(seed),
                    "--output-dir", run_dir, "--reference-name", "FlyBase", "--test-name", "chrX"]
         command.extend([
             "--frame-dilation", str(args.frame_dilation),
@@ -99,6 +115,10 @@ def main():
                 str(args.candidate_propensity_root),
                 "--candidate-propensity-negative-weight",
                 str(args.candidate_propensity_negative_weight),
+            ])
+        if args.start_stop_weight_root is not None:
+            command.extend([
+                "--start-stop-weight-root", str(args.start_stop_weight_root),
             ])
         if args.record_gradient_norms:
             command.append("--record-gradient-norms")

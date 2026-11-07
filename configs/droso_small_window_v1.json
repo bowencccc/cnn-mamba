@@ -1,0 +1,32 @@
+{
+  "schema": "cnn_mamba_k7_droso_small_window_v1",
+  "seed": 42,
+  "epochs": 30,
+  "early_stopping": {
+    "monitor": "validation_mean_AP_donor_acceptor_start_stop",
+    "mode": "max",
+    "patience": 3,
+    "min_delta": 0.0001
+  },
+  "architecture": {
+    "name": "cnn_mamba",
+    "cnn_kernel_size": 7,
+    "d_model": 192,
+    "d_state": 64,
+    "n_layers": 8,
+    "dropout": 0.1
+  },
+  "training": {
+    "learning_rate": 0.0003,
+    "effective_bases_per_optimizer_update": 80000,
+    "micro_batch_windows": 4,
+    "loss": "0.25 * splice_candidate_cross_entropy + start_stop_candidate_cross_entropy + 0.1 * four_state_joint_frame_loss",
+    "model_selection": "validation arithmetic mean AP over donor/acceptor/start/stop"
+  },
+  "cells": [
+    {"id": "w0p5", "window_bp": 500,  "stride_bp": 250,  "micro_batch": 4, "grad_accum": 40, "score_batch": 128},
+    {"id": "w1",   "window_bp": 1000, "stride_bp": 500,  "micro_batch": 4, "grad_accum": 20, "score_batch": 64},
+    {"id": "w2",   "window_bp": 2000, "stride_bp": 1000, "micro_batch": 4, "grad_accum": 10, "score_batch": 32},
+    {"id": "w5",   "window_bp": 5000, "stride_bp": 2500, "micro_batch": 4, "grad_accum": 4,  "score_batch": 16}
+  ]
+}

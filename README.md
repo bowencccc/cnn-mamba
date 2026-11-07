@@ -1,9 +1,10 @@
 # CNN–Mamba-k7 portable pipeline
 
-This repository is the cleaned, portable version of the current Drosophila
-CNN–Mamba-k7 work. It covers the complete path from raw FASTA/annotations to
-training windows, model training, chromosome-wide candidate scoring, exact
-AUPRC, UniAnn input export, strict `gffcompare`, and EviAnn+UniAnn evaluation.
+This repository is the cleaned, portable version of the current Drosophila and
+Human CNN–Mamba-k7 work. It covers the complete path from raw
+FASTA/annotations to training windows, model training, chromosome-wide
+candidate scoring, exact AUPRC, codon/frame prediction, UniAnn input export,
+strict `gffcompare`, and EviAnn+UniAnn evaluation.
 
 Small result tables, plots, training histories and strict-match statistics are
 tracked in `results/`. Large biological inputs, generated NPZ windows, raw
@@ -16,10 +17,18 @@ The preserved recipe is:
 
 - model: 8-layer bidirectional Mamba3, `d_model=192`, `d_state=64`;
 - a depthwise/pointwise CNN before every Mamba block, kernel size 7;
-- two 3-class heads: background/donor/acceptor and background/start/stop;
-- candidate-masked cross entropy, `0.25 * splice_loss + start_stop_loss`;
-- AdamW, learning rate `3e-4`, cosine decay, seed 42, five epochs;
-- 50% overlapping windows and eight windows per optimizer update;
+- two primary 3-class heads: background/donor/acceptor and
+  background/start/stop;
+- an optional dilation-3 codon-aware residual branch feeding the start/stop and
+  coding-frame heads;
+- an optional four-state auxiliary head in class order
+  `non_CDS/frame0/frame1/frame2`;
+- candidate-masked cross entropy plus the optional four-state loss:
+  `0.25 * splice_loss + start_stop_loss + lambda_frame * frame_loss`;
+- AdamW, learning rate `3e-4`, cosine decay, and an explicitly recorded random
+  seed (42 unless overridden);
+- 50% overlapping windows; experiment configs set gradient accumulation so
+  comparisons can use a matched effective number of bases per optimizer step;
 - validation on chromosome 3L and held-out candidate evaluation on chrX+;
 - UniAnn evaluation uses chrX included in training by design, followed by
   `gffread -M` and `gffcompare --strict-match -e 0`.
@@ -292,13 +301,49 @@ Heads and the dilation-3 frame branch are excluded from the shared-core norm.
 
 ### Four-state coding-frame head
 
-The latest model replaces the masked three-class phase head with one four-class
-head in class order `non_CDS/frame0/frame1/frame2`. Coding bases are supervised
-with their annotation-derived frame; all bases outside annotated CDS are
-supervised as `non_CDS`. Bases with conflicting reference phase are excluded
-from the coding part of the auxiliary loss. The joint-head coefficient is
-`0.1`; the completed grid compares noncoding within-head weights
-`0.03/0.10/0.30` while leaving the two candidate heads and their loss unchanged.
+The current model has three related components that should not be conflated:
+
+```text
+DNA -> embedding -> 8 x CNN--BiMamba3 -> shared per-base representation
+                                      |-> splice head: background/donor/acceptor
+                                      `-> dilation-3 codon-aware branch
+                                           |-> start/stop head: background/start/stop
+                                           `-> four-state auxiliary head:
+                                               non_CDS/frame0/frame1/frame2
+```
+
+The **start/stop codon head** is a primary three-class candidate head. Its loss
+is evaluated only at canonical start/stop candidates and annotated positives.
+The **codon-aware branch** is not a classifier: it is a residual depthwise CNN
+with dilation 3, so adjacent kernel taps sample bases three nucleotides apart.
+The **four-state head** is a dense auxiliary classifier used to teach the
+shared representation coding status and reading frame. It does not replace the
+start/stop head.
+
+The four-state head supersedes the earlier masked three-class phase head. The
+class order used internally is `non_CDS/frame0/frame1/frame2`. Each annotated
+CDS segment's GFF/GTF phase is converted to a strand-aware per-base `0,1,2`
+track. Intronic and intergenic bases are labeled `non_CDS`; bases assigned
+different coding frames by overlapping isoforms are masked rather than forced
+to an arbitrary state. This is supervised annotation-derived information, not
+an input feature and not a globally decoded reading-frame path.
+
+Coding and noncoding cross-entropies are averaged separately:
+
+```text
+frame_loss = CE(coding frame0/1/2 bases)
+           + beta * CE(non_CDS bases)
+
+total_loss = 0.25 * splice_loss
+           + start_stop_loss
+           + lambda_frame * frame_loss
+```
+
+The main completed model uses `lambda_frame=0.1`, `beta=0.1`, and dilation 3.
+The grid also compares `beta=0.03/0.10/0.30` while leaving both primary heads
+and their loss weights unchanged. The four-state probabilities can be
+temperature- or vector-calibrated after training without altering the raw
+donor/acceptor/start/stop scores.
 
 Run all six cells sequentially on one local GPU with:
 
@@ -342,6 +387,18 @@ UniAnn-only locus result (Sn 80.4, Pr 79.6, F1 80.00). The phase-only baseline
 remained narrowly best after combining EviAnn and UniAnn (F1 90.54 versus
 90.34 for the four-state 0.10 model).
 
+For a reproducible alternate seed, pass it explicitly to the end-to-end driver;
+the value is stored in every checkpoint:
+
+```bash
+python scripts/run_cell.py \
+  --config configs/droso_small_window_v1.json \
+  --experiment-tag droso_small_window_seed43 \
+  --cell w5 --regime chrxtrain --seed 43 \
+  --frame-dilation 3 --joint-frame-aux-weight 0.1 \
+  --joint-noncoding-weight 0.1 --stages train,score,auprc
+```
+
 ## 5. Run UniAnn and combined strict evaluation
 
 This deliberately uses the `chrxtrain` checkpoint, exports the six-column
@@ -383,7 +440,7 @@ Completed Rockfish four-state training (job 31705646, 2026-10-08):
 Best epoch 4; early stopping at epoch 7; mean test-window candidate AP 0.426755.
 
 
-The Human external group contains GRCh38, CHESS 3.1.3, the Human EviAnn
+The Human external group contains GRCh38, NCBI RefSeq GRCh38.p14, CHESS 3.1.3, the Human EviAnn
 pseudo-label GFF, full Human PSAURON scores, and the current 10 kb
 CNN--Mamba-k7 chr1-in-training checkpoint. Generated NPZ windows and chr1 score
 arrays are omitted and can be rebuilt.
@@ -392,8 +449,8 @@ arrays are omitted and can be rebuilt.
 cnn-mamba-prepare-human \
   --fasta data/raw/human_grch38.fa \
   --eviann-gff data/raw/human_eviann_pseudo_label.gff \
-  --chess-gtf data/raw/human_chess3.1.3.gtf \
-  --output-dir data/processed/human_w10_chr1held \
+  --reference-annotation data/raw/human_refseq_grch38_p14.gff.gz \
+  --output-dir data/processed/human_refseq_w10_chr1held \
   --max-windows-per-chrom-strand 0 \
   --region-overlap-bp 10000
 ```
@@ -406,15 +463,15 @@ CUDA_VISIBLE_DEVICES=0 python scripts/run_human.py \
 ```
 
 For the Human four-state `noncoding/frame0/frame1/frame2` pretraining run,
-generate the EviAnn training and CHESS reference phase/CDS arrays while keeping
+generate the EviAnn training and RefSeq reference phase/CDS arrays while keeping
 the original 10 kb windows and chromosome split:
 
 ```bash
 cnn-mamba-prepare-human \
   --fasta data/raw/human_grch38.fa \
   --eviann-gff data/raw/human_eviann_pseudo_label.gff \
-  --chess-gtf data/raw/human_chess3.1.3.gtf \
-  --output-dir data/processed/human_joint_frame_w10_chr1held \
+  --reference-annotation data/raw/human_refseq_grch38_p14.gff.gz \
+  --output-dir data/processed/human_joint_frame_w10_refseq_chr1held \
   --max-windows-per-chrom-strand 0 \
   --region-overlap-bp 10000 \
   --include-phase-labels
@@ -443,7 +500,7 @@ initialize from the chr1-held-out checkpoint.
 
 #### Four-state temperature scaling
 
-Fit one positive scalar temperature on the CHESS validation chromosomes from
+Fit one positive scalar temperature on the RefSeq validation chromosomes from
 the chr1-held-out split. The fitter samples only the non-overlapping, owned
 5 kb center of each 10 kb validation window and excludes CDS bases with
 ambiguous reference phase. Chr1 is never used to choose the temperature.

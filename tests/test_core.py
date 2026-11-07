@@ -8,6 +8,14 @@ import torch
 from cnn_mamba.common import splice_candidate_masks, start_stop_candidate_masks
 from cnn_mamba.evaluate_gated_phase import BinnedBinaryMetrics
 from cnn_mamba.prepare_human import parse_cds_phase_records as parse_human_phase
+from cnn_mamba.human_annotations import parse_reference as parse_human_reference
+from cnn_mamba.human_orf_qc import (
+    EviAnnTranscript, evaluate_transcript_orf, expected_gff_phases,
+)
+from cnn_mamba.human_site_quality import (
+    CodingSpanIndex, average_precision, cross_fitted_threshold_metrics,
+    threshold_for_precision,
+)
 from cnn_mamba.model import SpliceMamba
 from cnn_mamba.mlm_pretrain import CNNMambaMLM, corrupt_for_mlm
 from cnn_mamba.prepare_droso import (
@@ -26,6 +34,87 @@ from cnn_mamba.uniann_evaluate import parse_stats
 
 
 class CoreTests(unittest.TestCase):
+    def test_coding_span_index_requires_same_strand_and_substantial_overlap(self):
+        index = CodingSpanIndex(
+            {"a": ("chr1", "+"), "b": ("chr1", "-")},
+            {"a": [(100, 200)], "b": [(300, 400)]},
+            bin_size=50,
+        )
+        self.assertTrue(index.comparable("chr1", "+", 120, 220))
+        self.assertFalse(index.comparable("chr1", "-", 120, 220))
+        self.assertFalse(index.comparable("chr1", "+", 190, 290))
+
+    def test_site_quality_metrics(self):
+        labels = np.asarray([1, 0, 1, 0])
+        scores = np.asarray([0.9, 0.8, 0.7, 0.1])
+        self.assertAlmostEqual(average_precision(labels, scores), (1 + 2 / 3) / 2)
+        point = threshold_for_precision(labels, scores, 2 / 3)
+        self.assertAlmostEqual(point["threshold"], 0.7)
+        self.assertAlmostEqual(point["precision"], 2 / 3)
+
+    def test_site_quality_metrics_do_not_split_tied_scores(self):
+        labels = np.asarray([1, 0, 1, 0])
+        scores = np.asarray([0.8, 0.8, 0.8, 0.1])
+        self.assertAlmostEqual(average_precision(labels, scores), 2 / 3)
+        point = threshold_for_precision(labels, scores, 0.7)
+        self.assertIsNone(point)
+
+    def test_cross_fitted_threshold_never_uses_held_fold_labels(self):
+        labels = np.asarray([1, 0, 1, 0, 1, 0])
+        scores = np.asarray([0.9, 0.8, 0.7, 0.6, 0.5, 0.4])
+        folds = np.asarray([0, 0, 1, 1, 2, 2])
+        result = cross_fitted_threshold_metrics(labels, scores, folds, 0.5)
+        self.assertEqual(len(result["folds"]), 3)
+        self.assertEqual(
+            result["folds"][0]["threshold_fitted_without_held_fold"], 0.4
+        )
+
+    def test_expected_gff_phases_follow_spliced_cds_frame(self):
+        self.assertEqual(expected_gff_phases([4, 5, 6]), [0, 2, 0])
+
+    def test_human_orf_qc_is_transcript_oriented_on_both_strands(self):
+        import pysam
+
+        sequences = {
+            "plus": "ATGAGTCCAGAATAA",
+            "minus": "TTATTCTCCACTCAT",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            fasta_path = Path(directory) / "synthetic.fa"
+            fasta_path.write_text(
+                "".join(f">{name}\n{sequence}\n" for name, sequence in sequences.items())
+            )
+            pysam.faidx(str(fasta_path))
+            fasta = pysam.FastaFile(str(fasta_path))
+            plus = EviAnnTranscript(
+                "plus_tx", "chr1", "+", "complete", False, "g1",
+                "ATG", "TAA", [(0, 4), (10, 15)],
+                [(0, 4, 0), (10, 15, 2)],
+            )
+            minus = EviAnnTranscript(
+                "minus_tx", "chr1", "-", "complete", False, "g2",
+                "ATG", "TAA", [(0, 5), (11, 15)],
+                [(0, 5, 2), (11, 15, 0)],
+            )
+            # The evaluator normally maps chr1 to NC_000001.11. Substitute
+            # equivalent indexed accessions for this compact synthetic test.
+            from cnn_mamba import human_orf_qc
+            original = human_orf_qc.CHR_TO_NC["chr1"]
+            try:
+                human_orf_qc.CHR_TO_NC["chr1"] = "plus"
+                plus_result = evaluate_transcript_orf(plus, fasta)
+                human_orf_qc.CHR_TO_NC["chr1"] = "minus"
+                minus_result = evaluate_transcript_orf(minus, fasta)
+            finally:
+                human_orf_qc.CHR_TO_NC["chr1"] = original
+                fasta.close()
+        for result in (plus_result, minus_result):
+            self.assertTrue(result.orf_valid)
+            self.assertEqual(result.start_codon, "ATG")
+            self.assertEqual(result.stop_codon, "TAA")
+            self.assertEqual(result.gt_ag_count, 1)
+            self.assertTrue(result.phase_consistent)
+
     def test_cosine_learning_rate_stays_at_floor_after_horizon(self):
         base = 3e-4
         self.assertAlmostEqual(cosine_learning_rate(0, base, 1000, 100), 3e-6)
@@ -48,6 +137,33 @@ class CoreTests(unittest.TestCase):
             c_records = parse_human_phase(c_path, "chess")
         self.assertEqual(e_records["chr1"]["+"], [(1, 5, 1)])
         self.assertEqual(c_records["chr1"]["-"], [(7, 10, 2)])
+
+    def test_human_phase_parser_filters_eviann_transcripts(self):
+        eviann = (
+            "NC_000001.11\tEviAnn\tCDS\t2\t5\t.\t+\t1\tParent=keep\n"
+            "NC_000001.11\tEviAnn\tCDS\t8\t10\t.\t+\t2\tParent=drop\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "e.gff"
+            path.write_text(eviann)
+            records = parse_human_phase(
+                path, "eviann", allowed_transcripts={"keep"}
+            )
+        self.assertEqual(records["chr1"]["+"], [(1, 5, 1)])
+
+    def test_human_reference_parser_supports_refseq_gff3(self):
+        refseq = (
+            "NC_000001.11\tBestRefSeq\tmRNA\t2\t20\t.\t+\t.\tID=rna-NM_1\n"
+            "NC_000001.11\tBestRefSeq\texon\t2\t10\t.\t+\t.\tParent=rna-NM_1\n"
+            "NC_000001.11\tBestRefSeq\tCDS\t4\t10\t.\t+\t0\tParent=rna-NM_1\n"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "refseq.gff"
+            path.write_text(refseq)
+            meta, exons, cds = parse_human_reference(path)
+        self.assertEqual(meta["rna-NM_1"], ("chr1", "+"))
+        self.assertEqual(exons["rna-NM_1"], [(1, 10)])
+        self.assertEqual(cds["rna-NM_1"], [(3, 10)])
 
     def test_candidate_masks(self):
         # A C G T G T A G A T G T A A
@@ -92,6 +208,31 @@ class CoreTests(unittest.TestCase):
         )
         weights = torch.tensor([1.0, 0.25, 1.0])
         expected = (per_candidate * weights).sum() / weights.sum()
+        self.assertAlmostEqual(loss.item(), expected.item(), places=7)
+        loss.backward()
+        self.assertIsNotNone(logits.grad)
+
+    def test_candidate_positive_weights_use_weighted_mean(self):
+        sequence = torch.tensor([[0, 3, 2, 1, 1, 1, 3, 0, 0]])  # ATG, TAA
+        labels = torch.tensor([[1, 0, 0, 0, 0, 0, 2, 0, 0]])
+        logits = torch.tensor(
+            [[[0.1, 1.2, -0.2], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],
+              [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0],
+              [-0.3, 0.2, 1.1], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]],
+            requires_grad=True,
+        )
+        position_weights = torch.ones_like(labels, dtype=torch.float32)
+        position_weights[0, 6] = 0.3
+        loss = candidate_loss(
+            logits, labels, sequence, "start_stop",
+            candidate_weights=position_weights,
+        )
+        selected_logits = logits[0, [0, 6]]
+        selected_labels = labels[0, [0, 6]]
+        per_candidate = torch.nn.functional.cross_entropy(
+            selected_logits, selected_labels, reduction="none"
+        )
+        expected = (per_candidate * torch.tensor([1.0, 0.3])).sum() / 1.3
         self.assertAlmostEqual(loss.item(), expected.item(), places=7)
         loss.backward()
         self.assertIsNotNone(logits.grad)
@@ -173,6 +314,21 @@ class CoreTests(unittest.TestCase):
         # The final CDS base has conflicting/unknown phase and is excluded.
         self.assertTrue(torch.equal(logits.grad[0, 5], torch.zeros(4)))
         self.assertIsNotNone(logits.grad)
+
+    def test_group_balanced_joint_frame_loss_respects_valid_mask(self):
+        logits = torch.zeros(1, 5, 4, requires_grad=True)
+        phase = torch.tensor([[0, 1, 2, 0, 0]])
+        phase_mask = torch.tensor([[True, True, True, False, False]])
+        cds = torch.tensor([[True, True, True, False, False]])
+        valid = torch.tensor([[True, False, True, True, False]])
+        loss = group_balanced_joint_frame_loss(
+            logits, phase, phase_mask, cds,
+            noncoding_weight=0.1, valid_mask=valid,
+        )
+        self.assertAlmostEqual(loss.item(), 1.1 * np.log(4), places=6)
+        loss.backward()
+        self.assertTrue(torch.equal(logits.grad[0, 1], torch.zeros(4)))
+        self.assertTrue(torch.equal(logits.grad[0, 4], torch.zeros(4)))
 
     def test_joint_frame_targets_exclude_ambiguous_cds(self):
         phase = torch.tensor([[0, 1, 2, 0, 0]])
@@ -271,10 +427,10 @@ class CoreTests(unittest.TestCase):
                 Path(directory), require_phase=True, require_cds=True,
                 require_cds_boundary=True,
             )[0]
-        self.assertEqual(len(batch), 15)
+        self.assertEqual(len(batch), 17)
         self.assertTrue(torch.equal(batch[11], torch.from_numpy(arrays["cds_labels"])))
         self.assertTrue(torch.equal(
-            batch[13], torch.from_numpy(arrays["cds_boundary_mask"])
+            batch[15], torch.from_numpy(arrays["cds_boundary_mask"])
         ))
         model = SpliceMamba(
             d_model=16, d_state=8, n_layers=0, dropout=0.0,

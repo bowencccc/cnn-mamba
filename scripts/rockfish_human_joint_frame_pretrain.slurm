@@ -16,7 +16,7 @@ python_bin="${CNN_MAMBA_PYTHON:-python}"
 
 cd "$repo_dir"
 
-if [[ ! -d data/processed/human_joint_frame_w10_chr1held/train ]]; then
+if [[ ! -d data/processed/human_joint_frame_w10_refseq_chr1held/train ]]; then
     echo "Missing Human four-state windows." >&2
     echo "Generate them with the command documented in README.md." >&2
     exit 2

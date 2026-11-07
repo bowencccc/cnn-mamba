@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Compare strand-aware EviAnn and CHESS splice/start/stop site sets."""
+"""Parse and compare strand-aware Human coding annotations."""
 
 from collections import defaultdict
 import csv
+import gzip
 from pathlib import Path
 import time
 
@@ -19,6 +20,7 @@ EVIANN_GFF = (
     / "data/raw/human_eviann_pseudo_label.gff"
 )
 CHESS_GTF = ROOT / "data/raw/human_chess3.1.3.gtf"
+REFSEQ_GFF = ROOT / "data/raw/human_refseq_grch38_p14.gff.gz"
 FASTA = ROOT / "data/raw/human_grch38.fa"
 OUTPUT = ROOT / "work/human_annotation_overlap"
 
@@ -62,12 +64,23 @@ def parse_gtf_attrs(text):
     return attrs
 
 
+def open_text(path):
+    path = Path(path)
+    return gzip.open(path, "rt") if path.suffix == ".gz" else path.open()
+
+
+def normalize_chromosome(value):
+    if value in NC_TO_CHR:
+        return NC_TO_CHR[value]
+    return value if value in CHR_TO_NC else None
+
+
 def parse_eviann(path):
     tx_meta = {}
     exons = defaultdict(list)
     cds = defaultdict(list)
     primary = set(NC_TO_CHR)
-    with open(path) as handle:
+    with open_text(path) as handle:
         for line in handle:
             if line.startswith("#") or not line.strip():
                 continue
@@ -100,7 +113,7 @@ def parse_chess(path):
     exons = defaultdict(list)
     cds = defaultdict(list)
     primary = set(CHR_TO_NC)
-    with open(path) as handle:
+    with open_text(path) as handle:
         for line in handle:
             if line.startswith("#") or not line.strip():
                 continue
@@ -121,6 +134,54 @@ def parse_chess(path):
                 exons[tid].append((start0, end0))
             elif feature == "CDS":
                 cds[tid].append((start0, end0))
+    return tx_meta, exons, cds
+
+
+def parse_reference(path):
+    """Parse a primary-chromosome GTF or GFF3 coding reference.
+
+    GTF records use ``transcript_id`` while NCBI RefSeq GFF3 records use an
+    mRNA ``ID`` and exon/CDS ``Parent`` links. Sequence accessions and ``chrN``
+    names are both normalized to ``chrN`` for the rest of the Human pipeline.
+    """
+    tx_meta = {}
+    exons = defaultdict(list)
+    cds = defaultdict(list)
+    with open_text(path) as handle:
+        for line in handle:
+            if line.startswith("#") or not line.strip():
+                continue
+            fields = line.rstrip("\n").split("\t")
+            if len(fields) < 9:
+                continue
+            chrom = normalize_chromosome(fields[0])
+            if chrom is None or fields[6] not in {"+", "-"}:
+                continue
+            feature = fields[2]
+            if feature not in {"mRNA", "transcript", "exon", "CDS"}:
+                continue
+            is_gff3 = "=" in fields[8]
+            attrs = parse_gff_attrs(fields[8]) if is_gff3 else parse_gtf_attrs(fields[8])
+            strand = fields[6]
+            start0, end0 = int(fields[3]) - 1, int(fields[4])
+            if feature in {"mRNA", "transcript"}:
+                tid = attrs.get("ID") if is_gff3 else attrs.get("transcript_id")
+                if tid:
+                    tx_meta[tid] = (chrom, strand)
+                continue
+            parents = (
+                attrs.get("Parent", "").split(",")
+                if is_gff3 else [attrs.get("transcript_id", "")]
+            )
+            target = exons if feature == "exon" else cds
+            for tid in parents:
+                tid = tid.strip()
+                if not tid:
+                    continue
+                # Some GTFs omit explicit transcript rows; child rows still
+                # contain all metadata required for coding-site extraction.
+                tx_meta.setdefault(tid, (chrom, strand))
+                target[tid].append((start0, end0))
     return tx_meta, exons, cds
 
 
