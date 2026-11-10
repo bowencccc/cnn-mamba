@@ -243,16 +243,17 @@ def evaluate_condition(inputs, specification, split):
     legacy.ensure_link(inputs["scores"], work / "scores.txt")
     legacy.ensure_link(inputs["frame"], work / "coding.txt")
     emission = work / "out.ps.txt"
-    if not emission.is_file():
-        temporary = work / "out.ps.txt.tmp"
-        with inputs["frame"].open("rb") as source, temporary.open("wb") as output:
-            subprocess.run([
-                "perl", CONVERTER, inputs["fasta"], "joint_softmax",
-                str(specification["temperature"]), bias_text(specification["biases"]),
-            ], stdin=source, stdout=output, stderr=subprocess.PIPE, check=True)
-        os.replace(temporary, emission)
     prediction = work / "genome.fa.uniann.gff"
     if not prediction.is_file():
+        if not emission.is_file():
+            temporary = work / "out.ps.txt.tmp"
+            with inputs["frame"].open("rb") as source, temporary.open("wb") as output:
+                subprocess.run([
+                    "perl", CONVERTER, inputs["fasta"], "joint_softmax",
+                    str(specification["temperature"]),
+                    bias_text(specification["biases"]),
+                ], stdin=source, stdout=output, stderr=subprocess.PIPE, check=True)
+            os.replace(temporary, emission)
         call([
             UNIANN / "bin/uniann.sh", "-f", "genome.fa", "-c", "coding.txt",
             "-s", "scores.txt", "-n",
@@ -265,6 +266,10 @@ def evaluate_condition(inputs, specification, split):
             with prediction.open() as source:
                 destination.writelines(line for line in source if not line.startswith("#"))
     union = strict_compare(work, combined, inputs["reference"], "eviann_uniann")
+    if split == "tune_3L":
+        # Each chromosome-scale emission file is about 1 GB and is exactly
+        # reproducible from the retained frame TSV and condition metadata.
+        emission.unlink(missing_ok=True)
     common = {
         **specification, "biases": bias_text(specification["biases"]),
         "split": split, "chromosome": inputs["name"],
