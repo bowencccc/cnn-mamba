@@ -295,6 +295,12 @@ def feature_view(array, layer):
     return array[:, FEATURE_NAMES.index(layer), :]
 
 
+def contiguous_feature_view(array, layer):
+    """Materialize strided per-layer memmap views once for repeated epochs."""
+    view = feature_view(array, layer)
+    return view if view.flags.c_contiguous else np.ascontiguousarray(view)
+
+
 def select_and_evaluate(
     train_x, train_y, eval_features, eval_labels, input_dim, weight_decays,
     seed, epochs,
@@ -332,8 +338,11 @@ def run_probes(
             for split in labels
         }
         for layer in layers:
-            train_x = feature_view(arrays["train"], layer)
-            eval_x = {split: feature_view(arrays[split], layer) for split in ("tune", "chr22", "chr1")}
+            train_x = contiguous_feature_view(arrays["train"], layer)
+            eval_x = {
+                split: contiguous_feature_view(arrays[split], layer)
+                for split in ("tune", "chr22", "chr1")
+            }
             wd, evaluated = select_and_evaluate(
                 train_x, labels["train"], eval_x, labels, train_x.shape[1],
                 weight_decays, seed, epochs,
@@ -352,6 +361,7 @@ def run_probes(
                                  "evaluation": split, "weight_decay": shuffled_wd,
                                  **metrics})
             print(f"[probe A] backbone={backbone} layer={layer} wd={wd:g}", flush=True)
+            del train_x, eval_x
     for radius in onehot_radii:
         arrays = {
             split: np.load(

@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 from pathlib import Path
+import subprocess
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -226,6 +227,7 @@ def main():
     parser.add_argument("--chunk-size", type=int, default=1_000_000)
     parser.add_argument("--input-kind", choices=("probabilities", "logits"), default="probabilities")
     parser.add_argument("--dataset", default="drosophila")
+    parser.add_argument("--checkpoint", type=Path)
     args = parser.parse_args()
     rows = run_autocorrelation(
         args.probabilities, args.reference_gtf, args.chrom, args.output,
@@ -239,7 +241,17 @@ def main():
         "max_lag": args.max_lag, "chunk_size": args.chunk_size,
         "chunk_boundary_pair_omission_upper_fraction": args.max_lag / args.chunk_size,
         "best_temperature_comparison": [7, 9],
+        "git_commit": subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=Path(__file__).resolve().parents[2],
+            text=True,
+        ).strip(),
+        "seed": 42,
+        "sampled_positions": int(np.load(args.probabilities, mmap_mode="r").shape[0]),
+        "representation": "four-state joint_frame_head output",
     }
+    if args.checkpoint:
+        config["checkpoint"] = str(args.checkpoint.resolve())
+        config["checkpoint_sha256"] = sha256_file(args.checkpoint)
     if args.windows_root:
         config["validation_prior"] = validation_coding_prior(
             args.windows_root,

@@ -1,0 +1,34 @@
+{
+  "schema": "cnn_mamba_belief_probe_E_v1",
+  "git_commit": "5932abcaddcb26c4e3291ef32ba845562062f7a6",
+  "seed": 42,
+  "temperature": 9.0,
+  "coding_biases": [
+    -1.746150760073963,
+    -0.8730753800369815,
+    -0.43653769001849074,
+    0.0,
+    0.03,
+    0.43653769001849074,
+    0.8730753800369815,
+    1.3096130700554722,
+    1.746150760073963
+  ],
+  "validation_chromosomes": [
+    "3L"
+  ],
+  "validation_prior": {
+    "coding_positions": 4350481,
+    "noncoding_positions": 24939108,
+    "coding_fraction": 0.14853335770604362,
+    "log_prior_noncoding_over_coding": 1.746150760073963
+  },
+  "checkpoint": "/home/bowencccc/cnn_mamba_k7_portable/runs/joint_frame_grid_v1/b010/chrxtrain/w10/best_model.pt",
+  "checkpoint_sha256": "97c13b17e80b14ef193224b2dcbebd4b04ed2feb13c42b4b9ada27b907c9419a",
+  "frame_probabilities": "/home/bowencccc/cnn_mamba_k7_portable/artifacts/joint_frame_predictions/joint_frame_grid_v1/b010/chrxtrain/w10/chrX_plus/chrX_plus_joint_frame_probabilities.tsv",
+  "frame_probabilities_sha256": "3ad796f5d9b5193b76670023045edfac4400a4c6d316ade2bc1be8adf2ff8513",
+  "site_scores": "/home/bowencccc/cnn_mamba_k7_portable/artifacts/scores/joint_frame_grid_v1/b010/chrxtrain/w10/chrX_plus_scores.tsv",
+  "site_scores_sha256": "e6bca67537751d2363ae8c19538b40b2dc5722e9281c37736f4bb8813121eebd",
+  "uniann_commit": "2f5c0ab8fdb2e848f5538f3a1f741cb9c4c67e07",
+  "evaluation": "gffread -M then gffcompare --strict-match -e 0"
+}

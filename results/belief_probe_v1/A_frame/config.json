@@ -1,0 +1,176 @@
+{
+  "schema": "cnn_mamba_belief_probe_A_v1",
+  "git_commit": "5932abcaddcb26c4e3291ef32ba845562062f7a6",
+  "seed": 42,
+  "window_size": 10000,
+  "stride": 5000,
+  "owned_interval": [
+    2500,
+    7500
+  ],
+  "chromosomes": {
+    "train": [
+      "2",
+      "3",
+      "4",
+      "6",
+      "7",
+      "8",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18",
+      "19",
+      "20",
+      "21",
+      "X",
+      "Y"
+    ],
+    "weight_decay_selection": [
+      "5",
+      "9",
+      "10"
+    ],
+    "clean_evaluation": [
+      "22"
+    ],
+    "second_test": [
+      "1"
+    ]
+  },
+  "selection": {
+    "train": {
+      "positions": 2000000,
+      "class_counts": [
+        500000,
+        500000,
+        500000,
+        500000
+      ],
+      "balanced": true,
+      "seed": 42,
+      "max_per_window": 2500,
+      "windows_available": 217967,
+      "windows_sampled": 4519
+    },
+    "tune": {
+      "positions": 500000,
+      "class_counts": [
+        489679,
+        3463,
+        3442,
+        3416
+      ],
+      "balanced": false,
+      "seed": 43,
+      "max_per_window": 2500,
+      "windows_available": 40700,
+      "windows_sampled": 1000
+    },
+    "chr22": {
+      "positions": 2000000,
+      "class_counts": [
+        1936279,
+        21264,
+        21107,
+        21350
+      ],
+      "balanced": false,
+      "seed": 44,
+      "max_per_window": 2500,
+      "windows_available": 4960,
+      "windows_sampled": 1000
+    },
+    "chr1": {
+      "positions": 2000000,
+      "class_counts": [
+        1945081,
+        18235,
+        18423,
+        18261
+      ],
+      "balanced": false,
+      "seed": 45,
+      "max_per_window": 2500,
+      "windows_available": 26252,
+      "windows_sampled": 1000
+    }
+  },
+  "backbones": [
+    "mlm",
+    "random",
+    "supervised"
+  ],
+  "window_manifest_verification": {
+    "status": "passed",
+    "manifest": "/home/bowencccc/cnn_mamba_k7_portable/data/processed/human_joint_frame_w10_chr1held/split_manifest.json",
+    "manifest_sha256": "e285a6508220a69d34496d7c5342b14aa45294de40d97720efd58236df39090a",
+    "parameters": {
+      "window_size": 10000,
+      "stride": 5000,
+      "region_overlap_bp": 10000,
+      "max_windows_per_chrom_strand": 0
+    },
+    "actual_window_counts": {
+      "train": {
+        "chr11": 14621,
+        "chr12": 14433,
+        "chr13": 7296,
+        "chr14": 9004,
+        "chr15": 9740,
+        "chr16": 9344,
+        "chr17": 11514,
+        "chr18": 6186,
+        "chr19": 8496,
+        "chr20": 6690,
+        "chr21": 3328,
+        "chr3": 19876,
+        "chr4": 15320,
+        "chr6": 16439,
+        "chr7": 17805,
+        "chr8": 12807,
+        "chrX": 11363,
+        "chrY": 810
+      },
+      "val": {
+        "chr10": 13689,
+        "chr22": 4960,
+        "chr2": 22895,
+        "chr5": 15313,
+        "chr9": 11698
+      },
+      "test": {
+        "chr1": 26252
+      }
+    },
+    "representative_array_checks": 48,
+    "chr2_reassignment": "existing val/chr2 files are included in probe train without moving or regenerating"
+  },
+  "checkpoints": {
+    "mlm": {
+      "path": "/home/bowencccc/cnn_mamba_k7_portable/runs/mlm_pretrain/human_grch38_w10_v1/best_model.pt",
+      "sha256": "2492aa34830af0a75954ba9064dc01f6ec99ed7b133b070931d9ecf7a083cae0"
+    },
+    "supervised": {
+      "path": "/home/bowencccc/cnn_mamba_k7_portable/models/human_joint_frame_beta010_chr1held_epoch4_inference.pt",
+      "sha256": "429904082463e9822ec83aa15cfd48b16cf0cdb6ff15ff4e7141316117f9c037"
+    }
+  },
+  "weight_decays": [
+    0.0001,
+    0.001,
+    0.01
+  ],
+  "probe_epochs": 8,
+  "feature_window_batch_size": 4,
+  "onehot_radii": [
+    15,
+    50,
+    150
+  ],
+  "supervised_chr2_note": "chr2 was in validation, not training, for this checkpoint"
+}

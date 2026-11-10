@@ -1,0 +1,5 @@
+dataset	region	decorrelation_length_codons	reference_temperature	length_over_temperature
+drosophila	CDS	922.8628743812587	7.0	131.83755348303697
+drosophila	CDS	922.8628743812587	9.0	102.54031937569542
+drosophila	noncoding	293.5627690050108	7.0	41.93753842928726
+drosophila	noncoding	293.5627690050108	9.0	32.6180854450012

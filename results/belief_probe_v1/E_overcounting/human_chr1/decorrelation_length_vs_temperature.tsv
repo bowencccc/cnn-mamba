@@ -1,0 +1,5 @@
+dataset	region	decorrelation_length_codons	reference_temperature	length_over_temperature
+human_chr1	CDS	1277.8573405895165	7.0	182.55104865564522
+human_chr1	CDS	1277.8573405895165	9.0	141.98414895439072
+human_chr1	noncoding	405.1953187286863	7.0	57.88504553266947
+human_chr1	noncoding	405.1953187286863	9.0	45.02170208096514

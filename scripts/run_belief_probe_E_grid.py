@@ -16,12 +16,14 @@ sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "src"))
 
 import run_uniann_frame_scaling_grid as base  # noqa: E402
+from cnn_mamba.probe_features import sha256_file  # noqa: E402
 from cnn_mamba.probe_overcounting import validation_coding_prior  # noqa: E402
 
 
 WORK_ROOT = ROOT / "work/uniann/belief_probe_E_prior_grid"
 RESULT_ROOT = ROOT / "results/belief_probe_v1/E_overcounting"
 WINDOWS_ROOT = ROOT / "data/processed/cds_gating/w10_frame"
+CHECKPOINT = ROOT / "runs/joint_frame_grid_v1/b010/chrxtrain/w10/best_model.pt"
 
 
 def condition_name(bias):
@@ -133,6 +135,25 @@ def main():
             f"F1={merged['f1']:.4f}", flush=True,
         )
     (RESULT_ROOT / "coding_prior.json").write_text(json.dumps(prior, indent=2) + "\n")
+    (RESULT_ROOT / "config.json").write_text(json.dumps({
+        "schema": "cnn_mamba_belief_probe_E_v1",
+        "git_commit": subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True,
+        ).strip(),
+        "seed": 42,
+        "temperature": 9.0,
+        "coding_biases": biases,
+        "validation_chromosomes": ["3L"],
+        "validation_prior": prior,
+        "checkpoint": str(CHECKPOINT.resolve()),
+        "checkpoint_sha256": sha256_file(CHECKPOINT),
+        "frame_probabilities": str(base.FRAME_TSV.resolve()),
+        "frame_probabilities_sha256": sha256_file(base.FRAME_TSV),
+        "site_scores": str(base.SITE_SCORES.resolve()),
+        "site_scores_sha256": sha256_file(base.SITE_SCORES),
+        "uniann_commit": uniann_commit,
+        "evaluation": "gffread -M then gffcompare --strict-match -e 0",
+    }, indent=2) + "\n")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,20 @@
+{
+  "probabilities": "/home/bowencccc/cnn_mamba_k7_portable/artifacts/joint_frame_predictions/joint_frame_grid_v1/b010/chrxtrain/w10/chrX_plus/joint_frame_probabilities.npy",
+  "probabilities_sha256": "3533b98694b8d1b9e6207c205f79b675f570fc6a662c51c18212d44e2741bafa",
+  "reference_gtf": "/home/bowencccc/ssm_splice_site/drosophila_annotation.gtf",
+  "input_kind": "probabilities",
+  "dataset": "drosophila",
+  "max_lag": 10000,
+  "chunk_size": 1000000,
+  "chunk_boundary_pair_omission_upper_fraction": 0.01,
+  "best_temperature_comparison": [
+    7,
+    9
+  ],
+  "validation_prior": {
+    "coding_positions": 4350481,
+    "noncoding_positions": 24939108,
+    "coding_fraction": 0.14853335770604362,
+    "log_prior_noncoding_over_coding": 1.746150760073963
+  }
+}

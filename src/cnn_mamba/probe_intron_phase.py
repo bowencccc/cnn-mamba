@@ -16,7 +16,7 @@ from .intron_phase_labels import (
 )
 from .probe_belief import (
     CLEAN_CHROMS, TEST_CHROMS, TRAIN_CHROMS, TUNE_CHROMS,
-    discover_windows, extract_backbone_features, feature_view, git_commit,
+    contiguous_feature_view, discover_windows, extract_backbone_features, git_commit,
     onehot_features, verify_window_manifest,
 )
 from .probe_features import FEATURE_NAMES, sha256_file
@@ -357,9 +357,9 @@ def run_probes(
             ) for split in labels
         }
         for layer in layers:
-            train_x = feature_view(arrays["train"], layer)
+            train_x = contiguous_feature_view(arrays["train"], layer)
             evaluation_x = {
-                split: feature_view(arrays[split], layer)
+                split: contiguous_feature_view(arrays[split], layer)
                 for split in ("tune", "chr22", "chr1")
             }
             weight_decay, evaluated, probabilities = select_and_evaluate(
@@ -394,6 +394,7 @@ def run_probes(
                 f"[probe B] backbone={backbone} layer={layer} "
                 f"wd={weight_decay:g}", flush=True,
             )
+            del train_x, evaluation_x
     for radius in onehot_radii:
         arrays = {
             split: np.load(
