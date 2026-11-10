@@ -390,8 +390,8 @@ def plot_metrics(rows, output):
     evaluation = "chr22"
     layer_order = list(FEATURE_NAMES) + ["concat_all"]
     metrics = [
-        ("frame_accuracy", "CDS frame accuracy"),
-        ("frame_macro_f1", "CDS frame macro-F1"),
+        ("conditional_frame_accuracy_3class", "Conditional CDS frame accuracy"),
+        ("conditional_frame_macro_f1_3class", "Conditional CDS frame macro-F1"),
         ("coding_auprc", "Coding vs noncoding AUPRC"),
         ("balanced_accuracy_4class", "4-class balanced accuracy"),
     ]
@@ -510,6 +510,16 @@ def main():
         "weight_decays": [1e-4, 1e-3, 1e-2], "probe_epochs": args.probe_epochs,
         "feature_window_batch_size": args.feature_window_batch_size,
         "onehot_radii": list(onehot_radii),
+        "metric_definitions": {
+            "joint_4class_cds_accuracy": (
+                "four-state argmax evaluated at valid CDS positions; a noncoding "
+                "prediction is an error"
+            ),
+            "conditional_frame_accuracy_3class": (
+                "argmax over frame logits 0/1/2 only, evaluated at valid CDS "
+                "positions"
+            ),
+        },
         "supervised_chr2_note": "chr2 was in validation, not training, for this checkpoint",
     }
     (results / "config.json").write_text(json.dumps(config, indent=2) + "\n")

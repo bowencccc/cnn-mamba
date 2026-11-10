@@ -82,13 +82,33 @@ def four_state_metrics(probabilities, labels):
         "coding_auprc": float(average_precision_score(coding, 1.0 - probabilities[:, 0])),
     }
     if coding.any():
-        result["frame_accuracy"] = float((predicted[coding] == labels[coding]).mean())
-        result["frame_macro_f1"] = float(
+        # This is deliberately named as a joint-head metric: a noncoding
+        # prediction at a CDS position is counted as an error.
+        result["joint_4class_cds_accuracy"] = float(
+            (predicted[coding] == labels[coding]).mean()
+        )
+        result["joint_4class_cds_macro_f1"] = float(
             f1_score(labels[coding], predicted[coding], labels=[1, 2, 3], average="macro")
         )
+        conditional = probabilities[coding, 1:4].argmax(1)
+        phase = labels[coding] - 1
+        result["conditional_frame_accuracy_3class"] = float(
+            (conditional == phase).mean()
+        )
+        result["conditional_frame_balanced_accuracy_3class"] = float(
+            balanced_accuracy_score(phase, conditional)
+        )
+        result["conditional_frame_macro_f1_3class"] = float(
+            f1_score(phase, conditional, labels=[0, 1, 2], average="macro")
+        )
     else:
-        result["frame_accuracy"] = math.nan
-        result["frame_macro_f1"] = math.nan
+        for name in (
+            "joint_4class_cds_accuracy", "joint_4class_cds_macro_f1",
+            "conditional_frame_accuracy_3class",
+            "conditional_frame_balanced_accuracy_3class",
+            "conditional_frame_macro_f1_3class",
+        ):
+            result[name] = math.nan
     return result
 
 
@@ -106,10 +126,57 @@ def seven_state_metrics(probabilities, labels):
         "ece15": expected_calibration_error(probabilities, labels, 15),
     }
     if intron.any():
-        result["intron_phase_accuracy"] = float((predicted[intron] == labels[intron]).mean())
+        result["joint_7class_intron_accuracy"] = float(
+            (predicted[intron] == labels[intron]).mean()
+        )
+        phase = labels[intron] - 4
+        conditional = probabilities[intron, 4:7].argmax(1)
+        result["conditional_intron_phase_accuracy_3class"] = float(
+            (conditional == phase).mean()
+        )
+        result["conditional_intron_phase_balanced_accuracy_3class"] = float(
+            balanced_accuracy_score(phase, conditional)
+        )
+        result["conditional_intron_phase_macro_f1_3class"] = float(
+            f1_score(phase, conditional, labels=[0, 1, 2], average="macro")
+        )
         counts = np.bincount(labels[intron] - 4, minlength=3)
         result["intron_majority_baseline"] = float(counts.max() / counts.sum())
+        result["intron_random_baseline"] = 1.0 / 3.0
     else:
-        result["intron_phase_accuracy"] = math.nan
-        result["intron_majority_baseline"] = math.nan
+        for name in (
+            "joint_7class_intron_accuracy",
+            "conditional_intron_phase_accuracy_3class",
+            "conditional_intron_phase_balanced_accuracy_3class",
+            "conditional_intron_phase_macro_f1_3class",
+            "intron_majority_baseline", "intron_random_baseline",
+        ):
+            result[name] = math.nan
     return result
+
+
+def three_state_metrics(probabilities, labels):
+    """Metrics for a probe trained and evaluated only on phase 0/1/2."""
+    labels = np.asarray(labels, dtype=np.int64)
+    predicted = probabilities.argmax(1)
+    counts = np.bincount(labels, minlength=3)
+    eps = np.finfo(np.float64).tiny
+    return {
+        "positions": int(len(labels)),
+        "accuracy_3class": float((predicted == labels).mean()),
+        "balanced_accuracy_3class": float(
+            balanced_accuracy_score(labels, predicted)
+        ),
+        "macro_f1_3class": float(
+            f1_score(labels, predicted, labels=[0, 1, 2], average="macro")
+        ),
+        "nll_3class": float(-np.log(np.maximum(
+            probabilities[np.arange(len(labels)), labels], eps,
+        )).mean()),
+        "ece15_3class": expected_calibration_error(probabilities, labels, 15),
+        "majority_baseline": float(counts.max() / counts.sum()),
+        "random_baseline": 1.0 / 3.0,
+        "class0_positions": int(counts[0]),
+        "class1_positions": int(counts[1]),
+        "class2_positions": int(counts[2]),
+    }

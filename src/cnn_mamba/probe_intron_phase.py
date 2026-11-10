@@ -20,7 +20,10 @@ from .probe_belief import (
     onehot_features, verify_window_manifest,
 )
 from .probe_features import FEATURE_NAMES, sha256_file
-from .probe_metrics import fit_linear_probe, predict_probabilities, seven_state_metrics
+from .probe_metrics import (
+    fit_linear_probe, predict_probabilities, seven_state_metrics,
+    three_state_metrics,
+)
 
 
 DISTANCE_BINS = (
@@ -267,6 +270,34 @@ def select_and_evaluate(
     return weight_decay, metrics, probabilities
 
 
+def select_and_evaluate_intron_only(
+    train_x, train_y, evaluation_features, evaluation_labels,
+    input_dim, weight_decays, seed, epochs,
+):
+    """Fit a three-class probe using coding-intron positions only."""
+    candidates = []
+    for weight_decay in weight_decays:
+        probe = fit_linear_probe(
+            train_x, train_y, input_dim, 3, weight_decay,
+            seed=seed, epochs=epochs,
+        )
+        probabilities = predict_probabilities(probe, evaluation_features["tune"])
+        metric = three_state_metrics(probabilities, evaluation_labels["tune"])
+        candidates.append((
+            metric["balanced_accuracy_3class"], weight_decay, probe,
+        ))
+    _, weight_decay, probe = max(candidates, key=lambda item: item[0])
+    probabilities = {
+        split: predict_probabilities(probe, features)
+        for split, features in evaluation_features.items()
+    }
+    metrics = {
+        split: three_state_metrics(value, evaluation_labels[split])
+        for split, value in probabilities.items()
+    }
+    return weight_decay, metrics, probabilities
+
+
 def unique_sampled_introns(files, arrays, mask):
     rows = np.flatnonzero(mask)
     if not len(rows):
@@ -309,12 +340,17 @@ def prepare_distance_specs(selection_dir, labels):
                 "distance_bin": label, "positions": positions,
                 "sampled_unique_introns": unique_sampled_introns(files, arrays, selected),
                 "mask": selected,
+                # Three-class intron-only probabilities follow the order of
+                # full-array rows selected by ``intron``.
+                "intron_only_mask": selected[intron],
             })
     return specs
 
 
 def distance_rows(probabilities, labels, specs, backbone, layer, evaluation):
-    predicted = probabilities.argmax(1)
+    # Conditional diagnostic of the seven-class probe: ignore the four
+    # non-intron logits and compare only phases 0/1/2.
+    predicted = probabilities[:, 4:7].argmax(1)
     rows = []
     for spec in specs:
         selected = spec["mask"]
@@ -324,10 +360,48 @@ def distance_rows(probabilities, labels, specs, backbone, layer, evaluation):
             "evaluation": evaluation, "boundary": spec["boundary"],
             "distance_bin": spec["distance_bin"], "positions": positions,
             "sampled_unique_introns": spec["sampled_unique_introns"],
-            "intron_phase_accuracy": (
-                float((predicted[selected] == labels[selected]).mean())
+            "conditional_intron_phase_accuracy_3class": (
+                float((predicted[selected] == labels[selected] - 4).mean())
                 if positions else float("nan")
             ),
+            "conditional_intron_phase_balanced_accuracy_3class": (
+                float(three_state_metrics(
+                    probabilities[selected, 4:7]
+                    / probabilities[selected, 4:7].sum(1, keepdims=True),
+                    labels[selected] - 4,
+                )["balanced_accuracy_3class"])
+                if positions else float("nan")
+            ),
+        })
+    return rows
+
+
+def intron_only_distance_rows(
+    probabilities, labels, specs, backbone, layer, evaluation,
+):
+    rows = []
+    for spec in specs:
+        selected = spec["intron_only_mask"]
+        positions = int(selected.sum())
+        metrics = (
+            three_state_metrics(probabilities[selected], labels[selected])
+            if positions else None
+        )
+        rows.append({
+            "backbone": backbone, "layer": layer,
+            "evaluation": evaluation, "boundary": spec["boundary"],
+            "distance_bin": spec["distance_bin"], "positions": positions,
+            "sampled_unique_introns": spec["sampled_unique_introns"],
+            "accuracy_3class": (
+                metrics["accuracy_3class"] if metrics else float("nan")
+            ),
+            "balanced_accuracy_3class": (
+                metrics["balanced_accuracy_3class"] if metrics else float("nan")
+            ),
+            "majority_baseline": (
+                metrics["majority_baseline"] if metrics else float("nan")
+            ),
+            "random_baseline": 1.0 / 3.0,
         })
     return rows
 
@@ -348,7 +422,12 @@ def run_probes(
             artifact_root / "selections" / split, labels[split],
         ) for split in ("tune", "chr22", "chr1")
     }
+    intron_masks = {split: labels[split] >= 4 for split in labels}
+    intron_labels = {
+        split: labels[split][intron_masks[split]] - 4 for split in labels
+    }
     metric_rows, binned_rows = [], []
+    intron_only_rows, intron_only_binned_rows = [], []
     for backbone in backbones:
         arrays = {
             split: np.load(
@@ -395,6 +474,58 @@ def run_probes(
                 f"wd={weight_decay:g}", flush=True,
             )
             del train_x, evaluation_x
+
+        # A second, separate probe is fitted only on coding-intron positions.
+        for layer in layers:
+            train_x = contiguous_feature_view(arrays["train"], layer)[
+                intron_masks["train"]
+            ]
+            evaluation_x = {
+                split: contiguous_feature_view(arrays[split], layer)[
+                    intron_masks[split]
+                ] for split in ("tune", "chr22", "chr1")
+            }
+            weight_decay, evaluated, probabilities = (
+                select_and_evaluate_intron_only(
+                    train_x, intron_labels["train"], evaluation_x,
+                    intron_labels, train_x.shape[1], weight_decays, seed, epochs,
+                )
+            )
+            for split, metrics in evaluated.items():
+                intron_only_rows.append({
+                    "backbone": backbone, "layer": layer,
+                    "evaluation": split, "weight_decay": weight_decay,
+                    **metrics,
+                })
+                intron_only_binned_rows.extend(intron_only_distance_rows(
+                    probabilities[split], intron_labels[split],
+                    distance_specs[split], backbone, layer, split,
+                ))
+            print(
+                f"[probe B intron-only] backbone={backbone} layer={layer} "
+                f"wd={weight_decay:g}", flush=True,
+            )
+            if backbone == "mlm":
+                shuffled_labels = np.random.default_rng(seed).permutation(
+                    intron_labels["train"]
+                )
+                shuffled_wd, shuffled_metrics, shuffled_probabilities = (
+                    select_and_evaluate_intron_only(
+                        train_x, shuffled_labels, evaluation_x, intron_labels,
+                        train_x.shape[1], weight_decays, seed, epochs,
+                    )
+                )
+                for split, metrics in shuffled_metrics.items():
+                    intron_only_rows.append({
+                        "backbone": "shuffled", "layer": layer,
+                        "evaluation": split, "weight_decay": shuffled_wd,
+                        **metrics,
+                    })
+                    intron_only_binned_rows.extend(intron_only_distance_rows(
+                        shuffled_probabilities[split], intron_labels[split],
+                        distance_specs[split], "shuffled", layer, split,
+                    ))
+            del train_x, evaluation_x
     for radius in onehot_radii:
         arrays = {
             split: np.load(
@@ -418,15 +549,45 @@ def run_probes(
                 "onehot", layer, split,
             ))
         print(f"[probe B] onehot radius={radius} wd={weight_decay:g}", flush=True)
+        train_mask = intron_masks["train"]
+        evaluation_x = {
+            split: arrays[split][intron_masks[split]]
+            for split in ("tune", "chr22", "chr1")
+        }
+        intron_weight_decay, intron_evaluated, intron_probabilities = (
+            select_and_evaluate_intron_only(
+                arrays["train"][train_mask], intron_labels["train"],
+                evaluation_x, intron_labels, arrays["train"].shape[1],
+                weight_decays, seed, epochs,
+            )
+        )
+        layer = f"onehot_{radius}"
+        for split, metrics in intron_evaluated.items():
+            intron_only_rows.append({
+                "backbone": "onehot", "layer": layer,
+                "evaluation": split, "weight_decay": intron_weight_decay,
+                **metrics,
+            })
+            intron_only_binned_rows.extend(intron_only_distance_rows(
+                intron_probabilities[split], intron_labels[split],
+                distance_specs[split], "onehot", layer, split,
+            ))
+        print(
+            f"[probe B intron-only] onehot radius={radius} "
+            f"wd={intron_weight_decay:g}", flush=True,
+        )
     for filename, rows in (
-        ("metrics.tsv", metric_rows), ("distance_binned_metrics.tsv", binned_rows)
+        ("metrics.tsv", metric_rows),
+        ("distance_binned_metrics.tsv", binned_rows),
+        ("intron_only_metrics.tsv", intron_only_rows),
+        ("intron_only_distance_binned_metrics.tsv", intron_only_binned_rows),
     ):
         with (result_root / filename).open("w", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=list(rows[0]), delimiter="\t")
             writer.writeheader()
             writer.writerows(rows)
-    plot_metrics(metric_rows, binned_rows, result_root)
-    return metric_rows, binned_rows
+    plot_metrics(intron_only_rows, intron_only_binned_rows, result_root)
+    return metric_rows, binned_rows, intron_only_rows, intron_only_binned_rows
 
 
 def plot_metrics(metrics, binned, output):
@@ -440,22 +601,22 @@ def plot_metrics(metrics, binned, output):
         if selected:
             axis.plot(
                 range(len(layer_order)),
-                [selected[layer]["intron_phase_accuracy"] for layer in layer_order],
+                [selected[layer]["balanced_accuracy_3class"] for layer in layer_order],
                 marker="o", linewidth=1.5, label=backbone,
             )
-    majority = next(
-        row["intron_majority_baseline"] for row in metrics
-        if row["evaluation"] == "chr22" and row["backbone"] == "mlm"
+    random_baseline = 1.0 / 3.0
+    axis.axhline(
+        random_baseline, color="black", linestyle=":", label="random (1/3)",
     )
-    axis.axhline(majority, color="black", linestyle=":", label="majority")
     for row in metrics:
         if row["evaluation"] == "chr22" and row["backbone"] == "onehot":
             axis.axhline(
-                row["intron_phase_accuracy"], linestyle="--", linewidth=1,
+                row["balanced_accuracy_3class"], linestyle="--", linewidth=1,
                 label=row["layer"],
             )
     axis.set(
-        xlabel="Frozen representation", ylabel="Coding-intron phase accuracy",
+        xlabel="Frozen representation",
+        ylabel="Intron-only phase balanced accuracy",
         ylim=(0, 1.02),
     )
     axis.set_xticks(range(len(layer_order)), layer_order, rotation=50, ha="right")
@@ -479,14 +640,16 @@ def plot_metrics(metrics, binned, output):
             }
             axis.plot(
                 range(len(bin_names)),
-                [selected[name]["intron_phase_accuracy"] for name in bin_names],
+                [selected[name]["balanced_accuracy_3class"] for name in bin_names],
                 marker="o", label=backbone,
             )
-        axis.axhline(majority, color="black", linestyle=":", label="majority")
+        axis.axhline(
+            random_baseline, color="black", linestyle=":", label="random (1/3)",
+        )
         axis.set_title(f"Distance from {boundary}")
         axis.set_xticks(range(len(bin_names)), bin_names, rotation=35, ha="right")
         axis.grid(alpha=0.25)
-    axes[0].set_ylabel("Coding-intron phase accuracy")
+    axes[0].set_ylabel("Intron-only phase balanced accuracy")
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center", ncol=4, frameon=False)
     fig.tight_layout(rect=(0, 0.12, 1, 1))
@@ -609,6 +772,18 @@ def main():
         "feature_window_batch_size": args.feature_window_batch_size,
         "onehot_radii": list(onehot_radii),
         "label_validity": "CDS states require reference_phase_mask; conflicts and CDS/intron overlaps dropped",
+        "probe_definitions": {
+            "seven_state_conditional_diagnostic": (
+                "seven-state probe trained on exon/noncoding/intron states; at "
+                "coding-intron positions argmax uses only logits for phases 0/1/2"
+            ),
+            "intron_only_three_class": (
+                "separate probe trained only on coding-intron positions with "
+                "phase labels 0/1/2; identical backbones, layers, chromosome "
+                "splits, weight-decay grid, and tuning chromosomes"
+            ),
+            "distance_analysis": "intron-only three-class probe",
+        },
         "supervised_chr2_note": "actual checkpoint training used 195072 windows and chr2 was validation, not training",
     }
     (results / "config.json").write_text(json.dumps(config, indent=2) + "\n")

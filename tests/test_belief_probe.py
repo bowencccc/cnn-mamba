@@ -13,10 +13,48 @@ from cnn_mamba.probe_features import (
     BackboneFeatureHooks, FEATURE_NAMES, assert_backbone_unchanged,
     backbone_parameter_snapshot,
 )
-from cnn_mamba.probe_metrics import fit_linear_probe
+from cnn_mamba.probe_metrics import (
+    fit_linear_probe, four_state_metrics, seven_state_metrics,
+)
+from cnn_mamba.probe_overcounting import e_fold_lag, segmentwise_autocorrelation
 
 
 class BeliefProbeTests(unittest.TestCase):
+    def test_conditional_phase_metrics_ignore_background_logit(self):
+        four_probabilities = np.asarray([
+            [0.90, 0.08, 0.01, 0.01],
+            [0.90, 0.01, 0.08, 0.01],
+            [0.90, 0.01, 0.01, 0.08],
+        ])
+        four = four_state_metrics(four_probabilities, np.asarray([1, 2, 3]))
+        self.assertEqual(four["joint_4class_cds_accuracy"], 0.0)
+        self.assertEqual(four["conditional_frame_accuracy_3class"], 1.0)
+
+        seven_probabilities = np.asarray([
+            [0.90, 0, 0, 0, 0.08, 0.01, 0.01],
+            [0.90, 0, 0, 0, 0.01, 0.08, 0.01],
+            [0.90, 0, 0, 0, 0.01, 0.01, 0.08],
+        ])
+        seven = seven_state_metrics(seven_probabilities, np.asarray([4, 5, 6]))
+        self.assertEqual(seven["joint_7class_intron_accuracy"], 0.0)
+        self.assertEqual(
+            seven["conditional_intron_phase_accuracy_3class"], 1.0,
+        )
+
+    def test_segmentwise_autocorrelation_does_not_cross_boundaries(self):
+        # The two segments have different means. Per-segment centering removes
+        # that difference, and lag two has no within-segment pairs.
+        logits = np.asarray([
+            [2.0, 0, 0, 0], [2.0, 0, 0, 0],
+            [9.0, 0, 0, 0], [9.0, 0, 0, 0],
+        ])
+        correlation, pairs = segmentwise_autocorrelation(
+            logits, [(0, 2), (2, 4)], 0, "logits", 3,
+        )
+        np.testing.assert_array_equal(pairs, [4, 2, 0, 0])
+        np.testing.assert_allclose(correlation, 0.0)
+        self.assertEqual(e_fold_lag(np.ones(4), pairs=pairs), (1, True))
+
     @unittest.skipUnless(torch.cuda.is_available(), "Mamba3 feature hooks require CUDA")
     def test_feature_hooks_shapes_and_frozen_probe_epoch(self):
         model = SpliceMamba(

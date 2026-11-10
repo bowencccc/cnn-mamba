@@ -25,41 +25,27 @@ def log_odds_chunk(source, start, end, frame, input_kind):
     )
 
 
-def masked_autocorrelation(
-    source, mask, frame, input_kind, max_lag, chunk_size=1_000_000,
-):
-    """Chunked autocorrelation using pairs that remain inside one region.
+def segmentwise_autocorrelation(source, segments, frame, input_kind, max_lag):
+    """Aggregate autocovariance after centering every segment separately.
 
-    Chunking bounds memory for Human chr1.  Pairs crossing a chunk boundary are
-    omitted (at most ``max_lag/chunk_size`` of pairs at a given short lag), and
-    this approximation is recorded in the run config.
+    No pair is allowed to cross a CDS/noncoding segment boundary.  This avoids
+    both concatenation artifacts and correlation caused only by different
+    segment-level means.
     """
-    total = 0.0
-    count = 0
-    for start in range(0, len(mask), chunk_size):
-        end = min(start + chunk_size, len(mask))
-        local_mask = mask[start:end]
-        values = log_odds_chunk(source, start, end, frame, input_kind)
-        total += float(values[local_mask].sum())
-        count += int(local_mask.sum())
-    mean = total / max(count, 1)
     numerator = np.zeros(max_lag + 1, dtype=np.float64)
     pairs = np.zeros(max_lag + 1, dtype=np.float64)
-    for start in range(0, len(mask), chunk_size):
-        end = min(start + chunk_size, len(mask))
-        local_mask = mask[start:end].astype(np.float64)
+    for start, end in segments:
+        if end <= start:
+            continue
         values = log_odds_chunk(source, start, end, frame, input_kind)
-        centered = (values - mean) * local_mask
+        centered = values - values.mean()
         fft_size = 1 << (2 * len(values) - 1).bit_length()
         fx = np.fft.rfft(centered, fft_size)
-        fm = np.fft.rfft(local_mask, fft_size)
         usable = min(max_lag + 1, len(values))
         numerator[:usable] += np.fft.irfft(
             fx * fx.conj(), fft_size,
         )[:usable]
-        pairs[:usable] += np.fft.irfft(
-            fm * fm.conj(), fft_size,
-        )[:usable]
+        pairs[:usable] += np.arange(len(values), len(values) - usable, -1)
     covariance = numerator / np.maximum(pairs, 1.0)
     return covariance / max(covariance[0], np.finfo(float).eps), pairs
 
@@ -73,17 +59,28 @@ def integrated_positive_time(correlation):
     return float(1.0 + 2.0 * np.sum(positive))
 
 
-def e_fold_lag(correlation, stride=1):
+def e_fold_lag(correlation, stride=1, pairs=None):
+    """Return the first 1/e crossing and whether it was right-censored."""
     threshold = np.exp(-1)
-    for index, value in enumerate(correlation[1:], 1):
+    if pairs is None:
+        valid_indices = range(1, len(correlation))
+    else:
+        pairs = np.asarray(pairs)
+        if len(pairs) != len(correlation):
+            raise ValueError("pair counts and correlation must have equal length")
+        valid_indices = np.flatnonzero(pairs[1:] > 0) + 1
+    last_valid = 0
+    for index in valid_indices:
+        last_valid = int(index)
+        value = correlation[index]
         if value <= threshold:
-            return int(index * stride)
-    return int((len(correlation) - 1) * stride)
+            return int(index * stride), False
+    return int(last_valid * stride), True
 
 
-def chromosome_cds_mask(gtf, chrom, length, strand="+"):
-    """Union CDS mask from a GTF/GFF without species-specific name filters."""
-    mask = np.zeros(length, dtype=np.bool_)
+def chromosome_segments(gtf, chrom, length, strand="+"):
+    """Return unique CDS features and contiguous complement segments."""
+    cds = set()
     with open_text(gtf) as handle:
         for line in handle:
             if line.startswith("#") or not line.strip():
@@ -96,8 +93,40 @@ def chromosome_cds_mask(gtf, chrom, length, strand="+"):
                 continue
             start, end = int(fields[3]) - 1, int(fields[4])
             if start < length:
-                mask[max(0, start):min(length, end)] = True
-    return mask
+                cds.add((max(0, start), min(length, end)))
+    cds = sorted(cds)
+    merged = []
+    for start, end in cds:
+        if merged and start <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    noncoding = []
+    previous = 0
+    for start, end in merged:
+        if start > previous:
+            noncoding.append((previous, start))
+        previous = max(previous, end)
+    if previous < length:
+        noncoding.append((previous, length))
+    return cds, noncoding
+
+
+def length_summary(dataset, region, segments):
+    lengths = np.asarray([end - start for start, end in segments], dtype=np.int64)
+    if not len(lengths):
+        raise RuntimeError(f"no {region} segments for {dataset}")
+    return {
+        "dataset": dataset, "region": region, "segments": int(len(lengths)),
+        "total_segment_nt": int(lengths.sum()), "minimum_nt": int(lengths.min()),
+        "p25_nt": float(np.percentile(lengths, 25)),
+        "median_nt": float(np.median(lengths)),
+        "mean_nt": float(lengths.mean()),
+        "p75_nt": float(np.percentile(lengths, 75)),
+        "p90_nt": float(np.percentile(lengths, 90)),
+        "p95_nt": float(np.percentile(lengths, 95)),
+        "maximum_nt": int(lengths.max()),
+    }
 
 
 def run_autocorrelation(
@@ -107,45 +136,72 @@ def run_autocorrelation(
     source = np.load(probability_path, mmap_mode="r")
     if source.ndim != 2 or source.shape[1] != 4:
         raise ValueError(f"expected [length,4], got {source.shape}")
-    coding = chromosome_cds_mask(reference_gtf, chrom, len(source), "+")
+    cds_segments, noncoding_segments = chromosome_segments(
+        reference_gtf, chrom, len(source), "+",
+    )
+    region_segments = {"CDS": cds_segments, "noncoding": noncoding_segments}
+    length_rows = [
+        length_summary(dataset, region, segments)
+        for region, segments in region_segments.items()
+    ]
     rows, curves, frame_curves = [], {}, {}
-    for region, mask in (("CDS", coding), ("noncoding", ~coding)):
+    for region, segments in region_segments.items():
         per_frame = []
         per_frame_codon_iat = []
         for frame in range(3):
-            corr, pairs = masked_autocorrelation(
-                source, mask, frame, input_kind, max_lag, chunk_size,
+            corr, pairs = segmentwise_autocorrelation(
+                source, segments, frame, input_kind, max_lag,
             )
             per_frame.append(corr)
             frame_curves[(region, frame)] = corr
             codon_correlation = corr[::3]
             codon_iat = integrated_positive_time(codon_correlation)
             per_frame_codon_iat.append(codon_iat)
+            codon_e_fold, codon_e_fold_censored = e_fold_lag(
+                codon_correlation, stride=3, pairs=pairs[::3],
+            )
+            raw_e_fold, raw_e_fold_censored = e_fold_lag(corr, pairs=pairs)
             rows.append({
                 "dataset": dataset, "region": region, "frame": frame,
                 "integrated_positive_autocorrelation_time": integrated_positive_time(corr),
                 "codon_stride_iat_codons": codon_iat,
                 "codon_stride_iat_nt": 3.0 * codon_iat,
-                "codon_stride_e_fold_nt": e_fold_lag(codon_correlation, stride=3),
-                "lag1": float(corr[1]), "valid_positions": int(mask.sum()),
-                "minimum_pairs_at_reported_lags": int(pairs.min()),
+                "codon_stride_e_fold_nt": codon_e_fold,
+                "codon_stride_e_fold_right_censored": int(codon_e_fold_censored),
+                "raw_e_fold_nt": raw_e_fold,
+                "raw_e_fold_right_censored": int(raw_e_fold_censored),
+                "lag1": float(corr[1]),
+                "segments": len(segments),
+                "segment_nt_with_multiplicity": int(sum(e - s for s, e in segments)),
+                "pairs_at_max_lag": int(pairs[-1]),
             })
         curves[region] = np.mean(per_frame, axis=0)
+        codon_e_folds = [
+            e_fold_lag(corr[::3], stride=3, pairs=pairs[::3])
+            for corr in per_frame
+        ]
+        raw_e_folds = [e_fold_lag(corr, pairs=pairs) for corr in per_frame]
         rows.append({
             "dataset": dataset, "region": region, "frame": "mean",
             "integrated_positive_autocorrelation_time": integrated_positive_time(curves[region]),
             "codon_stride_iat_codons": float(np.mean(per_frame_codon_iat)),
             "codon_stride_iat_nt": float(3.0 * np.mean(per_frame_codon_iat)),
-            "codon_stride_e_fold_nt": float(np.mean([
-                e_fold_lag(corr[::3], stride=3) for corr in per_frame
-            ])),
-            "lag1": float(curves[region][1]), "valid_positions": int(mask.sum()),
-            "minimum_pairs_at_reported_lags": int(pairs.min()),
+            "codon_stride_e_fold_nt": float(np.mean([x[0] for x in codon_e_folds])),
+            "codon_stride_e_fold_right_censored": int(any(x[1] for x in codon_e_folds)),
+            "raw_e_fold_nt": float(np.mean([x[0] for x in raw_e_folds])),
+            "raw_e_fold_right_censored": int(any(x[1] for x in raw_e_folds)),
+            "lag1": float(curves[region][1]),
+            "segments": len(segments),
+            "segment_nt_with_multiplicity": int(sum(e - s for s, e in segments)),
+            "pairs_at_max_lag": int(pairs[-1]),
         })
     output.mkdir(parents=True, exist_ok=True)
     with (output / "autocorrelation_summary.tsv").open("w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]), delimiter="\t")
         writer.writeheader(); writer.writerows(rows)
+    with (output / "region_length_distribution.tsv").open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(length_rows[0]), delimiter="\t")
+        writer.writeheader(); writer.writerows(length_rows)
     fig, axis = plt.subplots(figsize=(6, 4.5))
     lag = np.arange(max_lag + 1)
     colors = {"CDS": "C0", "noncoding": "C1"}
@@ -164,40 +220,12 @@ def run_autocorrelation(
     fig.savefig(output / "autocorrelation.png", dpi=220)
     fig.savefig(output / "autocorrelation.pdf")
     plt.close(fig)
-    mean_lengths = {
-        row["region"]: row["codon_stride_iat_codons"]
-        for row in rows if row["frame"] == "mean"
-    }
-    comparison = []
-    for region, length in mean_lengths.items():
-        for temperature in (7.0, 9.0):
-            comparison.append({
-                "dataset": dataset, "region": region,
-                "decorrelation_length_codons": length,
-                "reference_temperature": temperature,
-                "length_over_temperature": length / temperature,
-            })
-    with (output / "decorrelation_length_vs_temperature.tsv").open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(comparison[0]), delimiter="\t")
-        writer.writeheader(); writer.writerows(comparison)
-    fig, axis = plt.subplots(figsize=(5.5, 4.2))
-    names = list(mean_lengths)
-    axis.bar(names, [mean_lengths[name] for name in names], label="codon-stride IAT")
-    axis.axhline(7, color="C2", linestyle="--", label="T=7")
-    axis.axhline(9, color="C3", linestyle=":", label="T=9")
-    axis.set(ylabel="Effective correlated codons / temperature", title=dataset)
-    axis.set_yscale("log")
-    axis.legend(frameon=False)
-    axis.grid(axis="y", alpha=0.25)
-    fig.tight_layout()
-    fig.savefig(output / "decorrelation_length_vs_temperature.png", dpi=220)
-    fig.savefig(output / "decorrelation_length_vs_temperature.pdf")
-    plt.close(fig)
     return rows
 
 
 def validation_coding_prior(windows_root, chromosomes=("3L",)):
-    coding = noncoding = 0
+    phase_counts = np.zeros(3, dtype=np.int64)
+    noncoding = 0
     wanted = set(chromosomes)
     for split in ("train", "val", "test"):
         for path in (Path(windows_root) / split).glob("*.npz"):
@@ -205,13 +233,56 @@ def validation_coding_prior(windows_root, chromosomes=("3L",)):
                 continue
             with np.load(path) as data:
                 cds = data["reference_cds_labels"][2500:7500].astype(bool)
-                valid = (~cds) | data["reference_phase_mask"][2500:7500].astype(bool)
-            coding += int((cds & valid).sum())
-            noncoding += int((~cds & valid).sum())
+                phase_valid = data["reference_phase_mask"][2500:7500].astype(bool)
+                phase = data["reference_phase_labels"][2500:7500]
+            coding = cds & phase_valid
+            phase_counts += np.bincount(phase[coding], minlength=3)
+            noncoding += int((~cds).sum())
+    coding = int(phase_counts.sum())
+    total = coding + noncoding
     return {
         "coding_positions": coding, "noncoding_positions": noncoding,
-        "coding_fraction": coding / (coding + noncoding),
+        "phase_positions": phase_counts.tolist(),
+        "phase_fraction_within_coding": (phase_counts / coding).tolist(),
+        "empirical_class_prior": [
+            noncoding / total, *(phase_counts / total).tolist(),
+        ],
+        "coding_fraction": coding / total,
         "log_prior_noncoding_over_coding": float(np.log(noncoding / coding)),
+    }
+
+
+def group_balanced_prior_correction(
+    windows_root, training_chromosomes, target_chromosomes,
+    noncoding_weight=0.1, temperature=9.0,
+):
+    """Per-frame logit correction after temperature scaling.
+
+    ``group_balanced_joint_frame_loss`` gives total coding risk mass 1 and
+    noncoding risk mass ``noncoding_weight``.  Within coding, the phase prior
+    remains empirical.  The converter applies bias after dividing logits by T,
+    so the target-vs-training prior log-ratio is divided by T as well.
+    """
+    train = validation_coding_prior(windows_root, training_chromosomes)
+    target = validation_coding_prior(windows_root, target_chromosomes)
+    q = np.asarray(train["phase_fraction_within_coding"], dtype=np.float64)
+    implicit = np.concatenate((
+        [noncoding_weight / (1.0 + noncoding_weight)],
+        q / (1.0 + noncoding_weight),
+    ))
+    target_prior = np.asarray(target["empirical_class_prior"], dtype=np.float64)
+    correction = np.log(target_prior / implicit)
+    per_frame_bias = (correction[1:] - correction[0]) / temperature
+    return {
+        "noncoding_weight": noncoding_weight,
+        "temperature": temperature,
+        "training_chromosomes": list(training_chromosomes),
+        "target_chromosomes": list(target_chromosomes),
+        "training_observed": train,
+        "implicit_training_prior": implicit.tolist(),
+        "target_observed": target,
+        "unscaled_class_log_correction": correction.tolist(),
+        "per_frame_bias_after_temperature": per_frame_bias.tolist(),
     }
 
 
@@ -238,9 +309,15 @@ def main():
         "probabilities_sha256": sha256_file(args.probabilities),
         "reference_gtf": str(args.reference_gtf.resolve()),
         "input_kind": args.input_kind, "dataset": args.dataset,
-        "max_lag": args.max_lag, "chunk_size": args.chunk_size,
-        "chunk_boundary_pair_omission_upper_fraction": args.max_lag / args.chunk_size,
-        "best_temperature_comparison": [7, 9],
+        "max_lag": args.max_lag,
+        "autocorrelation": (
+            "within each unique GTF CDS feature or contiguous noncoding "
+            "complement segment; per-segment mean removed; no cross-segment pairs"
+        ),
+        "e_fold_right_censoring": (
+            "reported explicitly when correlation never crossed 1/e before "
+            "the last lag having at least one within-segment pair"
+        ),
         "git_commit": subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=Path(__file__).resolve().parents[2],
             text=True,

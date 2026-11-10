@@ -26,6 +26,13 @@ if ($method eq 'joint_softmax' || $method eq 'emission_affine') {
         unless defined $scale_parameter && $scale_parameter > 0;
     $coding_bias = 0 unless defined $coding_bias;
 }
+my @coding_bias = defined $coding_bias ? split(/,/, $coding_bias) : (0);
+if ($method eq 'joint_softmax') {
+    die "coding bias must be one scalar or three comma-separated frame biases\n"
+        unless @coding_bias == 1 || @coding_bias == 3;
+    @coding_bias = ($coding_bias[0], $coding_bias[0], $coding_bias[0])
+        if @coding_bias == 1;
+}
 
 open my $fasta_fh, '<', $fasta or die "cannot open $fasta: $!\n";
 my $sequence = '';
@@ -83,7 +90,7 @@ while (my $line = <STDIN>) {
             ($_ + 1e-30) ** (1 / $scale_parameter)
         } @probability;
         for my $index (0 .. 2) {
-            $powered[$index] *= exp($coding_bias);
+            $powered[$index] *= exp($coding_bias[$index]);
         }
         my $total = 0;
         $total += $_ for @powered;
