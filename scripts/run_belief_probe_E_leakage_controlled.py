@@ -40,6 +40,7 @@ CHROMS = {
     "3L": {"accession": "NT_037436.4"},
     "X": {"accession": "NC_004354.4"},
 }
+SCORE_BATCH_SIZE = int(os.environ.get("BELIEF_PROBE_E_SCORE_BATCH_SIZE", "8"))
 
 
 def parse_attributes(text):
@@ -171,7 +172,7 @@ def prepare_scored_chromosome(name):
             sys.executable, "-m", "cnn_mamba.score_chromosome",
             "--checkpoint", CHECKPOINT, "--output-dir", score_dir,
             "--fasta", FULL_FASTA, "--chrom", accession,
-            "--display-chrom", f"chr{name}", "--batch-size", 8,
+            "--display-chrom", f"chr{name}", "--batch-size", SCORE_BATCH_SIZE,
         ], root / "score_sites.log")
     score_tsv = root / f"chr{name}_plus_scores.tsv"
     if not Path(str(score_tsv) + ".complete.json").is_file():
@@ -186,7 +187,8 @@ def prepare_scored_chromosome(name):
             sys.executable, "-m", "cnn_mamba.score_joint_frame_chromosome",
             "--checkpoint", CHECKPOINT, "--fasta", FULL_FASTA,
             "--chrom", accession, "--display-chrom", f"chr{name}",
-            "--output-dir", frame_dir, "--batch-size", 8, "--save-logits",
+            "--output-dir", frame_dir, "--batch-size", SCORE_BATCH_SIZE,
+            "--save-logits",
         ], root / "score_frame.log")
     frame_tsv = frame_dir / f"chr{name}_plus_joint_frame_probabilities.tsv"
     if not Path(str(frame_tsv) + ".complete.json").is_file():
@@ -355,6 +357,7 @@ def main():
         "test_chromosome": "X",
         "temperatures": list(temperatures),
         "shared_bias_grid": list(scalar_biases),
+        "chromosome_scoring_batch_size": SCORE_BATCH_SIZE,
         "uniann_commit": subprocess.check_output(
             ["git", "-C", str(UNIANN), "rev-parse", "HEAD"], text=True,
         ).strip(),
