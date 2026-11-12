@@ -1,0 +1,7 @@
+model	method	sensitivity	precision	F1
+Random initialization	UniAnn	80.4	79.6	79.998
+Random initialization	EviAnn+UniAnn	91.2	89.5	90.3420033
+Human MLM pretraining	UniAnn	77.5	79.4	78.4384959
+Human MLM pretraining	EviAnn+UniAnn	90.4	89.6	89.9982222
+Human supervised pretraining	UniAnn	78.3	76	77.1328581
+Human supervised pretraining	EviAnn+UniAnn	91.3	89	90.13533

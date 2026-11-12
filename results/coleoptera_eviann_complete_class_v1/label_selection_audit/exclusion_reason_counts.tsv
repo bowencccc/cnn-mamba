@@ -1,0 +1,4 @@
+exclusion_reason	loci
+no_complete_transcript	1737
+complete_present_but_class_not_equal_or_k	950
+complete_equal_or_k_missing_CDS	3

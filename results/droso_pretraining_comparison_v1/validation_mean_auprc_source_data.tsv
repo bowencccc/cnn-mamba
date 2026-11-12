@@ -1,0 +1,53 @@
+model	epoch	validation_mean_auprc
+Random initialization	1	0.792394251
+Random initialization	2	0.820685853
+Random initialization	3	0.851626056
+Random initialization	4	0.860078737
+Random initialization	5	0.869797566
+Random initialization	6	0.880492943
+Random initialization	7	0.879793477
+Random initialization	8	0.877305847
+Random initialization	9	0.895357476
+Random initialization	10	0.897418601
+Random initialization	11	0.899456926
+Random initialization	12	0.901605838
+Random initialization	13	0.906290851
+Random initialization	14	0.910227309
+Random initialization	15	0.916816408
+Random initialization	16	0.910338598
+Random initialization	17	0.917842604
+Random initialization	18	0.916160609
+Random initialization	19	0.913409808
+Random initialization	20	0.918007865
+Random initialization	21	0.915742307
+Random initialization	22	0.917802992
+Random initialization	23	0.919411013
+Random initialization	24	0.911265365
+Random initialization	25	0.913553304
+Random initialization	26	0.913540568
+Human MLM pretraining	1	0.837363279
+Human MLM pretraining	2	0.887706472
+Human MLM pretraining	3	0.901085173
+Human MLM pretraining	4	0.902498793
+Human MLM pretraining	5	0.910011931
+Human MLM pretraining	6	0.912677539
+Human MLM pretraining	7	0.905361835
+Human MLM pretraining	8	0.916743902
+Human MLM pretraining	9	0.910722156
+Human MLM pretraining	10	0.90850204
+Human MLM pretraining	11	0.908676557
+Human supervised pretraining	1	0.867849908
+Human supervised pretraining	2	0.894570183
+Human supervised pretraining	3	0.885563797
+Human supervised pretraining	4	0.884880384
+Human supervised pretraining	5	0.902815694
+Human supervised pretraining	6	0.906130551
+Human supervised pretraining	7	0.903353908
+Human supervised pretraining	8	0.908135118
+Human supervised pretraining	9	0.908777447
+Human supervised pretraining	10	0.910412831
+Human supervised pretraining	11	0.908374873
+Human supervised pretraining	12	0.916143484
+Human supervised pretraining	13	0.914225058
+Human supervised pretraining	14	0.913709971
+Human supervised pretraining	15	0.915986473

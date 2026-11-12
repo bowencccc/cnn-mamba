@@ -1,0 +1,34 @@
+{
+  "design": "same RefSeq transcripts and starts; only intron removal differs",
+  "scope": "diagnostic oracle using RefSeq exon chains, not a deployable EviAnn result",
+  "metrics": [
+    {
+      "mode": "genomic",
+      "transcripts": 50,
+      "candidates": 9559,
+      "candidate_positive_rate": 0.005230672664504655,
+      "candidate_auprc": 0.18693900704901023,
+      "top1_accuracy": 0.24,
+      "mean_reciprocal_rank": 0.37459967227846946,
+      "median_true_rank": 4.5,
+      "best_f1": 0.2758620689655172,
+      "best_precision": 0.24242424242424243,
+      "best_recall": 0.32,
+      "best_threshold": 0.833256
+    },
+    {
+      "mode": "spliced",
+      "transcripts": 50,
+      "candidates": 2249,
+      "candidate_positive_rate": 0.022232103156958647,
+      "candidate_auprc": 0.9804888846762083,
+      "top1_accuracy": 0.96,
+      "mean_reciprocal_rank": 0.9766666666666666,
+      "median_true_rank": 1.0,
+      "best_f1": 0.9306930693069307,
+      "best_precision": 0.9215686274509803,
+      "best_recall": 0.94,
+      "best_threshold": 0.846251
+    }
+  ]
+}

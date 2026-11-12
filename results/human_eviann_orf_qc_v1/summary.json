@@ -1,0 +1,56 @@
+{
+  "transcripts": 114982,
+  "evidence": {
+    "complete": 66080,
+    "protein_only": 47961,
+    "transcript_only": 941
+  },
+  "low_quality_protein": 2901,
+  "tiers": {
+    "uncertain": 4384,
+    "medium": 46913,
+    "high": 63685
+  },
+  "checks_pass_nonexclusive_all": {
+    "sequence_complete": 114609,
+    "start_atg": 114609,
+    "stop_valid": 114609,
+    "length_multiple_of_three": 114609,
+    "no_internal_inframe_stop": 114982,
+    "phase_consistent": 114609,
+    "splice_recognized": 114770,
+    "orf_valid": 114397
+  },
+  "checks_pass_nonexclusive_metadata_eligible": {
+    "sequence_complete": 110803,
+    "start_atg": 110803,
+    "stop_valid": 110803,
+    "length_multiple_of_three": 110803,
+    "no_internal_inframe_stop": 111140,
+    "phase_consistent": 110803,
+    "splice_recognized": 110935,
+    "orf_valid": 110598
+  },
+  "sequential_funnel_metadata_eligible": {
+    "metadata_eligible": 111140,
+    "sequence_complete": 110803,
+    "start_atg": 110803,
+    "stop_valid": 110803,
+    "length_multiple_of_three": 110803,
+    "no_internal_inframe_stop": 110803,
+    "phase_consistent": 110803,
+    "splice_recognized": 110598
+  },
+  "recognized_coding_introns": {
+    "GT-AG": 1309389,
+    "GC-AG": 8533,
+    "AT-AC": 322,
+    "other": 213
+  },
+  "accepted_sites_with_multiple_isoform_support": {
+    "start_transcripts": 88570,
+    "stop_transcripts": 90383,
+    "unique_start_sites": 18856,
+    "unique_stop_sites": 17214
+  }
+}

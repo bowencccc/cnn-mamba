@@ -1,0 +1,69 @@
+{
+  "selection_dataset": "Drosophila chromosome 3L plus strand",
+  "selection_objective": "EviAnn+UniAnn strict-locus F1",
+  "selected": {
+    "condition": "t7_scalar_p0p4500_p0p4500_p0p4500",
+    "temperature": 7.0,
+    "bias_kind": "shared_grid",
+    "biases": [
+      0.45,
+      0.45,
+      0.45
+    ]
+  },
+  "selected_tune_metrics": {
+    "condition": "t7_scalar_p0p4500_p0p4500_p0p4500",
+    "temperature": 7.0,
+    "bias_kind": "shared_grid",
+    "biases": "0.45,0.45,0.45",
+    "split": "tune_3L",
+    "chromosome": "3L",
+    "factor": 1000,
+    "method": "EviAnn+UniAnn",
+    "sn": 88.4,
+    "pr": 88.8,
+    "f1": 88.59954853273139,
+    "predicted_loci": 1322,
+    "matched_loci": 1194,
+    "missed_loci": 46,
+    "novel_loci": 50
+  },
+  "test_dataset": "Drosophila chromosome X plus strand",
+  "test_metrics": [
+    {
+      "condition": "t7_scalar_p0p4500_p0p4500_p0p4500",
+      "temperature": 7.0,
+      "bias_kind": "shared_grid",
+      "biases": "0.45,0.45,0.45",
+      "split": "test_chrX",
+      "chromosome": "X",
+      "factor": 1000,
+      "method": "UniAnn",
+      "sn": 79.4,
+      "pr": 80.6,
+      "f1": 79.9955,
+      "predicted_loci": 1055,
+      "matched_loci": 850,
+      "missed_loci": 46,
+      "novel_loci": 22
+    },
+    {
+      "condition": "t7_scalar_p0p4500_p0p4500_p0p4500",
+      "temperature": 7.0,
+      "bias_kind": "shared_grid",
+      "biases": "0.45,0.45,0.45",
+      "split": "test_chrX",
+      "chromosome": "X",
+      "factor": 1000,
+      "method": "EviAnn+UniAnn",
+      "sn": 90.8,
+      "pr": 90.0,
+      "f1": 90.39823008849557,
+      "predicted_loci": 1071,
+      "matched_loci": 972,
+      "missed_loci": 27,
+      "novel_loci": 30
+    }
+  ],
+  "chrX_used_for_selection": false
+}

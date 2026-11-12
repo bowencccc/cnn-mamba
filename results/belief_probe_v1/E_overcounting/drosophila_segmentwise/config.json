@@ -1,0 +1,16 @@
+{
+  "probabilities": "/home/bowencccc/cnn_mamba_k7_portable/artifacts/joint_frame_predictions/joint_frame_grid_v1/b010/chrxtrain/w10/chrX_plus/joint_frame_probabilities.npy",
+  "probabilities_sha256": "3533b98694b8d1b9e6207c205f79b675f570fc6a662c51c18212d44e2741bafa",
+  "reference_gtf": "/home/bowencccc/ssm_splice_site/drosophila_annotation.gtf",
+  "input_kind": "probabilities",
+  "dataset": "drosophila",
+  "max_lag": 10000,
+  "autocorrelation": "within each unique GTF CDS feature or contiguous noncoding complement segment; per-segment mean removed; no cross-segment pairs",
+  "e_fold_right_censoring": "reported explicitly when correlation never crossed 1/e before the last lag having at least one within-segment pair",
+  "git_commit": "633307bd4dcdd89f4cabfb31fa4904eb203b7578",
+  "seed": 42,
+  "sampled_positions": 23542271,
+  "representation": "four-state joint_frame_head output",
+  "checkpoint": "/home/bowencccc/cnn_mamba_k7_portable/runs/joint_frame_grid_v1/b010/chrxtrain/w10/best_model.pt",
+  "checkpoint_sha256": "97c13b17e80b14ef193224b2dcbebd4b04ed2feb13c42b4b9ada27b907c9419a"
+}

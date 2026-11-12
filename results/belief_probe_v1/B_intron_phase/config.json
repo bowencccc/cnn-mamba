@@ -1,6 +1,6 @@
 {
   "schema": "cnn_mamba_belief_probe_B_v1",
-  "git_commit": "5932abcaddcb26c4e3291ef32ba845562062f7a6",
+  "git_commit": "6fb562b9801cf4d8e4b0227a9f2f003ac5d1f468",
   "seed": 42,
   "window_size": 10000,
   "stride": 5000,
@@ -206,5 +206,10 @@
     150
   ],
   "label_validity": "CDS states require reference_phase_mask; conflicts and CDS/intron overlaps dropped",
+  "probe_definitions": {
+    "seven_state_conditional_diagnostic": "seven-state probe trained on exon/noncoding/intron states; at coding-intron positions argmax uses only logits for phases 0/1/2",
+    "intron_only_three_class": "separate probe trained only on coding-intron positions with phase labels 0/1/2; identical backbones, layers, chromosome splits, weight-decay grid, and tuning chromosomes",
+    "distance_analysis": "intron-only three-class probe"
+  },
   "supervised_chr2_note": "actual checkpoint training used 195072 windows and chr2 was validation, not training"
 }

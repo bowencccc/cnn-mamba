@@ -1,0 +1,11 @@
+evidence	class_code	transcripts	transcripts_with_cds	loci	low_quality_transcripts
+complete	=	18229	18129	9942	558
+complete	j	6589	6589	3716	220
+complete	k	41244	41140	11165	1416
+complete	m	41	40	40	0
+complete	n	22	22	22	0
+protein_only	=	47967	47798	15937	711
+transcript_only	=	926	926	903	0
+transcript_only	j	10	10	8	0
+transcript_only	k	4	4	3	0
+transcript_only	m	2	1	2	0

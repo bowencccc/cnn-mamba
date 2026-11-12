@@ -1,0 +1,47 @@
+{
+  "source": "/home/bowencccc/cnn_mamba_k7_portable/data/raw/GCF_000001405.40_GRCh38.p14_genomic.noalpsnopatches.fna.pseudo_label.gff.gz",
+  "reference": "/home/bowencccc/cnn_mamba_k7_portable/data/raw/human_refseq_grch38_p14.gff.gz",
+  "transcripts": 115034,
+  "coding_transcripts": 114659,
+  "coding_loci": 22916,
+  "low_quality_transcripts": 2905,
+  "evidence_counts": {
+    "complete": 66125,
+    "protein_only": 47967,
+    "transcript_only": 942
+  },
+  "class_code_counts": {
+    "j": 6599,
+    "=": 67122,
+    "k": 41248,
+    "m": 43,
+    "n": 22
+  },
+  "selection_transcript_counts": {
+    "all_transcripts_union": 114659,
+    "longest_cds_per_locus": 22916,
+    "longest_complete_equal_else_k": 14686,
+    "complete_equal_else_k_with_fallback": 22916
+  },
+  "lightgbm_evaluation": {
+    "model_directory": "/home/bowencccc/cnn_mamba_k7_portable/results/human_site_quality_lightgbm_v1",
+    "score_type": "chr1 held-fold OOF",
+    "threshold_selection": "P90 threshold fitted without chr1 fold",
+    "thresholds": {
+      "start": 0.6529115228265001,
+      "stop": 0.472564500633162
+    },
+    "restricted_to_new_annotation_candidates": true
+  },
+  "strict_complete_equal_else_k_excluded_loci": 8230,
+  "strict_exclusion_reasons": {
+    "complete_present_but_class_not_equal_or_k": 725,
+    "no_complete_transcript": 7505
+  },
+  "reference_rejected_noncanonical": {
+    "splice": 14443,
+    "start": 504,
+    "stop": 940
+  },
+  "metric_definition": "Exact unique canonical CDS-site match by chromosome, strand, and 0-based motif-start position; primary report scope is chr1 positive strand."
+}

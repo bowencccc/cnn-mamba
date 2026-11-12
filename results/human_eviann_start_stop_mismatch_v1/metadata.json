@@ -1,0 +1,28 @@
+{
+  "coordinate_definition": "0-based left genomic coordinate of canonical start/stop motif",
+  "signed_distance_definition": "(RefSeq - EviAnn genomic position) * strand; positive is downstream in transcription direction",
+  "same_locus_definition": "same strand and overlapping transcript/gene span; choose RefSeq coding gene with maximum exon overlap, breaking ties by span overlap",
+  "spliced_distance_definition": "distance on a RefSeq transcript supporting the nearest boundary, only when the EviAnn codon is fully inside one of that transcript's exons",
+  "modulo3_warning": "genomic modulo 3 is not a frame test across introns; use spliced_distance_multiple_of_3 when available",
+  "mane_definition": "RefSeq transcript carrying tag=MANE Select in the same GRCh38.p14 GFF",
+  "inputs": {
+    "eviann": "/home/bowencccc/cnn_mamba_k7_portable/data/raw/human_eviann_pseudo_label.gff",
+    "refseq": "/home/bowencccc/cnn_mamba_k7_portable/data/raw/human_refseq_grch38_p14.gff.gz",
+    "fasta": "/home/bowencccc/cnn_mamba_k7_portable/data/raw/human_grch38.fa"
+  },
+  "rejected_noncanonical": {
+    "eviann": {
+      "start": 91,
+      "stop": 141
+    },
+    "refseq": {
+      "start": 504,
+      "stop": 940
+    }
+  },
+  "counts": {
+    "eviann_transcripts": 114982,
+    "refseq_transcripts": 145447,
+    "refseq_coding_loci": 20259
+  }
+}

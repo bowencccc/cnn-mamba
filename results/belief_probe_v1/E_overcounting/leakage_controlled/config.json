@@ -1,0 +1,37 @@
+{
+  "schema": "belief_probe_E_leakage_controlled_v1",
+  "checkpoint": "/home/bowencccc/cnn_mamba_k7_portable/runs/joint_frame_grid_v1/b010/chrxtrain/w10/best_model.pt",
+  "checkpoint_sha256": "97c13b17e80b14ef193224b2dcbebd4b04ed2feb13c42b4b9ada27b907c9419a",
+  "noncoding_weight": 0.1,
+  "training_chromosomes_for_implicit_prior": [
+    "2L",
+    "2R",
+    "3R",
+    "4",
+    "Y",
+    "X"
+  ],
+  "tuning_chromosome": "3L",
+  "test_chromosome": "X",
+  "temperatures": [
+    6.0,
+    7.0,
+    8.0,
+    9.0,
+    10.0
+  ],
+  "shared_bias_grid": [
+    -0.9,
+    -0.45,
+    0.0,
+    0.45,
+    0.9
+  ],
+  "chromosome_scoring_batch_size": 8,
+  "uniann_commit": "2f5c0ab8fdb2e848f5538f3a1f741cb9c4c67e07",
+  "factor_definition": "round(1000 / max_donor(log(exp(1)*p + 1e-10)))",
+  "actual_factor_3L": 1000,
+  "actual_factor_chrX": 1000,
+  "reference_recipe_validation": "generated chrX reference reproduced all 1783 existing unique CDS exon chains exactly (1783/1783; no chain differences)",
+  "evaluation": "gffread -M then gffcompare --strict-match -e 0"
+}

@@ -1,0 +1,114 @@
+{
+  "definition": "Exact canonical CDS-site match by chromosome, strand, and 0-based motif-start position. Precision is EviAnn sites found in RefSeq.",
+  "weight_selection_scope": "validation chromosomes only",
+  "validation_chromosomes": [
+    "chr10",
+    "chr2",
+    "chr22",
+    "chr5",
+    "chr9"
+  ],
+  "low_quality_note": "LOW_QUALITY_PROTEIN is a flag-defined subset that overlaps complete and protein_only; mutually exclusive high/low strata are also reported.",
+  "recommended_weight_definition": "Validation agreement divided by complete_high_quality agreement within each task, capped at 1. These are positive-label reliability weights derived after assigning each site to its strongest supporting transcript stratum. They do not address unlabeled false negatives.",
+  "exclusive_site_hierarchy": [
+    "complete_high_quality",
+    "complete_low_quality",
+    "protein_only_high_quality",
+    "protein_only_low_quality",
+    "transcript_only"
+  ],
+  "eviann_evidence_transcript_counts": {
+    "complete": 66080,
+    "protein_only": 47961,
+    "transcript_only": 941
+  },
+  "groups": {
+    "all_eviann": {
+      "transcripts": 114982,
+      "transcripts_with_cds": 114609,
+      "rejected_noncanonical_or_missing_motifs": {
+        "splice": 9068,
+        "stop": 141,
+        "start": 91
+      }
+    },
+    "complete": {
+      "transcripts": 66080,
+      "transcripts_with_cds": 65876,
+      "rejected_noncanonical_or_missing_motifs": {
+        "splice": 4129,
+        "stop": 138,
+        "start": 90
+      }
+    },
+    "protein_only": {
+      "transcripts": 47961,
+      "transcripts_with_cds": 47793,
+      "rejected_noncanonical_or_missing_motifs": {
+        "splice": 4926,
+        "stop": 3,
+        "start": 1
+      }
+    },
+    "transcript_only": {
+      "transcripts": 941,
+      "transcripts_with_cds": 940,
+      "rejected_noncanonical_or_missing_motifs": {
+        "splice": 13
+      }
+    },
+    "LOW_QUALITY_PROTEIN": {
+      "transcripts": 2901,
+      "transcripts_with_cds": 2866,
+      "rejected_noncanonical_or_missing_motifs": {
+        "splice": 113,
+        "stop": 4,
+        "start": 3
+      }
+    },
+    "complete_high_quality": {
+      "transcripts": 63888,
+      "transcripts_with_cds": 63710,
+      "rejected_noncanonical_or_missing_motifs": {
+        "splice": 4048,
+        "stop": 134,
+        "start": 87
+      }
+    },
+    "complete_low_quality": {
+      "transcripts": 2192,
+      "transcripts_with_cds": 2166,
+      "rejected_noncanonical_or_missing_motifs": {
+        "splice": 81,
+        "stop": 4,
+        "start": 3
+      }
+    },
+    "protein_only_high_quality": {
+      "transcripts": 47252,
+      "transcripts_with_cds": 47093,
+      "rejected_noncanonical_or_missing_motifs": {
+        "splice": 4894,
+        "stop": 3,
+        "start": 1
+      }
+    },
+    "protein_only_low_quality": {
+      "transcripts": 709,
+      "transcripts_with_cds": 700,
+      "rejected_noncanonical_or_missing_motifs": {
+        "splice": 32
+      }
+    }
+  },
+  "refseq_rejected_noncanonical_or_missing_motifs": {
+    "splice": 14443,
+    "start": 504,
+    "stop": 940
+  },
+  "inputs": {
+    "eviann": "/home/bowencccc/ssm_splice_site/data_human_EviAnn/Hsap_NC_000001.11/GCF_000001405.40_GRCh38.p14_genomic.noalpsnopatches.fna.pseudo_label.gff",
+    "refseq": "/home/bowencccc/cnn_mamba_k7_portable/data/raw/human_refseq_grch38_p14.gff.gz",
+    "fasta": "/home/bowencccc/ssm_splice_site/GCF_000001405.40_GRCh38.p14_genomic.fna"
+  }
+}

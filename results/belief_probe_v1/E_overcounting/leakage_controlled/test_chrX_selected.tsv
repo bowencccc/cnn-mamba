@@ -1,0 +1,3 @@
+condition	temperature	bias_kind	biases	split	chromosome	factor	method	sn	pr	f1	predicted_loci	matched_loci	missed_loci	novel_loci
+t7_scalar_p0p4500_p0p4500_p0p4500	7.0	shared_grid	0.45,0.45,0.45	test_chrX	X	1000	UniAnn	79.4	80.6	79.9955	1055	850	46	22
+t7_scalar_p0p4500_p0p4500_p0p4500	7.0	shared_grid	0.45,0.45,0.45	test_chrX	X	1000	EviAnn+UniAnn	90.8	90.0	90.39823008849557	1071	972	27	30

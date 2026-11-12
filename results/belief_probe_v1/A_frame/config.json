@@ -1,6 +1,6 @@
 {
   "schema": "cnn_mamba_belief_probe_A_v1",
-  "git_commit": "5932abcaddcb26c4e3291ef32ba845562062f7a6",
+  "git_commit": "6fb562b9801cf4d8e4b0227a9f2f003ac5d1f468",
   "seed": 42,
   "window_size": 10000,
   "stride": 5000,

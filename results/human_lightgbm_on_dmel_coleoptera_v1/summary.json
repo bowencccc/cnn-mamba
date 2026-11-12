@@ -1,0 +1,57 @@
+{
+  "experiment": "zero-shot Human LightGBM ensemble applied to D. melanogaster",
+  "models_retrained_on_drosophila": false,
+  "features": 215,
+  "tasks": {
+    "start": {
+      "sites": 12106,
+      "labeled": 11927,
+      "positive": 9571,
+      "negative": 2356,
+      "unlabeled": 179,
+      "positive_prevalence": 0.802464995388614,
+      "zero_shot_average_precision": 0.9587266095339878,
+      "complete_non_low_quality_AP": 0.802464995388614,
+      "human_90_precision_threshold_on_dmel": {
+        "threshold": 0.6603122665221867,
+        "selected": 8395,
+        "true_positive": 7864,
+        "precision": 0.9367480643240024,
+        "recall": 0.8216487305401734
+      },
+      "dmel_oracle_90_precision_point": {
+        "target_precision": 0.9,
+        "threshold": 0.49340952086646367,
+        "precision": 0.9000410088168956,
+        "recall": 0.9172500261205726,
+        "selected_labeled_sites": 9754,
+        "true_positive_sites": 8779
+      }
+    },
+    "stop": {
+      "sites": 10679,
+      "labeled": 10505,
+      "positive": 9756,
+      "negative": 749,
+      "unlabeled": 174,
+      "positive_prevalence": 0.9287006187529748,
+      "zero_shot_average_precision": 0.9930612632138202,
+      "complete_non_low_quality_AP": 0.9287006187529748,
+      "human_90_precision_threshold_on_dmel": {
+        "threshold": 0.4712660934290894,
+        "selected": 9714,
+        "true_positive": 9379,
+        "precision": 0.9655136915791641,
+        "recall": 0.9613571135711357
+      },
+      "dmel_oracle_90_precision_point": {
+        "target_precision": 0.9,
+        "threshold": 0.051795131757785405,
+        "precision": 0.9287006187529748,
+        "recall": 1.0,
+        "selected_labeled_sites": 10505,
+        "true_positive_sites": 9756
+      }
+    }
+  }
+}

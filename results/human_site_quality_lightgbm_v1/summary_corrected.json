@@ -1,0 +1,3191 @@
+{
+  "definition": {
+    "unit": "unique EviAnn start/stop site",
+    "positive": "exact chromosome/strand/type/coordinate match to any RefSeq protein-coding transcript",
+    "negative": "no exact match, but at least one supporting EviAnn CDS span has >=50% overlap of the shorter span with a same-strand RefSeq coding transcript",
+    "unlabeled": "no conservatively comparable RefSeq coding locus",
+    "feature_source": "EviAnn annotation, ORF QC, support, and DNA only"
+  },
+  "chromosome_folds": [
+    [
+      "chr1",
+      "chr6",
+      "chr11",
+      "chr16",
+      "chr21"
+    ],
+    [
+      "chr2",
+      "chr7",
+      "chr12",
+      "chr17",
+      "chr22"
+    ],
+    [
+      "chr3",
+      "chr8",
+      "chr13",
+      "chr18",
+      "chrX"
+    ],
+    [
+      "chr4",
+      "chr9",
+      "chr14",
+      "chr19",
+      "chrY"
+    ],
+    [
+      "chr5",
+      "chr10",
+      "chr15",
+      "chr20"
+    ]
+  ],
+  "features": [
+    "strand_minus",
+    "support_transcripts",
+    "support_genes",
+    "fraction_complete",
+    "fraction_protein_only",
+    "fraction_transcript_only",
+    "fraction_low_quality",
+    "any_complete_non_low_quality",
+    "any_protein_only_non_low_quality",
+    "fraction_orf_valid",
+    "fraction_sequence_complete",
+    "fraction_start_atg",
+    "fraction_stop_valid",
+    "fraction_length_multiple_of_three",
+    "fraction_no_internal_inframe_stop",
+    "fraction_phase_consistent",
+    "fraction_splice_recognized",
+    "fraction_all_splice_gt_ag",
+    "mean_cds_length_log1p",
+    "max_cds_length_log1p",
+    "min_cds_length_log1p",
+    "mean_exon_count",
+    "max_exon_count",
+    "mean_cds_segments",
+    "mean_coding_introns",
+    "mean_gt_ag",
+    "mean_gc_ag",
+    "mean_at_ac",
+    "mean_other_splice",
+    "mean_gene_isoforms",
+    "max_gene_isoforms",
+    "site_gene_support_ratio",
+    "partner_unique_sites",
+    "partner_dominance",
+    "declared_codon_match_fraction",
+    "gc_context_43",
+    "gc_context_101",
+    "gc_context_1001",
+    "kozak_minus3_purine",
+    "kozak_plus4_g",
+    "codon_TAA",
+    "codon_TAG",
+    "codon_TGA",
+    "base_-20_A",
+    "base_-20_C",
+    "base_-20_G",
+    "base_-20_T",
+    "base_-19_A",
+    "base_-19_C",
+    "base_-19_G",
+    "base_-19_T",
+    "base_-18_A",
+    "base_-18_C",
+    "base_-18_G",
+    "base_-18_T",
+    "base_-17_A",
+    "base_-17_C",
+    "base_-17_G",
+    "base_-17_T",
+    "base_-16_A",
+    "base_-16_C",
+    "base_-16_G",
+    "base_-16_T",
+    "base_-15_A",
+    "base_-15_C",
+    "base_-15_G",
+    "base_-15_T",
+    "base_-14_A",
+    "base_-14_C",
+    "base_-14_G",
+    "base_-14_T",
+    "base_-13_A",
+    "base_-13_C",
+    "base_-13_G",
+    "base_-13_T",
+    "base_-12_A",
+    "base_-12_C",
+    "base_-12_G",
+    "base_-12_T",
+    "base_-11_A",
+    "base_-11_C",
+    "base_-11_G",
+    "base_-11_T",
+    "base_-10_A",
+    "base_-10_C",
+    "base_-10_G",
+    "base_-10_T",
+    "base_-9_A",
+    "base_-9_C",
+    "base_-9_G",
+    "base_-9_T",
+    "base_-8_A",
+    "base_-8_C",
+    "base_-8_G",
+    "base_-8_T",
+    "base_-7_A",
+    "base_-7_C",
+    "base_-7_G",
+    "base_-7_T",
+    "base_-6_A",
+    "base_-6_C",
+    "base_-6_G",
+    "base_-6_T",
+    "base_-5_A",
+    "base_-5_C",
+    "base_-5_G",
+    "base_-5_T",
+    "base_-4_A",
+    "base_-4_C",
+    "base_-4_G",
+    "base_-4_T",
+    "base_-3_A",
+    "base_-3_C",
+    "base_-3_G",
+    "base_-3_T",
+    "base_-2_A",
+    "base_-2_C",
+    "base_-2_G",
+    "base_-2_T",
+    "base_-1_A",
+    "base_-1_C",
+    "base_-1_G",
+    "base_-1_T",
+    "base_+0_A",
+    "base_+0_C",
+    "base_+0_G",
+    "base_+0_T",
+    "base_+1_A",
+    "base_+1_C",
+    "base_+1_G",
+    "base_+1_T",
+    "base_+2_A",
+    "base_+2_C",
+    "base_+2_G",
+    "base_+2_T",
+    "base_+3_A",
+    "base_+3_C",
+    "base_+3_G",
+    "base_+3_T",
+    "base_+4_A",
+    "base_+4_C",
+    "base_+4_G",
+    "base_+4_T",
+    "base_+5_A",
+    "base_+5_C",
+    "base_+5_G",
+    "base_+5_T",
+    "base_+6_A",
+    "base_+6_C",
+    "base_+6_G",
+    "base_+6_T",
+    "base_+7_A",
+    "base_+7_C",
+    "base_+7_G",
+    "base_+7_T",
+    "base_+8_A",
+    "base_+8_C",
+    "base_+8_G",
+    "base_+8_T",
+    "base_+9_A",
+    "base_+9_C",
+    "base_+9_G",
+    "base_+9_T",
+    "base_+10_A",
+    "base_+10_C",
+    "base_+10_G",
+    "base_+10_T",
+    "base_+11_A",
+    "base_+11_C",
+    "base_+11_G",
+    "base_+11_T",
+    "base_+12_A",
+    "base_+12_C",
+    "base_+12_G",
+    "base_+12_T",
+    "base_+13_A",
+    "base_+13_C",
+    "base_+13_G",
+    "base_+13_T",
+    "base_+14_A",
+    "base_+14_C",
+    "base_+14_G",
+    "base_+14_T",
+    "base_+15_A",
+    "base_+15_C",
+    "base_+15_G",
+    "base_+15_T",
+    "base_+16_A",
+    "base_+16_C",
+    "base_+16_G",
+    "base_+16_T",
+    "base_+17_A",
+    "base_+17_C",
+    "base_+17_G",
+    "base_+17_T",
+    "base_+18_A",
+    "base_+18_C",
+    "base_+18_G",
+    "base_+18_T",
+    "base_+19_A",
+    "base_+19_C",
+    "base_+19_G",
+    "base_+19_T",
+    "base_+20_A",
+    "base_+20_C",
+    "base_+20_G",
+    "base_+20_T",
+    "base_+21_A",
+    "base_+21_C",
+    "base_+21_G",
+    "base_+21_T",
+    "base_+22_A",
+    "base_+22_C",
+    "base_+22_G",
+    "base_+22_T"
+  ],
+  "tasks": {
+    "start": {
+      "sites": 43062,
+      "labeled": 38352,
+      "positive": 25543,
+      "negative": 12809,
+      "unlabeled": 4710,
+      "positive_prevalence": 0.6660148101793909,
+      "oof_average_precision": 0.9243068986174487,
+      "baseline_complete_non_low_quality_AP": 0.6901710371658856,
+      "folds": [
+        {
+          "fold": 0,
+          "chromosomes": [
+            "chr1",
+            "chr6",
+            "chr11",
+            "chr16",
+            "chr21"
+          ],
+          "train_labeled": 28092,
+          "held_labeled": 10260,
+          "held_positive": 6828,
+          "held_AP": 0.9255240849637993
+        },
+        {
+          "fold": 1,
+          "chromosomes": [
+            "chr2",
+            "chr7",
+            "chr12",
+            "chr17",
+            "chr22"
+          ],
+          "train_labeled": 28714,
+          "held_labeled": 9638,
+          "held_positive": 6311,
+          "held_AP": 0.9234634459310539
+        },
+        {
+          "fold": 2,
+          "chromosomes": [
+            "chr3",
+            "chr8",
+            "chr13",
+            "chr18",
+            "chrX"
+          ],
+          "train_labeled": 32255,
+          "held_labeled": 6097,
+          "held_positive": 4159,
+          "held_AP": 0.9318750773540525
+        },
+        {
+          "fold": 3,
+          "chromosomes": [
+            "chr4",
+            "chr9",
+            "chr14",
+            "chr19",
+            "chrY"
+          ],
+          "train_labeled": 31361,
+          "held_labeled": 6991,
+          "held_positive": 4600,
+          "held_AP": 0.9178514902283138
+        },
+        {
+          "fold": 4,
+          "chromosomes": [
+            "chr5",
+            "chr10",
+            "chr15",
+            "chr20"
+          ],
+          "train_labeled": 32986,
+          "held_labeled": 5366,
+          "held_positive": 3645,
+          "held_AP": 0.9246688355343159
+        }
+      ],
+      "precision_operating_points": [
+        {
+          "target_precision": 0.8,
+          "threshold": 0.424418726716758,
+          "precision": 0.8000217525287314,
+          "recall": 0.8639157499119132,
+          "selected_labeled_sites": 27583,
+          "true_positive_sites": 22067
+        },
+        {
+          "target_precision": 0.85,
+          "threshold": 0.5210014640970747,
+          "precision": 0.8500144693869114,
+          "recall": 0.8049563481188584,
+          "selected_labeled_sites": 24189,
+          "true_positive_sites": 20561
+        },
+        {
+          "target_precision": 0.9,
+          "threshold": 0.6603122665221867,
+          "precision": 0.9000097837784953,
+          "recall": 0.7202756136710645,
+          "selected_labeled_sites": 20442,
+          "true_positive_sites": 18398
+        },
+        {
+          "target_precision": 0.95,
+          "threshold": 0.827135053274239,
+          "precision": 0.95,
+          "recall": 0.589124221900325,
+          "selected_labeled_sites": 15840,
+          "true_positive_sites": 15048
+        }
+      ],
+      "calibration_bins": [
+        {
+          "bin": 0,
+          "lower": 0.0,
+          "upper": 0.1,
+          "count": 19,
+          "mean_score": 0.08589532945451549,
+          "observed_match_fraction": 0.21052631578947367
+        },
+        {
+          "bin": 1,
+          "lower": 0.1,
+          "upper": 0.2,
+          "count": 678,
+          "mean_score": 0.16612277666979947,
+          "observed_match_fraction": 0.15634218289085547
+        },
+        {
+          "bin": 2,
+          "lower": 0.2,
+          "upper": 0.30000000000000004,
+          "count": 3204,
+          "mean_score": 0.25925300132000256,
+          "observed_match_fraction": 0.26747815230961297
+        },
+        {
+          "bin": 3,
+          "lower": 0.30000000000000004,
+          "upper": 0.4,
+          "count": 5660,
+          "mean_score": 0.35005896868340475,
+          "observed_match_fraction": 0.3501766784452297
+        },
+        {
+          "bin": 4,
+          "lower": 0.4,
+          "upper": 0.5,
+          "count": 3973,
+          "mean_score": 0.4449370884482291,
+          "observed_match_fraction": 0.43292222501887745
+        },
+        {
+          "bin": 5,
+          "lower": 0.5,
+          "upper": 0.6000000000000001,
+          "count": 2768,
+          "mean_score": 0.5494102403170721,
+          "observed_match_fraction": 0.5390173410404624
+        },
+        {
+          "bin": 6,
+          "lower": 0.6000000000000001,
+          "upper": 0.7000000000000001,
+          "count": 2603,
+          "mean_score": 0.6490079957534949,
+          "observed_match_fraction": 0.6442566269688821
+        },
+        {
+          "bin": 7,
+          "lower": 0.7000000000000001,
+          "upper": 0.8,
+          "count": 2776,
+          "mean_score": 0.7505345432879549,
+          "observed_match_fraction": 0.7204610951008645
+        },
+        {
+          "bin": 8,
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 3894,
+          "mean_score": 0.8565332990099045,
+          "observed_match_fraction": 0.8564458140729327
+        },
+        {
+          "bin": 9,
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 12777,
+          "mean_score": 0.959055991504227,
+          "observed_match_fraction": 0.9681458871409564
+        }
+      ],
+      "feature_importance_gain": [
+        {
+          "feature": "site_gene_support_ratio",
+          "gain": 408957.2329726219
+        },
+        {
+          "feature": "support_transcripts",
+          "gain": 131193.39003443718
+        },
+        {
+          "feature": "mean_gene_isoforms",
+          "gain": 57603.714247226715
+        },
+        {
+          "feature": "kozak_minus3_purine",
+          "gain": 41074.64320373535
+        },
+        {
+          "feature": "gc_context_101",
+          "gain": 32055.730830669403
+        },
+        {
+          "feature": "gc_context_1001",
+          "gain": 26790.930626392365
+        },
+        {
+          "feature": "max_cds_length_log1p",
+          "gain": 23577.491580486298
+        },
+        {
+          "feature": "fraction_complete",
+          "gain": 20245.03801703453
+        },
+        {
+          "feature": "max_gene_isoforms",
+          "gain": 16044.054567337036
+        },
+        {
+          "feature": "gc_context_43",
+          "gain": 13600.135827541351
+        },
+        {
+          "feature": "mean_exon_count",
+          "gain": 13325.850728750229
+        },
+        {
+          "feature": "partner_dominance",
+          "gain": 12797.55520248413
+        },
+        {
+          "feature": "base_-3_A",
+          "gain": 12604.793866157532
+        },
+        {
+          "feature": "mean_cds_length_log1p",
+          "gain": 12557.686346292496
+        },
+        {
+          "feature": "mean_cds_segments",
+          "gain": 11761.300034999847
+        },
+        {
+          "feature": "min_cds_length_log1p",
+          "gain": 11569.46449637413
+        },
+        {
+          "feature": "base_-2_C",
+          "gain": 11165.272399663925
+        },
+        {
+          "feature": "kozak_plus4_g",
+          "gain": 9962.040531873703
+        },
+        {
+          "feature": "mean_gt_ag",
+          "gain": 9951.546252250671
+        },
+        {
+          "feature": "max_exon_count",
+          "gain": 9025.320954561234
+        },
+        {
+          "feature": "any_complete_non_low_quality",
+          "gain": 7623.143337726593
+        },
+        {
+          "feature": "base_+3_C",
+          "gain": 7367.226978302002
+        },
+        {
+          "feature": "base_+4_C",
+          "gain": 6813.196883440018
+        },
+        {
+          "feature": "base_+4_G",
+          "gain": 6586.9726004600525
+        },
+        {
+          "feature": "base_-1_C",
+          "gain": 5150.907566070557
+        },
+        {
+          "feature": "base_-2_G",
+          "gain": 5045.454918146133
+        },
+        {
+          "feature": "fraction_protein_only",
+          "gain": 4905.030127048492
+        },
+        {
+          "feature": "base_+5_G",
+          "gain": 4016.3736476898193
+        },
+        {
+          "feature": "base_-4_T",
+          "gain": 4011.157387971878
+        },
+        {
+          "feature": "base_-3_T",
+          "gain": 3953.776083946228
+        },
+        {
+          "feature": "base_+10_G",
+          "gain": 2871.142953634262
+        },
+        {
+          "feature": "base_-6_G",
+          "gain": 2768.735071659088
+        },
+        {
+          "feature": "base_-5_A",
+          "gain": 2578.8059442043304
+        },
+        {
+          "feature": "base_+14_G",
+          "gain": 2486.354450941086
+        },
+        {
+          "feature": "mean_coding_introns",
+          "gain": 2214.7008316516876
+        },
+        {
+          "feature": "base_+19_G",
+          "gain": 2203.529871702194
+        },
+        {
+          "feature": "base_+8_T",
+          "gain": 2170.6154685020447
+        },
+        {
+          "feature": "base_+12_A",
+          "gain": 2081.8706579208374
+        },
+        {
+          "feature": "base_-8_C",
+          "gain": 2039.0088639259338
+        },
+        {
+          "feature": "base_-3_G",
+          "gain": 2018.5590105056763
+        },
+        {
+          "feature": "base_+3_G",
+          "gain": 2012.2047054767609
+        },
+        {
+          "feature": "base_-16_C",
+          "gain": 1932.0668096542358
+        },
+        {
+          "feature": "strand_minus",
+          "gain": 1905.58385181427
+        },
+        {
+          "feature": "base_-3_C",
+          "gain": 1797.2604031562805
+        },
+        {
+          "feature": "base_-4_A",
+          "gain": 1777.4945826530457
+        },
+        {
+          "feature": "base_-11_C",
+          "gain": 1772.638017654419
+        },
+        {
+          "feature": "base_-1_A",
+          "gain": 1769.2611112594604
+        },
+        {
+          "feature": "base_-2_T",
+          "gain": 1750.3461999893188
+        },
+        {
+          "feature": "base_+6_G",
+          "gain": 1718.102285861969
+        },
+        {
+          "feature": "base_+15_A",
+          "gain": 1712.476168870926
+        },
+        {
+          "feature": "base_-4_G",
+          "gain": 1703.3992767333984
+        },
+        {
+          "feature": "base_+4_T",
+          "gain": 1703.3827109336853
+        },
+        {
+          "feature": "base_+19_A",
+          "gain": 1613.2669191360474
+        },
+        {
+          "feature": "base_+13_A",
+          "gain": 1514.690336227417
+        },
+        {
+          "feature": "base_+19_T",
+          "gain": 1508.9216299057007
+        },
+        {
+          "feature": "base_-5_C",
+          "gain": 1483.3537421226501
+        },
+        {
+          "feature": "base_+5_A",
+          "gain": 1481.1241810321808
+        },
+        {
+          "feature": "base_-4_C",
+          "gain": 1391.5965719223022
+        },
+        {
+          "feature": "base_+12_C",
+          "gain": 1385.4531724452972
+        },
+        {
+          "feature": "base_-1_T",
+          "gain": 1371.6126942634583
+        },
+        {
+          "feature": "base_-5_T",
+          "gain": 1363.7231783866882
+        },
+        {
+          "feature": "base_+8_C",
+          "gain": 1359.7148127555847
+        },
+        {
+          "feature": "base_-17_C",
+          "gain": 1334.2313237190247
+        },
+        {
+          "feature": "base_-14_C",
+          "gain": 1320.7271971702576
+        },
+        {
+          "feature": "base_+18_A",
+          "gain": 1304.7136347293854
+        },
+        {
+          "feature": "base_+14_T",
+          "gain": 1291.4024636745453
+        },
+        {
+          "feature": "base_+4_A",
+          "gain": 1263.9680471420288
+        },
+        {
+          "feature": "base_+13_C",
+          "gain": 1258.1773128509521
+        },
+        {
+          "feature": "base_-8_A",
+          "gain": 1255.8774919509888
+        },
+        {
+          "feature": "base_-7_G",
+          "gain": 1227.7961511611938
+        },
+        {
+          "feature": "base_-20_A",
+          "gain": 1226.7765588760376
+        },
+        {
+          "feature": "base_+6_T",
+          "gain": 1203.4653692245483
+        },
+        {
+          "feature": "base_-8_T",
+          "gain": 1180.7312636375427
+        },
+        {
+          "feature": "base_+7_A",
+          "gain": 1171.726996421814
+        },
+        {
+          "feature": "base_+19_C",
+          "gain": 1170.0728178024292
+        },
+        {
+          "feature": "base_+21_C",
+          "gain": 1152.1069304943085
+        },
+        {
+          "feature": "base_+3_A",
+          "gain": 1130.5100903511047
+        },
+        {
+          "feature": "base_+17_G",
+          "gain": 1113.5535106658936
+        },
+        {
+          "feature": "base_-15_G",
+          "gain": 1106.0249419212341
+        },
+        {
+          "feature": "base_+5_C",
+          "gain": 1071.2662601470947
+        },
+        {
+          "feature": "base_-15_C",
+          "gain": 1068.1399126052856
+        },
+        {
+          "feature": "base_-9_T",
+          "gain": 1059.3734593391418
+        },
+        {
+          "feature": "base_-9_G",
+          "gain": 1031.3631296157837
+        },
+        {
+          "feature": "base_-19_A",
+          "gain": 1014.5403730869293
+        },
+        {
+          "feature": "base_+11_G",
+          "gain": 1013.4432878494263
+        },
+        {
+          "feature": "base_-6_C",
+          "gain": 1004.1842164993286
+        },
+        {
+          "feature": "base_+9_T",
+          "gain": 995.6395626068115
+        },
+        {
+          "feature": "base_-12_A",
+          "gain": 978.6170330047607
+        },
+        {
+          "feature": "base_-5_G",
+          "gain": 973.3598484992981
+        },
+        {
+          "feature": "base_-16_G",
+          "gain": 967.6009287834167
+        },
+        {
+          "feature": "base_-10_G",
+          "gain": 959.7985010147095
+        },
+        {
+          "feature": "base_+18_T",
+          "gain": 956.2522921562195
+        },
+        {
+          "feature": "any_protein_only_non_low_quality",
+          "gain": 955.3542790412903
+        },
+        {
+          "feature": "base_+7_G",
+          "gain": 947.9851222038269
+        },
+        {
+          "feature": "base_+20_T",
+          "gain": 936.4124202728271
+        },
+        {
+          "feature": "base_+9_G",
+          "gain": 923.9659194946289
+        },
+        {
+          "feature": "base_-18_C",
+          "gain": 919.7479882240295
+        },
+        {
+          "feature": "base_+22_T",
+          "gain": 917.3201293945312
+        },
+        {
+          "feature": "base_+6_C",
+          "gain": 915.4968657493591
+        },
+        {
+          "feature": "base_-2_A",
+          "gain": 912.346259355545
+        },
+        {
+          "feature": "base_+16_A",
+          "gain": 911.8975605964661
+        },
+        {
+          "feature": "base_+6_A",
+          "gain": 904.7495923042297
+        },
+        {
+          "feature": "base_-12_C",
+          "gain": 902.9625315666199
+        },
+        {
+          "feature": "base_+14_A",
+          "gain": 892.9259300231934
+        },
+        {
+          "feature": "base_+20_G",
+          "gain": 880.3869595527649
+        },
+        {
+          "feature": "base_+11_T",
+          "gain": 877.3475575447083
+        },
+        {
+          "feature": "base_+21_A",
+          "gain": 872.5698702335358
+        },
+        {
+          "feature": "base_+7_T",
+          "gain": 870.8397297859192
+        },
+        {
+          "feature": "base_-7_C",
+          "gain": 867.9973902702332
+        },
+        {
+          "feature": "base_-14_T",
+          "gain": 867.9300980567932
+        },
+        {
+          "feature": "base_+13_G",
+          "gain": 857.4239912033081
+        },
+        {
+          "feature": "base_+17_C",
+          "gain": 848.1806511878967
+        },
+        {
+          "feature": "base_+7_C",
+          "gain": 840.8697881698608
+        },
+        {
+          "feature": "base_-14_A",
+          "gain": 833.6071338653564
+        },
+        {
+          "feature": "base_-16_A",
+          "gain": 832.9460303783417
+        },
+        {
+          "feature": "base_+10_C",
+          "gain": 817.4994511604309
+        },
+        {
+          "feature": "base_+13_T",
+          "gain": 806.6476998329163
+        },
+        {
+          "feature": "base_-6_T",
+          "gain": 799.3723063468933
+        },
+        {
+          "feature": "base_+15_C",
+          "gain": 794.0720586776733
+        },
+        {
+          "feature": "base_-13_C",
+          "gain": 792.4126806259155
+        },
+        {
+          "feature": "base_-7_T",
+          "gain": 790.3851537704468
+        },
+        {
+          "feature": "base_-9_C",
+          "gain": 789.4619626998901
+        },
+        {
+          "feature": "base_+20_A",
+          "gain": 788.8996362686157
+        },
+        {
+          "feature": "base_+16_G",
+          "gain": 786.3285779953003
+        },
+        {
+          "feature": "base_-15_A",
+          "gain": 777.4481003284454
+        },
+        {
+          "feature": "base_-18_G",
+          "gain": 770.4140310287476
+        },
+        {
+          "feature": "base_+12_G",
+          "gain": 768.3615417480469
+        },
+        {
+          "feature": "base_+17_T",
+          "gain": 765.0360593795776
+        },
+        {
+          "feature": "base_-10_A",
+          "gain": 762.7208971977234
+        },
+        {
+          "feature": "base_-11_T",
+          "gain": 755.9502391815186
+        },
+        {
+          "feature": "base_-9_A",
+          "gain": 753.9094686508179
+        },
+        {
+          "feature": "base_+14_C",
+          "gain": 734.098150730133
+        },
+        {
+          "feature": "base_+9_C",
+          "gain": 730.7813878059387
+        },
+        {
+          "feature": "base_+16_T",
+          "gain": 727.8315892219543
+        },
+        {
+          "feature": "base_-20_C",
+          "gain": 722.2857708930969
+        },
+        {
+          "feature": "base_-14_G",
+          "gain": 719.6296982765198
+        },
+        {
+          "feature": "base_+16_C",
+          "gain": 713.010790348053
+        },
+        {
+          "feature": "base_-13_A",
+          "gain": 706.2249917984009
+        },
+        {
+          "feature": "base_+9_A",
+          "gain": 702.4341778755188
+        },
+        {
+          "feature": "base_+21_G",
+          "gain": 692.0330004692078
+        },
+        {
+          "feature": "base_-17_T",
+          "gain": 690.5863304138184
+        },
+        {
+          "feature": "base_+20_C",
+          "gain": 686.4961109161377
+        },
+        {
+          "feature": "base_+18_G",
+          "gain": 681.0285511016846
+        },
+        {
+          "feature": "base_+3_T",
+          "gain": 678.0862398147583
+        },
+        {
+          "feature": "base_+22_C",
+          "gain": 675.39391040802
+        },
+        {
+          "feature": "base_+18_C",
+          "gain": 674.9003667831421
+        },
+        {
+          "feature": "base_-11_G",
+          "gain": 668.4198279380798
+        },
+        {
+          "feature": "base_-1_G",
+          "gain": 664.9935116767883
+        },
+        {
+          "feature": "base_+10_A",
+          "gain": 651.578248500824
+        },
+        {
+          "feature": "base_+11_A",
+          "gain": 648.0388793945312
+        },
+        {
+          "feature": "base_-18_A",
+          "gain": 638.612911939621
+        },
+        {
+          "feature": "base_-19_C",
+          "gain": 627.1263995170593
+        },
+        {
+          "feature": "base_+22_G",
+          "gain": 622.4458503723145
+        },
+        {
+          "feature": "base_-8_G",
+          "gain": 616.0494391918182
+        },
+        {
+          "feature": "base_+10_T",
+          "gain": 613.8225908279419
+        },
+        {
+          "feature": "base_-10_C",
+          "gain": 589.5585780143738
+        },
+        {
+          "feature": "base_+12_T",
+          "gain": 585.1416277885437
+        },
+        {
+          "feature": "base_+8_A",
+          "gain": 585.0831203460693
+        },
+        {
+          "feature": "base_-20_T",
+          "gain": 584.6431374549866
+        },
+        {
+          "feature": "base_-12_T",
+          "gain": 581.6170105934143
+        },
+        {
+          "feature": "base_+17_A",
+          "gain": 576.9504117965698
+        },
+        {
+          "feature": "base_-12_G",
+          "gain": 572.4592688083649
+        },
+        {
+          "feature": "base_-16_T",
+          "gain": 570.2542808055878
+        },
+        {
+          "feature": "base_-17_A",
+          "gain": 568.2340378761292
+        },
+        {
+          "feature": "base_-19_G",
+          "gain": 560.5182418823242
+        },
+        {
+          "feature": "base_+22_A",
+          "gain": 554.875919342041
+        },
+        {
+          "feature": "base_-13_T",
+          "gain": 529.0158205032349
+        },
+        {
+          "feature": "fraction_low_quality",
+          "gain": 528.4691009521484
+        },
+        {
+          "feature": "base_+8_G",
+          "gain": 526.6216106414795
+        },
+        {
+          "feature": "base_+5_T",
+          "gain": 523.7381682395935
+        },
+        {
+          "feature": "base_-11_A",
+          "gain": 514.8890714645386
+        },
+        {
+          "feature": "base_-7_A",
+          "gain": 511.1775527000427
+        },
+        {
+          "feature": "base_+15_G",
+          "gain": 500.62874031066895
+        },
+        {
+          "feature": "base_+11_C",
+          "gain": 498.6476402282715
+        },
+        {
+          "feature": "base_-13_G",
+          "gain": 495.4427590370178
+        },
+        {
+          "feature": "base_-20_G",
+          "gain": 489.3636107444763
+        },
+        {
+          "feature": "base_+21_T",
+          "gain": 486.81583881378174
+        },
+        {
+          "feature": "base_-6_A",
+          "gain": 478.56864738464355
+        },
+        {
+          "feature": "base_-10_T",
+          "gain": 464.2839298248291
+        },
+        {
+          "feature": "base_+15_T",
+          "gain": 462.6678714752197
+        },
+        {
+          "feature": "base_-15_T",
+          "gain": 434.16262102127075
+        },
+        {
+          "feature": "base_-19_T",
+          "gain": 415.8909282684326
+        },
+        {
+          "feature": "base_-17_G",
+          "gain": 384.4537925720215
+        },
+        {
+          "feature": "base_-18_T",
+          "gain": 383.38278818130493
+        },
+        {
+          "feature": "fraction_transcript_only",
+          "gain": 284.31086111068726
+        },
+        {
+          "feature": "fraction_all_splice_gt_ag",
+          "gain": 236.71434020996094
+        },
+        {
+          "feature": "mean_gc_ag",
+          "gain": 175.94300985336304
+        },
+        {
+          "feature": "mean_at_ac",
+          "gain": 11.41004991531372
+        },
+        {
+          "feature": "support_genes",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_orf_valid",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_sequence_complete",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_start_atg",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_stop_valid",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_length_multiple_of_three",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_no_internal_inframe_stop",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_phase_consistent",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_splice_recognized",
+          "gain": 0.0
+        },
+        {
+          "feature": "mean_other_splice",
+          "gain": 0.0
+        },
+        {
+          "feature": "partner_unique_sites",
+          "gain": 0.0
+        },
+        {
+          "feature": "declared_codon_match_fraction",
+          "gain": 0.0
+        },
+        {
+          "feature": "codon_TAA",
+          "gain": 0.0
+        },
+        {
+          "feature": "codon_TAG",
+          "gain": 0.0
+        },
+        {
+          "feature": "codon_TGA",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+0_A",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+0_C",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+0_G",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+0_T",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+1_A",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+1_C",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+1_G",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+1_T",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+2_A",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+2_C",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+2_G",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+2_T",
+          "gain": 0.0
+        }
+      ],
+      "cross_fitted_precision_operating_points": [
+        {
+          "target_precision": 0.8,
+          "method": "threshold fitted on the other chromosome folds",
+          "precision": 0.7993703180979264,
+          "recall": 0.8647770426339897,
+          "selected_labeled_sites": 27633,
+          "true_positive_sites": 22089,
+          "folds": [
+            {
+              "fold": 0,
+              "threshold_fitted_without_held_fold": 0.42549379264957987,
+              "threshold_fit": {
+                "target_precision": 0.8,
+                "threshold": 0.42549379264957987,
+                "precision": 0.800029757476566,
+                "recall": 0.8619289340101522,
+                "selected_labeled_sites": 20163,
+                "true_positive_sites": 16131
+              },
+              "held_labeled_sites": 10260,
+              "held_positive_sites": 6828,
+              "selected_labeled_sites": 7374,
+              "true_positive_sites": 5916,
+              "precision": 0.8022782750203418,
+              "recall": 0.8664323374340949
+            },
+            {
+              "fold": 1,
+              "threshold_fitted_without_held_fold": 0.42116573144301794,
+              "threshold_fit": {
+                "target_precision": 0.8,
+                "threshold": 0.42116573144301794,
+                "precision": 0.8000191966213946,
+                "recall": 0.8667845257903494,
+                "selected_labeled_sites": 20837,
+                "true_positive_sites": 16670
+              },
+              "held_labeled_sites": 9638,
+              "held_positive_sites": 6311,
+              "selected_labeled_sites": 6912,
+              "true_positive_sites": 5471,
+              "precision": 0.7915219907407407,
+              "recall": 0.866899065124386
+            },
+            {
+              "fold": 2,
+              "threshold_fitted_without_held_fold": 0.43075300398588906,
+              "threshold_fit": {
+                "target_precision": 0.8,
+                "threshold": 0.43075300398588906,
+                "precision": 0.8000174011397747,
+                "recall": 0.8599887766554434,
+                "selected_labeled_sites": 22987,
+                "true_positive_sites": 18390
+              },
+              "held_labeled_sites": 6097,
+              "held_positive_sites": 4159,
+              "selected_labeled_sites": 4321,
+              "true_positive_sites": 3566,
+              "precision": 0.825271927794492,
+              "recall": 0.8574176484731907
+            },
+            {
+              "fold": 3,
+              "threshold_fitted_without_held_fold": 0.417987225967733,
+              "threshold_fit": {
+                "target_precision": 0.8,
+                "threshold": 0.417987225967733,
+                "precision": 0.8,
+                "recall": 0.8663515255694026,
+                "selected_labeled_sites": 22680,
+                "true_positive_sites": 18144
+              },
+              "held_labeled_sites": 6991,
+              "held_positive_sites": 4600,
+              "selected_labeled_sites": 5220,
+              "true_positive_sites": 4061,
+              "precision": 0.7779693486590038,
+              "recall": 0.8828260869565218
+            },
+            {
+              "fold": 4,
+              "threshold_fitted_without_held_fold": 0.42646573690612183,
+              "threshold_fit": {
+                "target_precision": 0.8,
+                "threshold": 0.42646573690612183,
+                "precision": 0.8,
+                "recall": 0.8656498310347976,
+                "selected_labeled_sites": 23695,
+                "true_positive_sites": 18956
+              },
+              "held_labeled_sites": 5366,
+              "held_positive_sites": 3645,
+              "selected_labeled_sites": 3806,
+              "true_positive_sites": 3075,
+              "precision": 0.8079348397267473,
+              "recall": 0.8436213991769548
+            }
+          ]
+        },
+        {
+          "target_precision": 0.85,
+          "method": "threshold fitted on the other chromosome folds",
+          "precision": 0.849675633238296,
+          "recall": 0.805034647457229,
+          "selected_labeled_sites": 24201,
+          "true_positive_sites": 20563,
+          "folds": [
+            {
+              "fold": 0,
+              "threshold_fitted_without_held_fold": 0.5179085724263497,
+              "threshold_fit": {
+                "target_precision": 0.85,
+                "threshold": 0.5179085724263497,
+                "precision": 0.8500084645336042,
+                "recall": 0.8048624098316858,
+                "selected_labeled_sites": 17721,
+                "true_positive_sites": 15063
+              },
+              "held_labeled_sites": 10260,
+              "held_positive_sites": 6828,
+              "selected_labeled_sites": 6576,
+              "true_positive_sites": 5550,
+              "precision": 0.843978102189781,
+              "recall": 0.812829525483304
+            },
+            {
+              "fold": 1,
+              "threshold_fitted_without_held_fold": 0.5223191868572099,
+              "threshold_fit": {
+                "target_precision": 0.85,
+                "threshold": 0.5223191868572099,
+                "precision": 0.8500220070422535,
+                "recall": 0.8033485856905158,
+                "selected_labeled_sites": 18176,
+                "true_positive_sites": 15450
+              },
+              "held_labeled_sites": 9638,
+              "held_positive_sites": 6311,
+              "selected_labeled_sites": 5969,
+              "true_positive_sites": 5090,
+              "precision": 0.8527391522868152,
+              "recall": 0.806528283948661
+            },
+            {
+              "fold": 2,
+              "threshold_fitted_without_held_fold": 0.5284899434518027,
+              "threshold_fit": {
+                "target_precision": 0.85,
+                "threshold": 0.5284899434518027,
+                "precision": 0.8500198255352894,
+                "recall": 0.8020014964459409,
+                "selected_labeled_sites": 20176,
+                "true_positive_sites": 17150
+              },
+              "held_labeled_sites": 6097,
+              "held_positive_sites": 4159,
+              "selected_labeled_sites": 3832,
+              "true_positive_sites": 3322,
+              "precision": 0.8669102296450939,
+              "recall": 0.7987496994469825
+            },
+            {
+              "fold": 3,
+              "threshold_fitted_without_held_fold": 0.5154842464990617,
+              "threshold_fit": {
+                "target_precision": 0.85,
+                "threshold": 0.5154842464990617,
+                "precision": 0.8500050316997082,
+                "recall": 0.8066179630425441,
+                "selected_labeled_sites": 19874,
+                "true_positive_sites": 16893
+              },
+              "held_labeled_sites": 6991,
+              "held_positive_sites": 4600,
+              "selected_labeled_sites": 4497,
+              "true_positive_sites": 3753,
+              "precision": 0.8345563709139426,
+              "recall": 0.8158695652173913
+            },
+            {
+              "fold": 4,
+              "threshold_fitted_without_held_fold": 0.5226889879038272,
+              "threshold_fit": {
+                "target_precision": 0.85,
+                "threshold": 0.5226889879038272,
+                "precision": 0.8500240269101393,
+                "recall": 0.8077906658142296,
+                "selected_labeled_sites": 20810,
+                "true_positive_sites": 17689
+              },
+              "held_labeled_sites": 5366,
+              "held_positive_sites": 3645,
+              "selected_labeled_sites": 3327,
+              "true_positive_sites": 2848,
+              "precision": 0.8560264502554854,
+              "recall": 0.7813443072702332
+            }
+          ]
+        },
+        {
+          "target_precision": 0.9,
+          "method": "threshold fitted on the other chromosome folds",
+          "precision": 0.8999656913199039,
+          "recall": 0.7188662255803938,
+          "selected_labeled_sites": 20403,
+          "true_positive_sites": 18362,
+          "folds": [
+            {
+              "fold": 0,
+              "threshold_fitted_without_held_fold": 0.6529115228265001,
+              "threshold_fit": {
+                "target_precision": 0.9,
+                "threshold": 0.6529115228265001,
+                "precision": 0.9,
+                "recall": 0.7199038204648678,
+                "selected_labeled_sites": 14970,
+                "true_positive_sites": 13473
+              },
+              "held_labeled_sites": 10260,
+              "held_positive_sites": 6828,
+              "selected_labeled_sites": 5648,
+              "true_positive_sites": 5030,
+              "precision": 0.8905807365439093,
+              "recall": 0.7366725248974809
+            },
+            {
+              "fold": 1,
+              "threshold_fitted_without_held_fold": 0.664448992671338,
+              "threshold_fit": {
+                "target_precision": 0.9,
+                "threshold": 0.664448992671338,
+                "precision": 0.9000520562207184,
+                "recall": 0.7192179700499168,
+                "selected_labeled_sites": 15368,
+                "true_positive_sites": 13832
+              },
+              "held_labeled_sites": 9638,
+              "held_positive_sites": 6311,
+              "selected_labeled_sites": 4970,
+              "true_positive_sites": 4491,
+              "precision": 0.9036217303822938,
+              "recall": 0.7116146411028363
+            },
+            {
+              "fold": 2,
+              "threshold_fitted_without_held_fold": 0.670548380460209,
+              "threshold_fit": {
+                "target_precision": 0.9,
+                "threshold": 0.670548380460209,
+                "precision": 0.9000058993569701,
+                "recall": 0.7134306023194912,
+                "selected_labeled_sites": 16951,
+                "true_positive_sites": 15256
+              },
+              "held_labeled_sites": 6097,
+              "held_positive_sites": 4159,
+              "selected_labeled_sites": 3220,
+              "true_positive_sites": 2951,
+              "precision": 0.9164596273291925,
+              "recall": 0.7095455638374609
+            },
+            {
+              "fold": 3,
+              "threshold_fitted_without_held_fold": 0.6545766165341631,
+              "threshold_fit": {
+                "target_precision": 0.9,
+                "threshold": 0.6545766165341631,
+                "precision": 0.9000118962645729,
+                "recall": 0.7224848398032756,
+                "selected_labeled_sites": 16812,
+                "true_positive_sites": 15131
+              },
+              "held_labeled_sites": 6991,
+              "held_positive_sites": 4600,
+              "selected_labeled_sites": 3766,
+              "true_positive_sites": 3350,
+              "precision": 0.8895379713223579,
+              "recall": 0.7282608695652174
+            },
+            {
+              "fold": 4,
+              "threshold_fitted_without_held_fold": 0.6645127670127142,
+              "threshold_fit": {
+                "target_precision": 0.9,
+                "threshold": 0.6645127670127142,
+                "precision": 0.9000228128208053,
+                "recall": 0.7206594209516851,
+                "selected_labeled_sites": 17534,
+                "true_positive_sites": 15781
+              },
+              "held_labeled_sites": 5366,
+              "held_positive_sites": 3645,
+              "selected_labeled_sites": 2799,
+              "true_positive_sites": 2540,
+              "precision": 0.9074669524830297,
+              "recall": 0.6968449931412894
+            }
+          ]
+        },
+        {
+          "target_precision": 0.95,
+          "method": "threshold fitted on the other chromosome folds",
+          "precision": 0.9499462807305821,
+          "recall": 0.5884586775241749,
+          "selected_labeled_sites": 15823,
+          "true_positive_sites": 15031,
+          "folds": [
+            {
+              "fold": 0,
+              "threshold_fitted_without_held_fold": 0.8241402515946457,
+              "threshold_fit": {
+                "target_precision": 0.95,
+                "threshold": 0.8241402515946457,
+                "precision": 0.95,
+                "recall": 0.582741116751269,
+                "selected_labeled_sites": 11480,
+                "true_positive_sites": 10906
+              },
+              "held_labeled_sites": 10260,
+              "held_positive_sites": 6828,
+              "selected_labeled_sites": 4467,
+              "true_positive_sites": 4233,
+              "precision": 0.9476158495634655,
+              "recall": 0.6199472759226714
+            },
+            {
+              "fold": 1,
+              "threshold_fitted_without_held_fold": 0.8293023670814722,
+              "threshold_fit": {
+                "target_precision": 0.95,
+                "threshold": 0.8293023670814722,
+                "precision": 0.9500250292007342,
+                "recall": 0.5920861064891847,
+                "selected_labeled_sites": 11986,
+                "true_positive_sites": 11387
+              },
+              "held_labeled_sites": 9638,
+              "held_positive_sites": 6311,
+              "selected_labeled_sites": 3792,
+              "true_positive_sites": 3605,
+              "precision": 0.9506856540084389,
+              "recall": 0.5712248455078435
+            },
+            {
+              "fold": 2,
+              "threshold_fitted_without_held_fold": 0.8356141340343751,
+              "threshold_fit": {
+                "target_precision": 0.95,
+                "threshold": 0.8356141340343751,
+                "precision": 0.9500571864277545,
+                "recall": 0.5826786382341937,
+                "selected_labeled_sites": 13115,
+                "true_positive_sites": 12460
+              },
+              "held_labeled_sites": 6097,
+              "held_positive_sites": 4159,
+              "selected_labeled_sites": 2482,
+              "true_positive_sites": 2383,
+              "precision": 0.9601128122481869,
+              "recall": 0.5729742726616975
+            },
+            {
+              "fold": 3,
+              "threshold_fitted_without_held_fold": 0.8227930569451722,
+              "threshold_fit": {
+                "target_precision": 0.95,
+                "threshold": 0.8227930569451722,
+                "precision": 0.9500572737686139,
+                "recall": 0.5940409683426443,
+                "selected_labeled_sites": 13095,
+                "true_positive_sites": 12441
+              },
+              "held_labeled_sites": 6991,
+              "held_positive_sites": 4600,
+              "selected_labeled_sites": 2905,
+              "true_positive_sites": 2735,
+              "precision": 0.9414802065404475,
+              "recall": 0.5945652173913043
+            },
+            {
+              "fold": 4,
+              "threshold_fitted_without_held_fold": 0.830797010731974,
+              "threshold_fit": {
+                "target_precision": 0.95,
+                "threshold": 0.830797010731974,
+                "precision": 0.9500036870437283,
+                "recall": 0.5883185679057448,
+                "selected_labeled_sites": 13561,
+                "true_positive_sites": 12883
+              },
+              "held_labeled_sites": 5366,
+              "held_positive_sites": 3645,
+              "selected_labeled_sites": 2177,
+              "true_positive_sites": 2075,
+              "precision": 0.9531465319246669,
+              "recall": 0.5692729766803841
+            }
+          ]
+        }
+      ]
+    },
+    "stop": {
+      "sites": 39430,
+      "labeled": 34541,
+      "positive": 23760,
+      "negative": 10781,
+      "unlabeled": 4889,
+      "positive_prevalence": 0.6878781737645118,
+      "oof_average_precision": 0.9612882190620358,
+      "baseline_complete_non_low_quality_AP": 0.732765714162542,
+      "folds": [
+        {
+          "fold": 0,
+          "chromosomes": [
+            "chr1",
+            "chr6",
+            "chr11",
+            "chr16",
+            "chr21"
+          ],
+          "train_labeled": 25216,
+          "held_labeled": 9325,
+          "held_positive": 6498,
+          "held_AP": 0.9644197645039465
+        },
+        {
+          "fold": 1,
+          "chromosomes": [
+            "chr2",
+            "chr7",
+            "chr12",
+            "chr17",
+            "chr22"
+          ],
+          "train_labeled": 25828,
+          "held_labeled": 8713,
+          "held_positive": 5864,
+          "held_AP": 0.9572370277523456
+        },
+        {
+          "fold": 2,
+          "chromosomes": [
+            "chr3",
+            "chr8",
+            "chr13",
+            "chr18",
+            "chrX"
+          ],
+          "train_labeled": 29017,
+          "held_labeled": 5524,
+          "held_positive": 3819,
+          "held_AP": 0.9640087305790871
+        },
+        {
+          "fold": 3,
+          "chromosomes": [
+            "chr4",
+            "chr9",
+            "chr14",
+            "chr19",
+            "chrY"
+          ],
+          "train_labeled": 28461,
+          "held_labeled": 6080,
+          "held_positive": 4279,
+          "held_AP": 0.9634727068828252
+        },
+        {
+          "fold": 4,
+          "chromosomes": [
+            "chr5",
+            "chr10",
+            "chr15",
+            "chr20"
+          ],
+          "train_labeled": 29642,
+          "held_labeled": 4899,
+          "held_positive": 3300,
+          "held_AP": 0.9568464267976607
+        }
+      ],
+      "precision_operating_points": [
+        {
+          "target_precision": 0.8,
+          "threshold": 0.3089827357956622,
+          "precision": 0.8000144029958232,
+          "recall": 0.9351010101010101,
+          "selected_labeled_sites": 27772,
+          "true_positive_sites": 22218
+        },
+        {
+          "target_precision": 0.85,
+          "threshold": 0.3758636827246328,
+          "precision": 0.8500179404377467,
+          "recall": 0.8973484848484848,
+          "selected_labeled_sites": 25083,
+          "true_positive_sites": 21321
+        },
+        {
+          "target_precision": 0.9,
+          "threshold": 0.4712660934290894,
+          "precision": 0.9000222074172773,
+          "recall": 0.8528619528619529,
+          "selected_labeled_sites": 22515,
+          "true_positive_sites": 20264
+        },
+        {
+          "target_precision": 0.95,
+          "threshold": 0.6627929194345646,
+          "precision": 0.9500253421186011,
+          "recall": 0.7888888888888889,
+          "selected_labeled_sites": 19730,
+          "true_positive_sites": 18744
+        }
+      ],
+      "calibration_bins": [
+        {
+          "bin": 0,
+          "lower": 0.0,
+          "upper": 0.1,
+          "count": 239,
+          "mean_score": 0.07623518354112213,
+          "observed_match_fraction": 0.04602510460251046
+        },
+        {
+          "bin": 1,
+          "lower": 0.1,
+          "upper": 0.2,
+          "count": 1939,
+          "mean_score": 0.16138228665385823,
+          "observed_match_fraction": 0.15678184631253222
+        },
+        {
+          "bin": 2,
+          "lower": 0.2,
+          "upper": 0.30000000000000004,
+          "count": 4182,
+          "mean_score": 0.2523771693170944,
+          "observed_match_fraction": 0.2632711621233859
+        },
+        {
+          "bin": 3,
+          "lower": 0.30000000000000004,
+          "upper": 0.4,
+          "count": 3882,
+          "mean_score": 0.3466743051224186,
+          "observed_match_fraction": 0.33822771767130344
+        },
+        {
+          "bin": 4,
+          "lower": 0.4,
+          "upper": 0.5,
+          "count": 2389,
+          "mean_score": 0.44568318069931134,
+          "observed_match_fraction": 0.44035161155295105
+        },
+        {
+          "bin": 5,
+          "lower": 0.5,
+          "upper": 0.6000000000000001,
+          "count": 1452,
+          "mean_score": 0.5484184680068107,
+          "observed_match_fraction": 0.5371900826446281
+        },
+        {
+          "bin": 6,
+          "lower": 0.6000000000000001,
+          "upper": 0.7000000000000001,
+          "count": 1131,
+          "mean_score": 0.648931361114578,
+          "observed_match_fraction": 0.6472148541114059
+        },
+        {
+          "bin": 7,
+          "lower": 0.7000000000000001,
+          "upper": 0.8,
+          "count": 1232,
+          "mean_score": 0.7515491678924474,
+          "observed_match_fraction": 0.7288961038961039
+        },
+        {
+          "bin": 8,
+          "lower": 0.8,
+          "upper": 0.9,
+          "count": 1710,
+          "mean_score": 0.8541351825975956,
+          "observed_match_fraction": 0.8619883040935673
+        },
+        {
+          "bin": 9,
+          "lower": 0.9,
+          "upper": 1.0,
+          "count": 16385,
+          "mean_score": 0.9802444034623078,
+          "observed_match_fraction": 0.9823008849557522
+        }
+      ],
+      "feature_importance_gain": [
+        {
+          "feature": "site_gene_support_ratio",
+          "gain": 681856.8951354027
+        },
+        {
+          "feature": "support_transcripts",
+          "gain": 126081.92695617676
+        },
+        {
+          "feature": "mean_gene_isoforms",
+          "gain": 68351.10636854172
+        },
+        {
+          "feature": "max_gene_isoforms",
+          "gain": 46886.35079789162
+        },
+        {
+          "feature": "fraction_complete",
+          "gain": 28081.7409760952
+        },
+        {
+          "feature": "gc_context_1001",
+          "gain": 21533.443420410156
+        },
+        {
+          "feature": "max_cds_length_log1p",
+          "gain": 20793.2597489357
+        },
+        {
+          "feature": "mean_exon_count",
+          "gain": 20750.54443216324
+        },
+        {
+          "feature": "mean_cds_segments",
+          "gain": 14603.47582912445
+        },
+        {
+          "feature": "partner_unique_sites",
+          "gain": 13218.227291584015
+        },
+        {
+          "feature": "partner_dominance",
+          "gain": 12807.076506376266
+        },
+        {
+          "feature": "mean_cds_length_log1p",
+          "gain": 12587.256885051727
+        },
+        {
+          "feature": "gc_context_101",
+          "gain": 12142.284397125244
+        },
+        {
+          "feature": "fraction_protein_only",
+          "gain": 11268.597794294357
+        },
+        {
+          "feature": "mean_gt_ag",
+          "gain": 11243.862060785294
+        },
+        {
+          "feature": "gc_context_43",
+          "gain": 10455.479611635208
+        },
+        {
+          "feature": "min_cds_length_log1p",
+          "gain": 9224.923423528671
+        },
+        {
+          "feature": "max_exon_count",
+          "gain": 8360.461978435516
+        },
+        {
+          "feature": "base_-1_G",
+          "gain": 8293.599776029587
+        },
+        {
+          "feature": "base_-2_G",
+          "gain": 6960.922897577286
+        },
+        {
+          "feature": "any_complete_non_low_quality",
+          "gain": 6311.230757474899
+        },
+        {
+          "feature": "base_+0_T",
+          "gain": 5113.160912513733
+        },
+        {
+          "feature": "kozak_plus4_g",
+          "gain": 4872.872420310974
+        },
+        {
+          "feature": "mean_coding_introns",
+          "gain": 4247.85241317749
+        },
+        {
+          "feature": "base_+4_T",
+          "gain": 3829.6910948753357
+        },
+        {
+          "feature": "base_-5_A",
+          "gain": 3168.267118215561
+        },
+        {
+          "feature": "fraction_transcript_only",
+          "gain": 3157.033965110779
+        },
+        {
+          "feature": "base_-1_C",
+          "gain": 2772.0556204319
+        },
+        {
+          "feature": "base_-8_A",
+          "gain": 2166.1660249233246
+        },
+        {
+          "feature": "base_+13_T",
+          "gain": 2014.0667164325714
+        },
+        {
+          "feature": "base_-2_A",
+          "gain": 1940.8422663211823
+        },
+        {
+          "feature": "base_+16_C",
+          "gain": 1790.7649602890015
+        },
+        {
+          "feature": "fraction_low_quality",
+          "gain": 1776.8585374355316
+        },
+        {
+          "feature": "base_-3_C",
+          "gain": 1684.0334706306458
+        },
+        {
+          "feature": "base_+15_C",
+          "gain": 1677.9917492866516
+        },
+        {
+          "feature": "base_-7_A",
+          "gain": 1587.4085783958435
+        },
+        {
+          "feature": "any_protein_only_non_low_quality",
+          "gain": 1548.437569618225
+        },
+        {
+          "feature": "base_+3_A",
+          "gain": 1547.6920113563538
+        },
+        {
+          "feature": "base_-11_A",
+          "gain": 1487.041258573532
+        },
+        {
+          "feature": "base_-10_C",
+          "gain": 1486.2039787769318
+        },
+        {
+          "feature": "base_-13_T",
+          "gain": 1463.9054479599
+        },
+        {
+          "feature": "base_-17_T",
+          "gain": 1456.2921590805054
+        },
+        {
+          "feature": "base_-19_G",
+          "gain": 1422.3200538158417
+        },
+        {
+          "feature": "base_-14_A",
+          "gain": 1404.8954319953918
+        },
+        {
+          "feature": "base_+17_C",
+          "gain": 1367.552208662033
+        },
+        {
+          "feature": "base_+21_T",
+          "gain": 1340.8842515945435
+        },
+        {
+          "feature": "base_-7_C",
+          "gain": 1329.4405784606934
+        },
+        {
+          "feature": "base_+19_G",
+          "gain": 1280.9419481754303
+        },
+        {
+          "feature": "base_+11_A",
+          "gain": 1256.4417192935944
+        },
+        {
+          "feature": "kozak_minus3_purine",
+          "gain": 1240.6884970664978
+        },
+        {
+          "feature": "base_-11_G",
+          "gain": 1234.535398721695
+        },
+        {
+          "feature": "base_+3_T",
+          "gain": 1219.9414296150208
+        },
+        {
+          "feature": "base_-14_G",
+          "gain": 1213.8069915771484
+        },
+        {
+          "feature": "base_+9_C",
+          "gain": 1209.8234724998474
+        },
+        {
+          "feature": "base_-10_A",
+          "gain": 1208.7757835388184
+        },
+        {
+          "feature": "base_-19_T",
+          "gain": 1200.1435775756836
+        },
+        {
+          "feature": "base_-12_G",
+          "gain": 1197.9897899627686
+        },
+        {
+          "feature": "base_-9_T",
+          "gain": 1194.1181268692017
+        },
+        {
+          "feature": "base_-2_T",
+          "gain": 1193.431798696518
+        },
+        {
+          "feature": "base_-20_A",
+          "gain": 1186.5923352241516
+        },
+        {
+          "feature": "base_-5_G",
+          "gain": 1143.4609014987946
+        },
+        {
+          "feature": "base_+8_T",
+          "gain": 1098.1127109527588
+        },
+        {
+          "feature": "strand_minus",
+          "gain": 1092.190621137619
+        },
+        {
+          "feature": "base_-16_T",
+          "gain": 1087.5533854961395
+        },
+        {
+          "feature": "base_-11_T",
+          "gain": 1077.0431909561157
+        },
+        {
+          "feature": "base_-17_A",
+          "gain": 1070.175124168396
+        },
+        {
+          "feature": "base_+19_T",
+          "gain": 1068.8814475536346
+        },
+        {
+          "feature": "base_+20_A",
+          "gain": 1068.6492593288422
+        },
+        {
+          "feature": "base_-13_C",
+          "gain": 1049.327469110489
+        },
+        {
+          "feature": "base_-4_C",
+          "gain": 1025.8952422142029
+        },
+        {
+          "feature": "base_-8_C",
+          "gain": 1006.9464273452759
+        },
+        {
+          "feature": "base_+7_T",
+          "gain": 999.3518614768982
+        },
+        {
+          "feature": "base_-7_T",
+          "gain": 992.3662586212158
+        },
+        {
+          "feature": "base_+12_T",
+          "gain": 972.2151534557343
+        },
+        {
+          "feature": "base_-13_A",
+          "gain": 962.8088097572327
+        },
+        {
+          "feature": "base_-14_C",
+          "gain": 960.4675989151001
+        },
+        {
+          "feature": "base_+10_C",
+          "gain": 936.4890217781067
+        },
+        {
+          "feature": "base_+5_G",
+          "gain": 930.6700580120087
+        },
+        {
+          "feature": "base_+7_C",
+          "gain": 924.2384004592896
+        },
+        {
+          "feature": "base_+22_A",
+          "gain": 915.9732336997986
+        },
+        {
+          "feature": "base_+19_A",
+          "gain": 912.2564973831177
+        },
+        {
+          "feature": "base_-20_G",
+          "gain": 905.7883021831512
+        },
+        {
+          "feature": "base_+3_G",
+          "gain": 905.2457571029663
+        },
+        {
+          "feature": "base_-8_G",
+          "gain": 903.8084585666656
+        },
+        {
+          "feature": "base_+6_T",
+          "gain": 903.6459124088287
+        },
+        {
+          "feature": "base_+14_T",
+          "gain": 898.6998479366302
+        },
+        {
+          "feature": "base_-14_T",
+          "gain": 891.6457295417786
+        },
+        {
+          "feature": "base_-4_T",
+          "gain": 884.7866089344025
+        },
+        {
+          "feature": "base_+12_C",
+          "gain": 882.7236294746399
+        },
+        {
+          "feature": "base_+11_C",
+          "gain": 877.1710681915283
+        },
+        {
+          "feature": "base_-17_C",
+          "gain": 874.3718037605286
+        },
+        {
+          "feature": "base_+6_G",
+          "gain": 858.2276301383972
+        },
+        {
+          "feature": "base_+8_C",
+          "gain": 858.0188419818878
+        },
+        {
+          "feature": "base_-15_C",
+          "gain": 857.9057204723358
+        },
+        {
+          "feature": "base_-4_A",
+          "gain": 851.518158197403
+        },
+        {
+          "feature": "base_+15_T",
+          "gain": 844.9475009441376
+        },
+        {
+          "feature": "base_+20_G",
+          "gain": 842.6357574462891
+        },
+        {
+          "feature": "base_+13_G",
+          "gain": 828.0310206413269
+        },
+        {
+          "feature": "base_-10_G",
+          "gain": 813.6249380111694
+        },
+        {
+          "feature": "base_-6_A",
+          "gain": 813.4071898460388
+        },
+        {
+          "feature": "codon_TAA",
+          "gain": 810.7340803146362
+        },
+        {
+          "feature": "base_+19_C",
+          "gain": 810.722410440445
+        },
+        {
+          "feature": "base_+18_T",
+          "gain": 803.624449968338
+        },
+        {
+          "feature": "base_-11_C",
+          "gain": 788.0941393375397
+        },
+        {
+          "feature": "base_-19_C",
+          "gain": 785.3708562850952
+        },
+        {
+          "feature": "base_-15_A",
+          "gain": 785.0576884746552
+        },
+        {
+          "feature": "codon_TGA",
+          "gain": 776.5414299964905
+        },
+        {
+          "feature": "base_+3_C",
+          "gain": 771.0143728256226
+        },
+        {
+          "feature": "base_-10_T",
+          "gain": 765.4703450202942
+        },
+        {
+          "feature": "base_-20_C",
+          "gain": 764.7992236614227
+        },
+        {
+          "feature": "base_+22_T",
+          "gain": 755.4680981636047
+        },
+        {
+          "feature": "base_+20_T",
+          "gain": 755.0912609100342
+        },
+        {
+          "feature": "base_+16_G",
+          "gain": 739.6822011470795
+        },
+        {
+          "feature": "base_+10_T",
+          "gain": 737.504412651062
+        },
+        {
+          "feature": "base_+22_G",
+          "gain": 733.4205093383789
+        },
+        {
+          "feature": "base_+11_T",
+          "gain": 731.0861780643463
+        },
+        {
+          "feature": "base_+5_A",
+          "gain": 730.0226409435272
+        },
+        {
+          "feature": "base_-3_T",
+          "gain": 725.0713176727295
+        },
+        {
+          "feature": "base_-13_G",
+          "gain": 723.462249994278
+        },
+        {
+          "feature": "base_-16_G",
+          "gain": 704.2961814403534
+        },
+        {
+          "feature": "base_+10_G",
+          "gain": 702.1158375740051
+        },
+        {
+          "feature": "base_-6_C",
+          "gain": 702.0511703491211
+        },
+        {
+          "feature": "base_-19_A",
+          "gain": 699.2919812202454
+        },
+        {
+          "feature": "base_+18_A",
+          "gain": 696.7007369995117
+        },
+        {
+          "feature": "base_-6_T",
+          "gain": 695.0118103027344
+        },
+        {
+          "feature": "base_+5_T",
+          "gain": 694.659182548523
+        },
+        {
+          "feature": "base_-1_A",
+          "gain": 682.625078201294
+        },
+        {
+          "feature": "base_-18_G",
+          "gain": 678.7798566818237
+        },
+        {
+          "feature": "base_-15_G",
+          "gain": 676.6364116668701
+        },
+        {
+          "feature": "base_+8_A",
+          "gain": 674.9660394191742
+        },
+        {
+          "feature": "base_-9_C",
+          "gain": 672.6811127662659
+        },
+        {
+          "feature": "base_+16_T",
+          "gain": 672.0608510971069
+        },
+        {
+          "feature": "base_+21_G",
+          "gain": 665.7075345516205
+        },
+        {
+          "feature": "base_-17_G",
+          "gain": 657.742689371109
+        },
+        {
+          "feature": "base_+17_T",
+          "gain": 657.5606324672699
+        },
+        {
+          "feature": "base_+6_A",
+          "gain": 654.7552089691162
+        },
+        {
+          "feature": "base_+4_C",
+          "gain": 652.9957988262177
+        },
+        {
+          "feature": "base_-6_G",
+          "gain": 646.6783797740936
+        },
+        {
+          "feature": "base_+9_T",
+          "gain": 645.938642501831
+        },
+        {
+          "feature": "base_+7_A",
+          "gain": 640.0734767913818
+        },
+        {
+          "feature": "base_-20_T",
+          "gain": 637.5739269256592
+        },
+        {
+          "feature": "base_-12_C",
+          "gain": 636.3923897743225
+        },
+        {
+          "feature": "base_+18_G",
+          "gain": 626.025821685791
+        },
+        {
+          "feature": "base_-12_A",
+          "gain": 625.8954668045044
+        },
+        {
+          "feature": "base_+18_C",
+          "gain": 625.7988958358765
+        },
+        {
+          "feature": "base_-4_G",
+          "gain": 624.1286406517029
+        },
+        {
+          "feature": "base_+22_C",
+          "gain": 610.9477000236511
+        },
+        {
+          "feature": "base_+12_A",
+          "gain": 604.3350105285645
+        },
+        {
+          "feature": "base_+15_A",
+          "gain": 603.3453097343445
+        },
+        {
+          "feature": "base_+4_G",
+          "gain": 601.712809085846
+        },
+        {
+          "feature": "base_-3_G",
+          "gain": 596.9299802780151
+        },
+        {
+          "feature": "base_+10_A",
+          "gain": 596.4966990947723
+        },
+        {
+          "feature": "base_-5_C",
+          "gain": 586.6458086967468
+        },
+        {
+          "feature": "base_-18_A",
+          "gain": 584.0117514133453
+        },
+        {
+          "feature": "base_-7_G",
+          "gain": 575.903222322464
+        },
+        {
+          "feature": "base_-1_T",
+          "gain": 574.9873712062836
+        },
+        {
+          "feature": "base_-18_C",
+          "gain": 571.2496471405029
+        },
+        {
+          "feature": "base_+9_A",
+          "gain": 570.3704805374146
+        },
+        {
+          "feature": "base_+7_G",
+          "gain": 569.9909286499023
+        },
+        {
+          "feature": "base_+21_C",
+          "gain": 569.6982712745667
+        },
+        {
+          "feature": "base_-9_G",
+          "gain": 568.3752303123474
+        },
+        {
+          "feature": "base_-2_C",
+          "gain": 567.0686421394348
+        },
+        {
+          "feature": "base_-5_T",
+          "gain": 565.192057132721
+        },
+        {
+          "feature": "base_+11_G",
+          "gain": 564.1550979614258
+        },
+        {
+          "feature": "base_+4_A",
+          "gain": 562.5802974700928
+        },
+        {
+          "feature": "base_+8_G",
+          "gain": 560.4104907512665
+        },
+        {
+          "feature": "base_+17_A",
+          "gain": 556.1736507415771
+        },
+        {
+          "feature": "base_+14_C",
+          "gain": 547.881010055542
+        },
+        {
+          "feature": "base_-3_A",
+          "gain": 546.9474287033081
+        },
+        {
+          "feature": "base_+13_C",
+          "gain": 544.9103598594666
+        },
+        {
+          "feature": "base_-8_T",
+          "gain": 540.5527691841125
+        },
+        {
+          "feature": "base_+16_A",
+          "gain": 535.9559211730957
+        },
+        {
+          "feature": "base_-16_A",
+          "gain": 534.3538594245911
+        },
+        {
+          "feature": "base_+14_A",
+          "gain": 525.6051092147827
+        },
+        {
+          "feature": "base_-16_C",
+          "gain": 516.7636897563934
+        },
+        {
+          "feature": "base_+13_A",
+          "gain": 513.5919108390808
+        },
+        {
+          "feature": "base_+15_G",
+          "gain": 513.2711482048035
+        },
+        {
+          "feature": "base_+20_C",
+          "gain": 499.0613913536072
+        },
+        {
+          "feature": "base_+21_A",
+          "gain": 488.78124022483826
+        },
+        {
+          "feature": "base_+5_C",
+          "gain": 464.58138847351074
+        },
+        {
+          "feature": "base_-9_A",
+          "gain": 457.7025809288025
+        },
+        {
+          "feature": "base_+9_G",
+          "gain": 452.3007206916809
+        },
+        {
+          "feature": "base_+12_G",
+          "gain": 449.7710886001587
+        },
+        {
+          "feature": "base_+14_G",
+          "gain": 449.6229782104492
+        },
+        {
+          "feature": "base_+17_G",
+          "gain": 443.7659983634949
+        },
+        {
+          "feature": "codon_TAG",
+          "gain": 436.80052971839905
+        },
+        {
+          "feature": "base_-18_T",
+          "gain": 427.16532039642334
+        },
+        {
+          "feature": "base_+6_C",
+          "gain": 414.3199586868286
+        },
+        {
+          "feature": "base_+1_A",
+          "gain": 403.8673105239868
+        },
+        {
+          "feature": "base_-15_T",
+          "gain": 402.08743929862976
+        },
+        {
+          "feature": "fraction_all_splice_gt_ag",
+          "gain": 394.53558111190796
+        },
+        {
+          "feature": "base_-12_T",
+          "gain": 368.8763403892517
+        },
+        {
+          "feature": "mean_gc_ag",
+          "gain": 272.8561100959778
+        },
+        {
+          "feature": "base_+2_A",
+          "gain": 233.18915128707886
+        },
+        {
+          "feature": "base_+1_G",
+          "gain": 88.92151927947998
+        },
+        {
+          "feature": "base_+2_G",
+          "gain": 52.33086061477661
+        },
+        {
+          "feature": "support_genes",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_orf_valid",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_sequence_complete",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_start_atg",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_stop_valid",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_length_multiple_of_three",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_no_internal_inframe_stop",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_phase_consistent",
+          "gain": 0.0
+        },
+        {
+          "feature": "fraction_splice_recognized",
+          "gain": 0.0
+        },
+        {
+          "feature": "mean_at_ac",
+          "gain": 0.0
+        },
+        {
+          "feature": "mean_other_splice",
+          "gain": 0.0
+        },
+        {
+          "feature": "declared_codon_match_fraction",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+0_A",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+0_C",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+0_G",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+1_C",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+1_T",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+2_C",
+          "gain": 0.0
+        },
+        {
+          "feature": "base_+2_T",
+          "gain": 0.0
+        }
+      ],
+      "cross_fitted_precision_operating_points": [
+        {
+          "target_precision": 0.8,
+          "method": "threshold fitted on the other chromosome folds",
+          "precision": 0.8000576099089043,
+          "recall": 0.9351851851851852,
+          "selected_labeled_sites": 27773,
+          "true_positive_sites": 22220,
+          "folds": [
+            {
+              "fold": 0,
+              "threshold_fitted_without_held_fold": 0.31009556447921083,
+              "threshold_fit": {
+                "target_precision": 0.8,
+                "threshold": 0.31009556447921083,
+                "precision": 0.8,
+                "recall": 0.9322210636079249,
+                "selected_labeled_sites": 20115,
+                "true_positive_sites": 16092
+              },
+              "held_labeled_sites": 9325,
+              "held_positive_sites": 6498,
+              "selected_labeled_sites": 7612,
+              "true_positive_sites": 6113,
+              "precision": 0.8030740935365213,
+              "recall": 0.940751000307787
+            },
+            {
+              "fold": 1,
+              "threshold_fitted_without_held_fold": 0.3072275753714777,
+              "threshold_fit": {
+                "target_precision": 0.8,
+                "threshold": 0.3072275753714777,
+                "precision": 0.800009532434107,
+                "recall": 0.937919088064372,
+                "selected_labeled_sites": 20981,
+                "true_positive_sites": 16785
+              },
+              "held_labeled_sites": 8713,
+              "held_positive_sites": 5864,
+              "selected_labeled_sites": 6865,
+              "true_positive_sites": 5458,
+              "precision": 0.795047341587764,
+              "recall": 0.9307639836289222
+            },
+            {
+              "fold": 2,
+              "threshold_fitted_without_held_fold": 0.31037187968877644,
+              "threshold_fit": {
+                "target_precision": 0.8,
+                "threshold": 0.31037187968877644,
+                "precision": 0.8,
+                "recall": 0.9343563512361467,
+                "selected_labeled_sites": 23290,
+                "true_positive_sites": 18632
+              },
+              "held_labeled_sites": 5524,
+              "held_positive_sites": 3819,
+              "selected_labeled_sites": 4431,
+              "true_positive_sites": 3573,
+              "precision": 0.8063642518618822,
+              "recall": 0.9355852317360566
+            },
+            {
+              "fold": 3,
+              "threshold_fitted_without_held_fold": 0.31009556447921083,
+              "threshold_fit": {
+                "target_precision": 0.8,
+                "threshold": 0.31009556447921083,
+                "precision": 0.8,
+                "recall": 0.9338329654535188,
+                "selected_labeled_sites": 22740,
+                "true_positive_sites": 18192
+              },
+              "held_labeled_sites": 6080,
+              "held_positive_sites": 4279,
+              "selected_labeled_sites": 4987,
+              "true_positive_sites": 4013,
+              "precision": 0.8046921997192701,
+              "recall": 0.9378359429773312
+            },
+            {
+              "fold": 4,
+              "threshold_fitted_without_held_fold": 0.3069448049554198,
+              "threshold_fit": {
+                "target_precision": 0.8,
+                "threshold": 0.3069448049554198,
+                "precision": 0.8000166791760487,
+                "recall": 0.9377321603128055,
+                "selected_labeled_sites": 23982,
+                "true_positive_sites": 19186
+              },
+              "held_labeled_sites": 4899,
+              "held_positive_sites": 3300,
+              "selected_labeled_sites": 3878,
+              "true_positive_sites": 3063,
+              "precision": 0.7898401237751418,
+              "recall": 0.9281818181818182
+            }
+          ]
+        },
+        {
+          "target_precision": 0.85,
+          "method": "threshold fitted on the other chromosome folds",
+          "precision": 0.850049850448654,
+          "recall": 0.8970959595959596,
+          "selected_labeled_sites": 25075,
+          "true_positive_sites": 21315,
+          "folds": [
+            {
+              "fold": 0,
+              "threshold_fitted_without_held_fold": 0.3781291593228689,
+              "threshold_fit": {
+                "target_precision": 0.85,
+                "threshold": 0.3781291593228689,
+                "precision": 0.8500247756427903,
+                "recall": 0.894392306801066,
+                "selected_labeled_sites": 18163,
+                "true_positive_sites": 15439
+              },
+              "held_labeled_sites": 9325,
+              "held_positive_sites": 6498,
+              "selected_labeled_sites": 6845,
+              "true_positive_sites": 5848,
+              "precision": 0.8543462381300219,
+              "recall": 0.8999692212988611
+            },
+            {
+              "fold": 1,
+              "threshold_fitted_without_held_fold": 0.3738916727337597,
+              "threshold_fit": {
+                "target_precision": 0.85,
+                "threshold": 0.3738916727337597,
+                "precision": 0.8500079026394816,
+                "recall": 0.9015422440768887,
+                "selected_labeled_sites": 18981,
+                "true_positive_sites": 16134
+              },
+              "held_labeled_sites": 8713,
+              "held_positive_sites": 5864,
+              "selected_labeled_sites": 6161,
+              "true_positive_sites": 5209,
+              "precision": 0.8454796299302061,
+              "recall": 0.8883015006821282
+            },
+            {
+              "fold": 2,
+              "threshold_fitted_without_held_fold": 0.377812154969852,
+              "threshold_fit": {
+                "target_precision": 0.85,
+                "threshold": 0.377812154969852,
+                "precision": 0.8500357398141529,
+                "recall": 0.8945388897246879,
+                "selected_labeled_sites": 20985,
+                "true_positive_sites": 17838
+              },
+              "held_labeled_sites": 5524,
+              "held_positive_sites": 3819,
+              "selected_labeled_sites": 4033,
+              "true_positive_sites": 3452,
+              "precision": 0.8559385073146542,
+              "recall": 0.9039015449070438
+            },
+            {
+              "fold": 3,
+              "threshold_fitted_without_held_fold": 0.37528647883612265,
+              "threshold_fit": {
+                "target_precision": 0.85,
+                "threshold": 0.37528647883612265,
+                "precision": 0.8500073095853029,
+                "recall": 0.8953852471639033,
+                "selected_labeled_sites": 20521,
+                "true_positive_sites": 17443
+              },
+              "held_labeled_sites": 6080,
+              "held_positive_sites": 4279,
+              "selected_labeled_sites": 4578,
+              "true_positive_sites": 3883,
+              "precision": 0.8481869812145042,
+              "recall": 0.9074550128534704
+            },
+            {
+              "fold": 4,
+              "threshold_fitted_without_held_fold": 0.37476633912013757,
+              "threshold_fit": {
+                "target_precision": 0.85,
+                "threshold": 0.37476633912013757,
+                "precision": 0.85,
+                "recall": 0.8998533724340176,
+                "selected_labeled_sites": 21660,
+                "true_positive_sites": 18411
+              },
+              "held_labeled_sites": 4899,
+              "held_positive_sites": 3300,
+              "selected_labeled_sites": 3458,
+              "true_positive_sites": 2923,
+              "precision": 0.8452862926547137,
+              "recall": 0.8857575757575757
+            }
+          ]
+        },
+        {
+          "target_precision": 0.9,
+          "method": "threshold fitted on the other chromosome folds",
+          "precision": 0.900146581974859,
+          "recall": 0.8529040404040404,
+          "selected_labeled_sites": 22513,
+          "true_positive_sites": 20265,
+          "folds": [
+            {
+              "fold": 0,
+              "threshold_fitted_without_held_fold": 0.472564500633162,
+              "threshold_fit": {
+                "target_precision": 0.9,
+                "threshold": 0.472564500633162,
+                "precision": 0.9000122609122119,
+                "recall": 0.8504808249333797,
+                "selected_labeled_sites": 16312,
+                "true_positive_sites": 14681
+              },
+              "held_labeled_sites": 9325,
+              "held_positive_sites": 6498,
+              "selected_labeled_sites": 6168,
+              "true_positive_sites": 5567,
+              "precision": 0.9025616083009079,
+              "recall": 0.8567251461988304
+            },
+            {
+              "fold": 1,
+              "threshold_fitted_without_held_fold": 0.46954540012239293,
+              "threshold_fit": {
+                "target_precision": 0.9,
+                "threshold": 0.46954540012239293,
+                "precision": 0.9000293513354858,
+                "recall": 0.8567277603933839,
+                "selected_labeled_sites": 17035,
+                "true_positive_sites": 15332
+              },
+              "held_labeled_sites": 8713,
+              "held_positive_sites": 5864,
+              "selected_labeled_sites": 5506,
+              "true_positive_sites": 4942,
+              "precision": 0.8975662913185616,
+              "recall": 0.8427694406548432
+            },
+            {
+              "fold": 2,
+              "threshold_fitted_without_held_fold": 0.47393494420684495,
+              "threshold_fit": {
+                "target_precision": 0.9,
+                "threshold": 0.47393494420684495,
+                "precision": 0.9000212269157292,
+                "recall": 0.850509001554586,
+                "selected_labeled_sites": 18844,
+                "true_positive_sites": 16960
+              },
+              "held_labeled_sites": 5524,
+              "held_positive_sites": 3819,
+              "selected_labeled_sites": 3607,
+              "true_positive_sites": 3277,
+              "precision": 0.9085112281674522,
+              "recall": 0.8580780308981408
+            },
+            {
+              "fold": 3,
+              "threshold_fitted_without_held_fold": 0.46927557053254737,
+              "threshold_fit": {
+                "target_precision": 0.9,
+                "threshold": 0.46927557053254737,
+                "precision": 0.9000217108119843,
+                "recall": 0.8511883373543453,
+                "selected_labeled_sites": 18424,
+                "true_positive_sites": 16582
+              },
+              "held_labeled_sites": 6080,
+              "held_positive_sites": 4279,
+              "selected_labeled_sites": 4125,
+              "true_positive_sites": 3696,
+              "precision": 0.896,
+              "recall": 0.8637532133676092
+            },
+            {
+              "fold": 4,
+              "threshold_fitted_without_held_fold": 0.46954540012239293,
+              "threshold_fit": {
+                "target_precision": 0.9,
+                "threshold": 0.46954540012239293,
+                "precision": 0.9000205824843058,
+                "recall": 0.8548875855327468,
+                "selected_labeled_sites": 19434,
+                "true_positive_sites": 17491
+              },
+              "held_labeled_sites": 4899,
+              "held_positive_sites": 3300,
+              "selected_labeled_sites": 3107,
+              "true_positive_sites": 2783,
+              "precision": 0.8957193434180882,
+              "recall": 0.8433333333333334
+            }
+          ]
+        },
+        {
+          "target_precision": 0.95,
+          "method": "threshold fitted on the other chromosome folds",
+          "precision": 0.9502434570906878,
+          "recall": 0.788510101010101,
+          "selected_labeled_sites": 19716,
+          "true_positive_sites": 18735,
+          "folds": [
+            {
+              "fold": 0,
+              "threshold_fitted_without_held_fold": 0.6702324604512764,
+              "threshold_fit": {
+                "target_precision": 0.95,
+                "threshold": 0.6702324604512764,
+                "precision": 0.9500491780244485,
+                "recall": 0.7833970571196849,
+                "selected_labeled_sites": 14234,
+                "true_positive_sites": 13523
+              },
+              "held_labeled_sites": 9325,
+              "held_positive_sites": 6498,
+              "selected_labeled_sites": 5415,
+              "true_positive_sites": 5163,
+              "precision": 0.9534626038781163,
+              "recall": 0.7945521698984302
+            },
+            {
+              "fold": 1,
+              "threshold_fitted_without_held_fold": 0.6527765631353493,
+              "threshold_fit": {
+                "target_precision": 0.95,
+                "threshold": 0.6527765631353493,
+                "precision": 0.95,
+                "recall": 0.7952056325435851,
+                "selected_labeled_sites": 14980,
+                "true_positive_sites": 14231
+              },
+              "held_labeled_sites": 8713,
+              "held_positive_sites": 5864,
+              "selected_labeled_sites": 4854,
+              "true_positive_sites": 4585,
+              "precision": 0.9445817882159044,
+              "recall": 0.7818894952251023
+            },
+            {
+              "fold": 2,
+              "threshold_fitted_without_held_fold": 0.6721742463712871,
+              "threshold_fit": {
+                "target_precision": 0.95,
+                "threshold": 0.6721742463712871,
+                "precision": 0.9500484966052376,
+                "recall": 0.7859184594553934,
+                "selected_labeled_sites": 16496,
+                "true_positive_sites": 15672
+              },
+              "held_labeled_sites": 5524,
+              "held_positive_sites": 3819,
+              "selected_labeled_sites": 3136,
+              "true_positive_sites": 3002,
+              "precision": 0.9572704081632653,
+              "recall": 0.7860696517412935
+            },
+            {
+              "fold": 3,
+              "threshold_fitted_without_held_fold": 0.6579331362168453,
+              "threshold_fit": {
+                "target_precision": 0.95,
+                "threshold": 0.6579331362168453,
+                "precision": 0.9500464828013635,
+                "recall": 0.7868692572249885,
+                "selected_labeled_sites": 16135,
+                "true_positive_sites": 15329
+              },
+              "held_labeled_sites": 6080,
+              "held_positive_sites": 4279,
+              "selected_labeled_sites": 3638,
+              "true_positive_sites": 3442,
+              "precision": 0.9461242440901594,
+              "recall": 0.8043935498948352
+            },
+            {
+              "fold": 4,
+              "threshold_fitted_without_held_fold": 0.6656587579776575,
+              "threshold_fit": {
+                "target_precision": 0.95,
+                "threshold": 0.6656587579776575,
+                "precision": 0.9500088116078247,
+                "recall": 0.7904203323558162,
+                "selected_labeled_sites": 17023,
+                "true_positive_sites": 16172
+              },
+              "held_labeled_sites": 4899,
+              "held_positive_sites": 3300,
+              "selected_labeled_sites": 2673,
+              "true_positive_sites": 2543,
+              "precision": 0.9513655069210625,
+              "recall": 0.7706060606060606
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "evaluation_revision": {
+    "average_precision": "tie-aware; equal scores form one threshold group",
+    "threshold_evaluation": "each chromosome fold uses a threshold fitted only on the other folds",
+    "models_retrained": false
+  }
+}

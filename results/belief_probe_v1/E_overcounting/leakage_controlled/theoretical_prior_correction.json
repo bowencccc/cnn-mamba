@@ -1,0 +1,382 @@
+{
+  "6": {
+    "noncoding_weight": 0.1,
+    "temperature": 6.0,
+    "training_chromosomes": [
+      "2L",
+      "2R",
+      "3R",
+      "4",
+      "Y",
+      "X"
+    ],
+    "target_chromosomes": [
+      "3L"
+    ],
+    "training_observed": {
+      "coding_positions": 17775364,
+      "noncoding_positions": 95552136,
+      "phase_positions": [
+        5924996,
+        5925186,
+        5925182
+      ],
+      "phase_fraction_within_coding": [
+        0.3333262823759896,
+        0.33333697132728196,
+        0.33333674629672844
+      ],
+      "empirical_class_prior": [
+        0.8431504798041075,
+        0.05228206745935453,
+        0.05228374401623613,
+        0.05228370872030178
+      ],
+      "coding_fraction": 0.15684952019589243,
+      "log_prior_noncoding_over_coding": 1.6818585715451388
+    },
+    "implicit_training_prior": [
+      0.09090909090909091,
+      0.30302389306908145,
+      0.303033610297529,
+      0.30303340572429854
+    ],
+    "target_observed": {
+      "coding_positions": 4350481,
+      "noncoding_positions": 24939108,
+      "phase_positions": [
+        1450110,
+        1450173,
+        1450198
+      ],
+      "phase_fraction_within_coding": [
+        0.3333217637314127,
+        0.33333624488878355,
+        0.33334199137980375
+      ],
+      "empirical_class_prior": [
+        0.8514666422939564,
+        0.04950940076352727,
+        0.04951155169845504,
+        0.049512405244061294
+      ],
+      "coding_fraction": 0.14853335770604362,
+      "log_prior_noncoding_over_coding": 1.746150760073963
+    },
+    "unscaled_class_log_correction": [
+      2.23710031792431,
+      -1.8116490914560688,
+      -1.8116377144377835,
+      -1.8116198001793775
+    ],
+    "per_frame_bias_after_temperature": [
+      -0.674791568230063,
+      -0.6747896720603489,
+      -0.6747866863506146
+    ]
+  },
+  "7": {
+    "noncoding_weight": 0.1,
+    "temperature": 7.0,
+    "training_chromosomes": [
+      "2L",
+      "2R",
+      "3R",
+      "4",
+      "Y",
+      "X"
+    ],
+    "target_chromosomes": [
+      "3L"
+    ],
+    "training_observed": {
+      "coding_positions": 17775364,
+      "noncoding_positions": 95552136,
+      "phase_positions": [
+        5924996,
+        5925186,
+        5925182
+      ],
+      "phase_fraction_within_coding": [
+        0.3333262823759896,
+        0.33333697132728196,
+        0.33333674629672844
+      ],
+      "empirical_class_prior": [
+        0.8431504798041075,
+        0.05228206745935453,
+        0.05228374401623613,
+        0.05228370872030178
+      ],
+      "coding_fraction": 0.15684952019589243,
+      "log_prior_noncoding_over_coding": 1.6818585715451388
+    },
+    "implicit_training_prior": [
+      0.09090909090909091,
+      0.30302389306908145,
+      0.303033610297529,
+      0.30303340572429854
+    ],
+    "target_observed": {
+      "coding_positions": 4350481,
+      "noncoding_positions": 24939108,
+      "phase_positions": [
+        1450110,
+        1450173,
+        1450198
+      ],
+      "phase_fraction_within_coding": [
+        0.3333217637314127,
+        0.33333624488878355,
+        0.33334199137980375
+      ],
+      "empirical_class_prior": [
+        0.8514666422939564,
+        0.04950940076352727,
+        0.04951155169845504,
+        0.049512405244061294
+      ],
+      "coding_fraction": 0.14853335770604362,
+      "log_prior_noncoding_over_coding": 1.746150760073963
+    },
+    "unscaled_class_log_correction": [
+      2.23710031792431,
+      -1.8116490914560688,
+      -1.8116377144377835,
+      -1.8116198001793775
+    ],
+    "per_frame_bias_after_temperature": [
+      -0.5783927727686254,
+      -0.5783911474802991,
+      -0.5783885883005268
+    ]
+  },
+  "8": {
+    "noncoding_weight": 0.1,
+    "temperature": 8.0,
+    "training_chromosomes": [
+      "2L",
+      "2R",
+      "3R",
+      "4",
+      "Y",
+      "X"
+    ],
+    "target_chromosomes": [
+      "3L"
+    ],
+    "training_observed": {
+      "coding_positions": 17775364,
+      "noncoding_positions": 95552136,
+      "phase_positions": [
+        5924996,
+        5925186,
+        5925182
+      ],
+      "phase_fraction_within_coding": [
+        0.3333262823759896,
+        0.33333697132728196,
+        0.33333674629672844
+      ],
+      "empirical_class_prior": [
+        0.8431504798041075,
+        0.05228206745935453,
+        0.05228374401623613,
+        0.05228370872030178
+      ],
+      "coding_fraction": 0.15684952019589243,
+      "log_prior_noncoding_over_coding": 1.6818585715451388
+    },
+    "implicit_training_prior": [
+      0.09090909090909091,
+      0.30302389306908145,
+      0.303033610297529,
+      0.30303340572429854
+    ],
+    "target_observed": {
+      "coding_positions": 4350481,
+      "noncoding_positions": 24939108,
+      "phase_positions": [
+        1450110,
+        1450173,
+        1450198
+      ],
+      "phase_fraction_within_coding": [
+        0.3333217637314127,
+        0.33333624488878355,
+        0.33334199137980375
+      ],
+      "empirical_class_prior": [
+        0.8514666422939564,
+        0.04950940076352727,
+        0.04951155169845504,
+        0.049512405244061294
+      ],
+      "coding_fraction": 0.14853335770604362,
+      "log_prior_noncoding_over_coding": 1.746150760073963
+    },
+    "unscaled_class_log_correction": [
+      2.23710031792431,
+      -1.8116490914560688,
+      -1.8116377144377835,
+      -1.8116198001793775
+    ],
+    "per_frame_bias_after_temperature": [
+      -0.5060936761725473,
+      -0.5060922540452617,
+      -0.5060900147629609
+    ]
+  },
+  "9": {
+    "noncoding_weight": 0.1,
+    "temperature": 9.0,
+    "training_chromosomes": [
+      "2L",
+      "2R",
+      "3R",
+      "4",
+      "Y",
+      "X"
+    ],
+    "target_chromosomes": [
+      "3L"
+    ],
+    "training_observed": {
+      "coding_positions": 17775364,
+      "noncoding_positions": 95552136,
+      "phase_positions": [
+        5924996,
+        5925186,
+        5925182
+      ],
+      "phase_fraction_within_coding": [
+        0.3333262823759896,
+        0.33333697132728196,
+        0.33333674629672844
+      ],
+      "empirical_class_prior": [
+        0.8431504798041075,
+        0.05228206745935453,
+        0.05228374401623613,
+        0.05228370872030178
+      ],
+      "coding_fraction": 0.15684952019589243,
+      "log_prior_noncoding_over_coding": 1.6818585715451388
+    },
+    "implicit_training_prior": [
+      0.09090909090909091,
+      0.30302389306908145,
+      0.303033610297529,
+      0.30303340572429854
+    ],
+    "target_observed": {
+      "coding_positions": 4350481,
+      "noncoding_positions": 24939108,
+      "phase_positions": [
+        1450110,
+        1450173,
+        1450198
+      ],
+      "phase_fraction_within_coding": [
+        0.3333217637314127,
+        0.33333624488878355,
+        0.33334199137980375
+      ],
+      "empirical_class_prior": [
+        0.8514666422939564,
+        0.04950940076352727,
+        0.04951155169845504,
+        0.049512405244061294
+      ],
+      "coding_fraction": 0.14853335770604362,
+      "log_prior_noncoding_over_coding": 1.746150760073963
+    },
+    "unscaled_class_log_correction": [
+      2.23710031792431,
+      -1.8116490914560688,
+      -1.8116377144377835,
+      -1.8116198001793775
+    ],
+    "per_frame_bias_after_temperature": [
+      -0.4498610454867087,
+      -0.44985978137356597,
+      -0.44985779090040967
+    ]
+  },
+  "10": {
+    "noncoding_weight": 0.1,
+    "temperature": 10.0,
+    "training_chromosomes": [
+      "2L",
+      "2R",
+      "3R",
+      "4",
+      "Y",
+      "X"
+    ],
+    "target_chromosomes": [
+      "3L"
+    ],
+    "training_observed": {
+      "coding_positions": 17775364,
+      "noncoding_positions": 95552136,
+      "phase_positions": [
+        5924996,
+        5925186,
+        5925182
+      ],
+      "phase_fraction_within_coding": [
+        0.3333262823759896,
+        0.33333697132728196,
+        0.33333674629672844
+      ],
+      "empirical_class_prior": [
+        0.8431504798041075,
+        0.05228206745935453,
+        0.05228374401623613,
+        0.05228370872030178
+      ],
+      "coding_fraction": 0.15684952019589243,
+      "log_prior_noncoding_over_coding": 1.6818585715451388
+    },
+    "implicit_training_prior": [
+      0.09090909090909091,
+      0.30302389306908145,
+      0.303033610297529,
+      0.30303340572429854
+    ],
+    "target_observed": {
+      "coding_positions": 4350481,
+      "noncoding_positions": 24939108,
+      "phase_positions": [
+        1450110,
+        1450173,
+        1450198
+      ],
+      "phase_fraction_within_coding": [
+        0.3333217637314127,
+        0.33333624488878355,
+        0.33334199137980375
+      ],
+      "empirical_class_prior": [
+        0.8514666422939564,
+        0.04950940076352727,
+        0.04951155169845504,
+        0.049512405244061294
+      ],
+      "coding_fraction": 0.14853335770604362,
+      "log_prior_noncoding_over_coding": 1.746150760073963
+    },
+    "unscaled_class_log_correction": [
+      2.23710031792431,
+      -1.8116490914560688,
+      -1.8116377144377835,
+      -1.8116198001793775
+    ],
+    "per_frame_bias_after_temperature": [
+      -0.40487494093803783,
+      -0.40487380323620936,
+      -0.4048720118103687
+    ]
+  }
+}

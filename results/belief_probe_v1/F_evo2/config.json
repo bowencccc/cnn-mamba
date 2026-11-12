@@ -1,0 +1,51 @@
+{
+  "schema": "cnn_mamba_belief_probe_F_evo2_environment_check_v1",
+  "status": "stopped_at_environment_check",
+  "stop_rule": "No admission diagnostic or probes are run unless a valid Evo 2 forward pass succeeds.",
+  "date": "2026-11-10",
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 4070",
+    "compute_capability": "8.9",
+    "memory_mib": 12282,
+    "driver": "550.144.03"
+  },
+  "software": {
+    "python": "3.11.11",
+    "pytorch": "2.5.1+cu124",
+    "cuda_runtime": "12.4",
+    "cuda_toolkit": "12.4",
+    "transformer_engine": "2.4.0",
+    "vortex": "0.0.2",
+    "vortex_git_commit": "f243e8ec5da8374be082a77056c0a447e7fa9231",
+    "evo2_git_commit": "a796302818055b9710a6a2c4d7882a6243363fdd",
+    "flash_attention": "Vortex local flash_attn_2_cuda compiled successfully"
+  },
+  "models": {
+    "evo2_1b_base": {
+      "huggingface_repo": "arcinstitute/evo2_1b_base",
+      "huggingface_revision": "2279e1df422c991037470302360edd40d0d2ea1e",
+      "checkpoint_bytes": 2698327083,
+      "checkpoint_sha256": "8ffba7d0e6445a8f2c92d9ff1c4e772c7f73ca9179f5e0c699b8b0ca1b966f64",
+      "configured_max_context_nt": 8192,
+      "forward_status": "failed_before_first_forward",
+      "tested_context_nt": 512,
+      "failure": "Transformer Engine FP8 checkpoint metadata mismatch: checkpoint amax history length 16 versus runtime tensor length 1024.",
+      "speed_nt_per_second": null,
+      "peak_gpu_memory_mib": null
+    },
+    "evo2_7b_base": {
+      "huggingface_repo": "arcinstitute/evo2_7b_base",
+      "huggingface_revision": "074097e9dc788e8bfe045d6495b9f6153a7c6bfc",
+      "checkpoint_bytes": 13006429947,
+      "trained_context_nt": 8192,
+      "forward_status": "not_attempted_insufficient_vram",
+      "failure": "The 13.006 GB checkpoint alone exceeds the GPU's 12.576 GB physical memory before activations and runtime workspaces."
+    }
+  },
+  "downstream": {
+    "chr22_admission_diagnostic": "not_run",
+    "experiment_A_probe": "not_run",
+    "experiment_B_probe": "not_run",
+    "nucleotide_transformer_control": "not_run"
+  }
+}
