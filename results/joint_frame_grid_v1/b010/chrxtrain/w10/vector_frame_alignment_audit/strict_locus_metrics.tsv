@@ -1,0 +1,7 @@
+condition	method	frame_mapping	spatial_shift_bp	sn	pr	f1	predicted_loci	matched_loci	missed_loci	novel_loci
+literal_builtin_header_removed	UniAnn	(n-model_phase-1)%3	0	51.5	68.2	58.6850459	808	551	242	11
+literal_builtin_header_removed	EviAnn+UniAnn	(n-model_phase-1)%3	0	87.6	90.5	89.0263897	1008	937	53	21
+header_retained_direct_uniann	UniAnn	(n+1-model_phase-1)%3	1	80.3	79.8	80.0492192	1077	859	40	27
+header_retained_direct_uniann	EviAnn+UniAnn	(n+1-model_phase-1)%3	1	91.2	90.2	90.6972441	1077	976	24	30
+model_phase_aligned	UniAnn	(n-model_phase)%3	0	80.3	79.8	80.0492192	1077	859	40	27
+model_phase_aligned	EviAnn+UniAnn	(n-model_phase)%3	0	91.2	90.2	90.6972441	1077	976	24	30

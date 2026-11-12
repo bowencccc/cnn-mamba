@@ -179,6 +179,25 @@ The default coding-frame recipe is vector scaling followed by UniAnn's
 built-in-equivalent binary-odds transform (`T=3`) and non-CDS gate. The four
 primary donor/acceptor/start/stop scores are not scaled.
 
+### Required UniAnn TSV header convention
+
+The exported `*_joint_frame_probabilities.tsv` header is part of the tested
+CNN--Mamba/UniAnn interface. Pass that TSV to UniAnn **with its header intact**.
+Do not use `tail -n +2`, `sed 1d`, or another command that removes it.
+
+CNN--Mamba labels `frame0/frame1/frame2` as codon-nucleotide offsets. UniAnn
+commit `2f5c0ab` counts coding-score input rows instead of reading the TSV
+position column. The single header row supplies the required +1 counter offset,
+giving the effective mapping `(zero_based_position - model_phase) mod 3`.
+Removing the header rotates every exon-frame emission by one state and can
+silently change strict locus results. The canonical workflow validates this
+contract with `--require-cnn-mamba-tsv-header` before running UniAnn.
+
+This convention does not change the TSV format or UniAnn. It records and tests
+the exact interface used by the collaborator-facing workflow. See
+[`docs/UNIANN_FRAME_TSV_CONTRACT.md`](docs/UNIANN_FRAME_TSV_CONTRACT.md) for the
+derivation, regression values, and migration guidance.
+
 ## 4. Run the main steps manually
 
 Use the unified `cnn-mamba` command. Run `cnn-mamba COMMAND --help` for all
@@ -263,6 +282,31 @@ setting, but it is not a held-out chrX generalization test.
 Vector calibration and UniAnn emission construction require several connected
 steps. Use `configs/workflow.droso.example.json` as the canonical executable
 recipe instead of manually copying those commands.
+
+For a manual run, first export the headered TSV and then pass it directly to
+the evaluation wrapper:
+
+```bash
+cnn-mamba export-joint-frame \
+  --probabilities artifacts/joint_frame_predictions/droso/deployment/joint_frame_probabilities.npy \
+  --argmax artifacts/joint_frame_predictions/droso/deployment/joint_frame_argmax.npy \
+  --output artifacts/joint_frame_predictions/droso/deployment/chrX_plus_joint_frame_probabilities.tsv \
+  --chrom chrX \
+  --strand +
+
+cnn-mamba uniann-eval \
+  --uniann-root "$UNIANN_ROOT" \
+  --fasta data/raw/dmel_chrX.fa \
+  --coding-frame artifacts/joint_frame_predictions/droso/deployment/chrX_plus_joint_frame_probabilities.tsv \
+  --require-cnn-mamba-tsv-header \
+  --scores artifacts/scores/droso/deployment/chrX_plus_scores.tsv \
+  --reference-gtf data/raw/dmel_chrX_plus_CDS_reference.gtf \
+  --eviann-gff data/raw/dmel_chrX_plus_EviAnn_CDS.gff \
+  --output-dir results/droso/deployment/uniann
+```
+
+The wrapper deliberately leaves UniAnn unchanged. UniAnn performs its normal
+built-in binary-odds transform and non-CDS gate on the headered TSV.
 
 ## 5. Use a published checkpoint without training
 

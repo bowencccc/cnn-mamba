@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Stream chromosome-wide joint-frame probabilities into UniAnn emissions.
+"""Historical headerless joint-frame-to-UniAnn emission converter.
 
 The transformation intentionally matches UniAnn commit 2f5c0ab's
 ``convert_coding_frame.pl`` first six columns: independent binary-odds
 temperature 3 followed by UniAnn's frame/noncoding emission construction.
 The input probabilities may already have joint-softmax temperature scaling;
 that calibration is recorded in their adjacent metadata file.
+
+Do not use this script for new collaborator-facing CNN--Mamba runs.  Those runs
+must preserve the exported TSV header and let unchanged UniAnn convert it; see
+docs/UNIANN_FRAME_TSV_CONTRACT.md.  This historical converter uses UniAnn's
+headerless row convention and is not equivalent to that interface.
 """
 
 from __future__ import annotations

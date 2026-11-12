@@ -4,6 +4,11 @@
 The input array can contain scalar-temperature or vector-scaled softmax
 probabilities.  This converter applies neither the historical
 ``frame * (1 - noncoding)`` gate nor an additional binary-odds transform.
+
+This is a historical headerless converter, not the interface for new
+collaborator-facing runs. See docs/UNIANN_FRAME_TSV_CONTRACT.md. New runs
+preserve the exported TSV header and pass that file directly to unchanged
+UniAnn.
 """
 
 from __future__ import annotations

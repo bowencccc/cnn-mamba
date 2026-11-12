@@ -23,6 +23,24 @@
    directory, so cells can run concurrently. Do not run the same cell/regime
    twice at the same time.
 
+## UniAnn joint-frame TSV compatibility
+
+After updating the code on another server, keep every exported
+`*_joint_frame_probabilities.tsv` header intact. Do not preprocess it with
+`tail -n +2` or `sed 1d`. New runs should use:
+
+```bash
+cnn-mamba uniann-eval \
+  --coding-frame /path/to/chrX_plus_joint_frame_probabilities_vector.tsv \
+  --require-cnn-mamba-tsv-header \
+  ...
+```
+
+The validation flag fails immediately if the required header or one-based
+first position is missing. The TSV format and UniAnn itself are unchanged. See
+`docs/UNIANN_FRAME_TSV_CONTRACT.md` for the phase-mapping derivation and the
+strict-locus regression values.
+
 For code-only work, omit the checkpoint group. For evaluation from existing
 weights, transfer both raw and checkpoint groups but skip window generation and
 training.

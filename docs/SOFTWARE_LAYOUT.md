@@ -51,3 +51,11 @@ emissions then explicitly apply the selected built-in-equivalent transform:
 independent binary-odds scaling at `T=3` and the frame/non-CDS gate. Both stages
 are written into output metadata; the older joint-softmax `T=9` recipe remains
 only as a historical experiment.
+
+The collaborator-facing path exports a one-row-per-base TSV and passes it
+directly to unchanged UniAnn. Its header is intentionally preserved: UniAnn
+commit `2f5c0ab` counts input rows, and the header supplies the +1 offset needed
+to map CNN--Mamba codon-offset states to UniAnn genomic frames. The canonical
+wrapper validates this contract before execution. Headerless precomputed
+emissions are a separate low-level path and must not be substituted for the
+headered TSV in reproducibility runs. See `docs/UNIANN_FRAME_TSV_CONTRACT.md`.

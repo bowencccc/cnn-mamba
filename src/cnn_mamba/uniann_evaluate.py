@@ -8,6 +8,8 @@ import subprocess
 
 import pandas as pd
 
+from .uniann_compat import validate_header_compatible_joint_frame_tsv
+
 
 def run(command, cwd, log):
     command = [str(x) for x in command]
@@ -76,12 +78,33 @@ def main():
             "input; skips UniAnn's built-in converter."
         ),
     )
+    parser.add_argument(
+        "--require-cnn-mamba-tsv-header", action="store_true",
+        help=(
+            "Validate and preserve the CNN-Mamba four-state TSV header before "
+            "passing the file directly to UniAnn. Do not combine with "
+            "--precomputed-emissions."
+        ),
+    )
     parser.add_argument("--scores", type=Path, required=True)
     parser.add_argument("--reference-gtf", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--eviann-gff", type=Path,
                         help="plus-strand EviAnn GFF to evaluate EviAnn+UniAnn")
     args = parser.parse_args()
+    if args.require_cnn_mamba_tsv_header and args.precomputed_emissions:
+        parser.error(
+            "--require-cnn-mamba-tsv-header is for direct TSV conversion and "
+            "cannot be combined with --precomputed-emissions"
+        )
+    coding_frame_contract = None
+    if args.require_cnn_mamba_tsv_header:
+        try:
+            coding_frame_contract = validate_header_compatible_joint_frame_tsv(
+                args.coding_frame
+            )
+        except (OSError, ValueError, json.JSONDecodeError) as error:
+            parser.error(str(error))
     required = [args.fasta, args.coding_frame, args.scores, args.reference_gtf]
     if args.precomputed_emissions:
         required.append(args.precomputed_emissions)
@@ -146,6 +169,8 @@ def main():
                   "union_normalization": "each source normalized to GTF before concatenation",
                   "inputs": {key: str(value.resolve()) for key, value in inputs.items()},
                   "metrics": rows}
+    if coding_frame_contract is not None:
+        provenance["coding_frame_input_contract"] = coding_frame_contract
     (work / "provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")
     print(frame.to_string(index=False), flush=True)
 

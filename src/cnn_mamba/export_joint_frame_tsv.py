@@ -12,6 +12,11 @@ import time
 import numpy as np
 import pandas as pd
 
+from .uniann_compat import (
+    JOINT_FRAME_TSV_COLUMNS,
+    UNIANN_HEADER_COMPATIBILITY,
+)
+
 
 INTERNAL_CLASSES = ("noncoding", "frame0", "frame1", "frame2")
 OUTPUT_ORDER = (1, 2, 3, 0)
@@ -103,11 +108,9 @@ def main():
         "rows": length,
         "position_convention": "one-based genomic coordinate",
         "columns": [
-            "chrom", "position_1based", "strand",
-            "frame0_probability", "frame1_probability",
-            "frame2_probability", "noncoding_probability",
-            "predicted_state",
+            *JOINT_FRAME_TSV_COLUMNS,
         ],
+        "uniann_direct_input_compatibility": UNIANN_HEADER_COMPATIBILITY,
         "predicted_state_counts": class_counts,
         "maximum_probability_sum_error": maximum_probability_sum_error,
         "argmax_mismatches": argmax_mismatches,

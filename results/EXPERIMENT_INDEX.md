@@ -41,6 +41,17 @@ figures, CDS/frame metrics, and UniAnn/EviAnn+UniAnn strict locus comparison.
 The best four-state UniAnn-only setting was noncoding weight 0.10: Sn 80.4,
 Pr 79.6, F1 80.00.
 
+### Joint-frame TSV alignment notice
+
+CNN--Mamba four-state TSVs must retain their header when passed directly to
+UniAnn commit `2f5c0ab`. The header supplies the row-counter offset required by
+the model's codon-offset phase convention. Headerless vector + built-in results
+under `droso_small_window_v1_four_state_t9/report/` are historical,
+phase-misaligned diagnostics and must not be reported as the vector-scaling
+result. The audited 10 kb result with the header retained is UniAnn Sn 80.3,
+Pr 79.8, F1 80.05 and EviAnn+UniAnn Sn 91.2, Pr 90.2, F1 90.70. See
+`docs/UNIANN_FRAME_TSV_CONTRACT.md`.
+
 ## Protein-evidence source experiment
 
 The matched comparison holds the 10 kb CNN--Mamba-k7 architecture, chrX-in-

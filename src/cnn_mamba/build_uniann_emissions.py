@@ -37,7 +37,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
             "Convert four-state non-CDS/frame probabilities into UniAnn "
-            "out.ps.txt emissions without hidden scaling."
+            "out.ps.txt emissions without hidden scaling. This low-level "
+            "headerless path does not reproduce the collaborator-facing "
+            "headered TSV contract; use export-joint-frame plus uniann-eval "
+            "--require-cnn-mamba-tsv-header for canonical runs."
         )
     )
     parser.add_argument("--probabilities", type=Path, required=True)
@@ -146,6 +149,8 @@ def main() -> None:
         "fasta": str(args.fasta.resolve()),
         "source_metadata": metadata,
         "transformation": {
+            "frame_index_mapping": "(position - frame_index - 1) mod 3",
+            "cnn_mamba_headered_tsv_compatible": False,
             "binary_odds_temperature": args.binary_odds_temperature,
             "frame_noncoding_gate": args.frame_noncoding_gate,
             "frame_emission": "log(e * P(frame) + 1e-10)",

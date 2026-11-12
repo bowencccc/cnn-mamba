@@ -15,6 +15,10 @@ Rules for new scripts:
    them as command-line/configuration arguments.
 5. New reusable behavior belongs in `src/cnn_mamba/` with tests; scripts should
    only compose those public commands.
+6. New UniAnn runs from CNN--Mamba four-state probabilities must preserve the
+   exported TSV header and use `uniann-eval --require-cnn-mamba-tsv-header`.
+   Never strip the header. Headerless emission scripts are historical controls,
+   not the collaborator-facing interface.
 
 For a portable multi-stage example, see
 `configs/workflow.droso.example.json` and run:

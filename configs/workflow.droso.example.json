@@ -146,16 +146,14 @@
       ]
     },
     {
-      "name": "build-uniann-emissions",
-      "command": "build-uniann-emissions",
+      "name": "export-joint-frame-tsv",
+      "command": "export-joint-frame",
       "args": [
         "--probabilities", "${PROJECT_ROOT}/artifacts/joint_frame_predictions/software_example/deployment/joint_frame_probabilities.npy",
-        "--fasta", "${CHRX_FASTA}",
-        "--output", "${PROJECT_ROOT}/artifacts/uniann_emissions/software_example/deployment/out.ps.txt",
-        "--seqid", "NC_004354.4",
-        "--expected-calibration-method", "vector_scaling",
-        "--binary-odds-temperature", "3",
-        "--frame-noncoding-gate"
+        "--argmax", "${PROJECT_ROOT}/artifacts/joint_frame_predictions/software_example/deployment/joint_frame_argmax.npy",
+        "--output", "${PROJECT_ROOT}/artifacts/joint_frame_predictions/software_example/deployment/chrX_plus_joint_frame_probabilities.tsv",
+        "--chrom", "chrX",
+        "--strand", "+"
       ]
     },
     {
@@ -164,8 +162,8 @@
       "args": [
         "--uniann-root", "${UNIANN_ROOT}",
         "--fasta", "${CHRX_FASTA}",
-        "--coding-frame", "${PROJECT_ROOT}/artifacts/joint_frame_predictions/software_example/deployment/joint_frame_probabilities.npy",
-        "--precomputed-emissions", "${PROJECT_ROOT}/artifacts/uniann_emissions/software_example/deployment/out.ps.txt",
+        "--coding-frame", "${PROJECT_ROOT}/artifacts/joint_frame_predictions/software_example/deployment/chrX_plus_joint_frame_probabilities.tsv",
+        "--require-cnn-mamba-tsv-header",
         "--scores", "${PROJECT_ROOT}/artifacts/scores/software_example/deployment/chrX_plus_scores.tsv",
         "--reference-gtf", "${CHRX_REFERENCE}",
         "--eviann-gff", "${CHRX_EVIANN}",
