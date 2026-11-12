@@ -1,31 +1,45 @@
-# External data layout
+# Data layout
 
-Large inputs are deliberately not tracked by Git. Put files at these logical
-paths (real files or symlinks are both accepted):
+Large inputs are not stored in Git. Copy or symlink them under `data/raw/`, or
+pass their paths directly to the command-line tools.
 
-```
+## Minimum Drosophila training set
+
+```text
 data/raw/dmel_genome.fa
 data/raw/dmel_genome.fa.fai
 data/raw/dmel_eviann_pseudo_label.gff
-data/raw/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.pseudo_label.coleoptera.gff.gz
 data/raw/dmel_reference.gtf
+```
+
+## Additional Drosophila UniAnn evaluation files
+
+```text
 data/raw/dmel_chrX.fa
-data/raw/psauron_score_droso.csv
 data/raw/dmel_chrX_plus_CDS_reference.gtf
 data/raw/dmel_chrX_plus_EviAnn_CDS.gff
+```
+
+The maintained four-state workflow does not require PSAURON. Its vector-scaled
+`non-CDS/frame0/frame1/frame2` probabilities are used as UniAnn's coding-frame
+input. Drosophila and Human PSAURON files remain in the external manifest only
+for reproducing legacy experiments.
+
+## Minimum Human training set
+
+```text
 data/raw/human_grch38.fa
 data/raw/human_grch38.fa.fai
 data/raw/human_eviann_pseudo_label.gff
-data/raw/human_chess3.1.3.gtf
-data/raw/psauron_score_human.csv
+data/raw/human_refseq_grch38_p14.gff.gz
 ```
 
-The exact source files, byte sizes and SHA256 hashes from the original server
-are recorded in `external_manifest.tsv`. Run `python scripts/check_external.py`
-after filling the paths. `cnn-mamba-prepare-droso` creates NPZ windows under
-`data/processed/<window-id>/{train,val,test}`; those generated files are also
-ignored by Git.
+CHESS is optional and is used only by experiments that explicitly request it.
 
-The Human core group additionally includes the full Human PSAURON file and the
-current chr1-in-training CNN--Mamba-k7 checkpoint. Generated Human NPZ windows
-and chr1 score arrays are intentionally omitted because they can be regenerated.
+`external_manifest.tsv` records the exact source files, sizes and SHA256 hashes
+used in the published experiments. `scripts/check_external.py` validates that
+exact inventory; it is expected to report mismatches for different assembly or
+annotation releases.
+
+Generated NPZ windows are written under `data/processed/` and are ignored by
+Git.
