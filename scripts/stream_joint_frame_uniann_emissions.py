@@ -27,6 +27,10 @@ import tempfile
 import numpy as np
 
 
+FRAME_INDEX_OFFSET = -1
+CONVERTER_SCHEMA = "joint_frame_uniann_emissions_v1"
+
+
 def fingerprint(path: Path) -> dict[str, object]:
     stat = path.stat()
     return {"path": str(path.resolve()), "size": stat.st_size, "mtime_ns": stat.st_mtime_ns}
@@ -122,7 +126,7 @@ def convert(args):
                         emission = math.log(
                             math.e * frames[frame_index] * (1.0 - noncoding) + 1e-10
                         )
-                        coding_frame[(n - frame_index - 1) % 3] = emission
+                        coding_frame[(n - frame_index + FRAME_INDEX_OFFSET) % 3] = emission
                     nc_score = math.log(math.e * noncoding + 1e-10)
                     if n - 2 in stops:
                         coding_frame[(n - 2) % 3] = -1_000_000.0
@@ -142,7 +146,7 @@ def convert(args):
     validation = validate_out_ps_file(args.out_ps, length, args.output_columns)
     probability_metadata = args.index.parent / "metadata.json"
     manifest = {
-        "schema": "joint_frame_uniann_emissions_v1",
+        "schema": CONVERTER_SCHEMA,
         "interval": {"start0": args.start0, "end0": args.end0, "length": length},
         "seqid": args.seqid,
         "joint_frame_probabilities": fingerprint(args.index),
@@ -155,6 +159,9 @@ def convert(args):
             "uniann_builtin_temperature": 3.0,
             "frame_gate": "scaled_frame_probability * (1 - scaled_noncoding_probability)",
             "source_uniann_commit": "2f5c0ab",
+            "frame_index_mapping": (
+                f"(local_position0 - model_phase {FRAME_INDEX_OFFSET:+d}) mod 3"
+            ),
         },
         "output": fingerprint(args.out_ps),
         "validation": validation,

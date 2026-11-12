@@ -1,0 +1,16 @@
+experiment	window_bp	method	sn	pr	f1	predicted_loci	matched_loci	missed_loci	novel_loci
+drosophila_window	500	UniAnn	80.0	76.4	78.1585678	1120	856	31	61
+drosophila_window	500	EviAnn+UniAnn	91.7	86.8	89.1827451	1120	981	13	64
+drosophila_window	1000	UniAnn	79.6	77.2	78.3816327	1103	852	36	44
+drosophila_window	1000	EviAnn+UniAnn	91.3	87.8	89.5158012	1102	977	18	49
+drosophila_window	2000	UniAnn	81.1	78.2	79.6236033	1110	868	28	39
+drosophila_window	2000	EviAnn+UniAnn	91.9	88.5	90.1679601	1104	983	13	44
+drosophila_window	5000	UniAnn	70.7	73.5	72.0728155	1030	757	60	17
+drosophila_window	5000	EviAnn+UniAnn	89.6	89.7	89.6499721	1052	959	28	25
+drosophila_window	10000	UniAnn	80.3	79.8	80.0492192	1077	859	40	27
+drosophila_window	10000	EviAnn+UniAnn	91.2	90.2	90.6972437	1077	976	24	30
+coleoptera_retrained	10000	UniAnn	72.9	76.4	74.6089752	1021	780	87	29
+coleoptera_retrained	10000	EviAnn+UniAnn	82.7	86.2	84.4137359	1020	885	74	32
+human_chr1train_vector	10000	EviAnn	88.8	73.8	80.608	1216	906	28	228
+human_chr1train_vector	10000	UniAnn	46.4	42.1	44.146	1131	473	78	156
+human_chr1train_vector	10000	EviAnn+UniAnn	90.7	68.8	78.247	1309	925	15	325

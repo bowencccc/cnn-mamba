@@ -1,0 +1,5 @@
+method	calibration_and_transform	pr	sn	f1
+UniAnn	vector scaling + UniAnn built-in T=3	79.8	80.3	80.0492192
+UniAnn	joint softmax T=9	79.9	77.9	78.8873257
+EviAnn+UniAnn	vector scaling + UniAnn built-in T=3	90.2	91.2	90.6972437
+EviAnn+UniAnn	joint softmax T=9	90.1	90.7	90.3990044

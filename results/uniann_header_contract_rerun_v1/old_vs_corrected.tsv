@@ -1,0 +1,5 @@
+experiment	method	old_sn	old_pr	old_f1	corrected_sn	corrected_pr	corrected_f1	f1_change
+Drosophila_10kb	UniAnn	51.5	68.2	58.6850459	80.3	79.8	80.0492192	21.3641733
+Drosophila_10kb	EviAnn+UniAnn	87.6	90.5	89.0263897	91.2	90.2	90.6972437	1.6708540
+Coleoptera_retrained_10kb	UniAnn	38.2	59.6	46.5586912	72.9	76.4	74.6089752	28.0502840
+Coleoptera_retrained_10kb	EviAnn+UniAnn	70.7	85.7	77.4806905	82.7	86.2	84.4137359	6.9330454

@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -129,6 +130,42 @@ class WorkflowTests(unittest.TestCase):
             path.write_text("chrX\t1\t+\t0.3\t0.2\t0.1\t0.4\tframe0\n")
             with self.assertRaisesRegex(ValueError, "requires the original TSV header"):
                 validate_header_compatible_joint_frame_tsv(path)
+
+    def test_exported_joint_frame_slice_uses_local_one_based_positions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            probabilities = np.asarray(
+                [
+                    [0.4, 0.3, 0.2, 0.1],
+                    [0.1, 0.2, 0.3, 0.4],
+                    [0.25, 0.25, 0.25, 0.25],
+                    [0.5, 0.1, 0.2, 0.2],
+                ],
+                dtype=np.float32,
+            )
+            probability_path = root / "joint_frame_probabilities.npy"
+            argmax_path = root / "joint_frame_argmax.npy"
+            output = root / "chunk.tsv"
+            np.save(probability_path, probabilities)
+            np.save(argmax_path, probabilities.argmax(axis=1).astype(np.uint8))
+            previous = sys.argv
+            try:
+                sys.argv = [
+                    "export-joint-frame",
+                    "--probabilities", str(probability_path),
+                    "--argmax", str(argmax_path),
+                    "--output", str(output),
+                    "--start0", "1",
+                    "--end0", "3",
+                ]
+                export_joint_frame()
+            finally:
+                sys.argv = previous
+            lines = output.read_text().splitlines()
+            sentinel = json.loads(Path(str(output) + ".complete.json").read_text())
+        self.assertEqual(lines[0], JOINT_FRAME_TSV_HEADER)
+        self.assertEqual([line.split("\t")[1] for line in lines[1:]], ["1", "2"])
+        self.assertEqual(sentinel["source_interval_zero_based_half_open"], [1, 3])
 
 
 if __name__ == "__main__":

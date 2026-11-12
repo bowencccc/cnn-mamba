@@ -60,6 +60,21 @@ unchanged site scores, UniAnn built-in transform, and strict comparison gives:
 The header-removed values are phase-misaligned and must not be reported as the
 vector-scaling result.
 
+The corrected Drosophila window comparison (vector scaling, unchanged four
+site scores, UniAnn built-in transform, and strict locus comparison) is:
+
+| Window | UniAnn Sn | UniAnn Pr | UniAnn F1 | EviAnn+UniAnn Sn | EviAnn+UniAnn Pr | EviAnn+UniAnn F1 |
+|---:|---:|---:|---:|---:|---:|---:|
+| 500 bp | 80.0 | 76.4 | 78.16 | 91.7 | 86.8 | 89.18 |
+| 1 kb | 79.6 | 77.2 | 78.38 | 91.3 | 87.8 | 89.52 |
+| 2 kb | 81.1 | 78.2 | 79.62 | 91.9 | 88.5 | 90.17 |
+| 5 kb | 70.7 | 73.5 | 72.07 | 89.6 | 89.7 | 89.65 |
+| 10 kb | 80.3 | 79.8 | 80.05 | 91.2 | 90.2 | 90.70 |
+
+These rows replace only the earlier NPY-to-headerless-emission window results.
+Training losses, candidate-level AUPRC/PR--Sn curves, and any UniAnn run that
+consumed the original one-header TSV are not changed by this correction.
+
 ## Canonical commands
 
 Use `cnn-mamba export-joint-frame` to create the TSV. It always writes the
@@ -97,3 +112,7 @@ The first line must match the header above and the second line must begin with
 Historical runs that generated `out.ps.txt` directly from NPY files must be
 audited for their frame mapping before reuse. The reliable discriminator is
 the recorded mapping: CNN--Mamba phases require `(position-model_phase) mod 3`.
+The coordinate-safe Human chunk adapter records schema
+`joint_frame_header_aligned_uniann_emissions_v1` and uses that mapping; the
+legacy schema `joint_frame_uniann_emissions_v1` uses the headerless mapping and
+must not be used to represent a collaborator-facing headered-TSV run.

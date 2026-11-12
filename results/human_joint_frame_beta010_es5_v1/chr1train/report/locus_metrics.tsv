@@ -1,0 +1,4 @@
+method	precision	sensitivity	F1	matching_loci	query_loci
+EviAnn	0.738	0.888	0.80608	906	1216
+UniAnn	0.421	0.464	0.44146	473	1131
+EviAnn + UniAnn	0.688	0.907	0.78247	925	1309

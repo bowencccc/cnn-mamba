@@ -30,6 +30,14 @@ def main():
     parser.add_argument("--chrom", default="chrX")
     parser.add_argument("--strand", choices=("+", "-"), default="+")
     parser.add_argument("--chunk-size", type=int, default=250_000)
+    parser.add_argument(
+        "--start0", type=int, default=0,
+        help="First source-array row to export; output positions still start at 1.",
+    )
+    parser.add_argument(
+        "--end0", type=int,
+        help="Exclusive source-array row to export; default is the array length.",
+    )
     args = parser.parse_args()
 
     if args.chunk_size < 1:
@@ -45,15 +53,21 @@ def main():
         raise RuntimeError(
             f"expected probability shape [length, 4], got {probabilities.shape}"
         )
-    if argmax.shape != (probabilities.shape[0],):
+    total_length = probabilities.shape[0]
+    if argmax.shape != (total_length,):
         raise RuntimeError(
-            f"argmax shape {argmax.shape} does not match {probabilities.shape[0]}"
+            f"argmax shape {argmax.shape} does not match {total_length}"
+        )
+    end0 = total_length if args.end0 is None else args.end0
+    if not 0 <= args.start0 < end0 <= total_length:
+        parser.error(
+            f"invalid source interval [{args.start0}, {end0}) for length {total_length}"
         )
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     partial = args.output.with_name(args.output.name + ".partial")
     started = time.time()
-    length = probabilities.shape[0]
+    length = end0 - args.start0
     class_counts = {name: 0 for name in INTERNAL_CLASSES}
     maximum_probability_sum_error = 0.0
     argmax_mismatches = 0
@@ -61,8 +75,10 @@ def main():
     with partial.open("w") as handle:
         for start in range(0, length, args.chunk_size):
             end = min(length, start + args.chunk_size)
-            values = np.asarray(probabilities[start:end], dtype=np.float32)
-            saved_argmax = np.asarray(argmax[start:end], dtype=np.uint8)
+            source_start = args.start0 + start
+            source_end = args.start0 + end
+            values = np.asarray(probabilities[source_start:source_end], dtype=np.float32)
+            saved_argmax = np.asarray(argmax[source_start:source_end], dtype=np.uint8)
             calculated_argmax = values.argmax(axis=1).astype(np.uint8)
             maximum_probability_sum_error = max(
                 maximum_probability_sum_error,
@@ -102,6 +118,7 @@ def main():
         "output": str(args.output.resolve()),
         "source_probabilities": str(args.probabilities.resolve()),
         "source_argmax": str(args.argmax.resolve()),
+        "source_interval_zero_based_half_open": [args.start0, end0],
         "source_internal_class_order": list(INTERNAL_CLASSES),
         "chromosome": args.chrom,
         "strand": args.strand,

@@ -45,11 +45,12 @@ Pr 79.6, F1 80.00.
 
 CNN--Mamba four-state TSVs must retain their header when passed directly to
 UniAnn commit `2f5c0ab`. The header supplies the row-counter offset required by
-the model's codon-offset phase convention. Headerless vector + built-in results
-under `droso_small_window_v1_four_state_t9/report/` are historical,
-phase-misaligned diagnostics and must not be reported as the vector-scaling
-result. The audited 10 kb result with the header retained is UniAnn Sn 80.3,
-Pr 79.8, F1 80.05 and EviAnn+UniAnn Sn 91.2, Pr 90.2, F1 90.70. See
+the model's codon-offset phase convention. The vector + built-in plot and TSV
+under `droso_small_window_v1_four_state_t9/report/` were regenerated from the
+header-preserving runs on 2026-11-12; they supersede the earlier headerless
+NPY-emission values. The audited 10 kb result is UniAnn Sn 80.3, Pr 79.8,
+F1 80.05 and EviAnn+UniAnn Sn 91.2, Pr 90.2, F1 90.70. Training metrics and
+candidate PR--Sn/AUPRC results were not affected. See
 `docs/UNIANN_FRAME_TSV_CONTRACT.md`.
 
 ## Protein-evidence source experiment
@@ -64,3 +65,18 @@ The cross-annotation diagnostic is also informative: augmenting the sparse
 Coleoptera-evidence EviAnn GFF with the stronger Drosophila-evidence model gave
 strict locus Sn 87.2, Pr 88.3 and F1 87.747. This exceeded retraining on the
 sparser Coleoptera pseudo-labels, consistent with false-negative label noise.
+
+The corrected direct-TSV Coleoptera retrained-model evaluation with vector
+scaling plus UniAnn's built-in transform gives UniAnn Sn 72.9, Pr 76.4,
+F1 74.61 and EviAnn+UniAnn Sn 82.7, Pr 86.2, F1 84.41. These values supersede
+the earlier headerless-emission vector result; the joint-softmax T=9 result
+above was produced through a separate header-aware path and remains valid.
+
+## Corrected Human vector evaluation
+
+The chr1-included epoch-10 Human deployment model was rerun with vector-scaled
+four-state probabilities and the header-aligned chunk adapter. Strict chr1+
+locus results are UniAnn Sn 46.4, Pr 42.1, F1 44.146 and EviAnn+UniAnn Sn 90.7,
+Pr 68.8, F1 78.247. EviAnn-only is Sn 88.8, Pr 73.8, F1 80.608. This is a
+deployment diagnostic rather than held-out evaluation, and augmentation does
+not improve Human locus F1.

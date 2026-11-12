@@ -7,7 +7,7 @@ uniann_root="${UNIANN_ROOT:-$repo_dir/../UniAnn}"
 chrx_fasta="$repo_dir/data/raw/dmel_chrX.fa"
 reference="$repo_dir/data/raw/dmel_chrX_plus_CDS_reference.gtf"
 eviann="$repo_dir/data/raw/dmel_chrX_plus_EviAnn_CDS.gff"
-log_dir="$repo_dir/results/vector_builtin_t3_comparison_v1"
+log_dir="$repo_dir/results/vector_builtin_t3_headered_v1"
 
 mkdir -p "$log_dir"
 exec > >(tee -a "$log_dir/launcher.log") 2>&1
@@ -46,14 +46,14 @@ evaluate_one \
   w10 \
   "$repo_dir/artifacts/joint_frame_predictions/joint_frame_grid_v1/b010/chrxtrain/w10/chrX_plus_vector_scaled" \
   "$repo_dir/artifacts/scores/joint_frame_grid_v1/b010/chrxtrain/w10/chrX_plus_scores.tsv" \
-  "$repo_dir/work/uniann/vector_builtin_t3_comparison_v1/w10"
+  "$repo_dir/work/uniann/vector_builtin_t3_headered_v1/w10"
 
 for cell in w0p5 w1 w2 w5; do
   evaluate_one \
     "$cell" \
     "$repo_dir/artifacts/joint_frame_predictions/droso_small_window_v1_four_state_vector/chrxtrain/$cell/chrX_plus" \
     "$repo_dir/artifacts/scores/droso_small_window_v1/chrxtrain/$cell/chrX_plus_scores.tsv" \
-    "$repo_dir/work/uniann/droso_small_window_v1_four_state_vector_builtin_t3/$cell"
+    "$repo_dir/work/uniann/droso_small_window_v1_four_state_vector_builtin_t3_headered_v1/$cell"
 done
 
 echo "[$(date --iso-8601=seconds)] vector + built-in-equivalent comparison complete"

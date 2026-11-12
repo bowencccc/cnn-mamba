@@ -1,0 +1,11 @@
+result_group	header_path	status	action
+Drosophila 0.5/1/2/5/10 kb vector+built-in	NPY to headerless legacy emissions	affected	rerun_complete
+Drosophila 10 kb canonical vector+built-in	NPY to headerless legacy emissions	affected	rerun_complete_and_canonical_table_replaced
+Drosophila small-window joint-T9 no-gate diagnostic	NPY to headerless legacy emissions	affected	retired_noncanonical_diagnostic
+Drosophila small-window raw no-gate diagnostic	NPY to headerless legacy emissions	affected	retired_noncanonical_diagnostic
+Coleoptera retrained vector+built-in	NPY to headerless legacy emissions	affected	rerun_complete_and_canonical_table_replaced
+Human chr1 vector+built-in	NPY to headerless legacy chunk emissions	affected	rerun_complete_with_header_aligned_chunk_adapter
+Model training/loss/checkpoints	not_applicable	unaffected	keep
+Four-task candidate AUPRC and PR-Sn	not_applicable	unaffected	keep
+PSAURON coding-frame experiments	independent_input	unaffected_by_this_bug	keep
+Header-aware scaling grids	original TSV header consumed before conversion	unaffected	keep

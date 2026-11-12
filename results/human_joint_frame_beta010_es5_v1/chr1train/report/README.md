@@ -23,19 +23,26 @@ not independently selected deployment thresholds.
 
 ## Annotation-level evaluation
 
-Human chr1 is decoded in 50 gene-aware chunks with 1 Mb context. Authenticated
-PSAURON emissions are reused, predictions are assigned by transcript-span
-midpoint, artificial context-edge predictions are rejected, and duplicates are
-merged with `gffread -M`. All 1,020 RefSeq plus-strand CDS loci are eligible.
-Comparisons use `gffcompare --strict-match -e 0`.
+Human chr1 is decoded in 50 gene-aware chunks with 1 Mb context. The input is
+the CNN--Mamba vector-scaled four-state head; PSAURON is not used. The chunk
+adapter uses the header-aligned `(position-model_phase) mod 3` mapping,
+predictions are assigned by transcript-span midpoint, artificial context-edge
+predictions are rejected, and duplicates are merged with `gffread -M`. All
+1,020 RefSeq plus-strand CDS loci are eligible. Comparisons use
+`gffcompare --strict-match -e 0`.
 
 | Method | Locus PR | Locus SN | Locus F1 | Matching loci | Query loci |
 |---|---:|---:|---:|---:|---:|
 | EviAnn | 73.8% | 88.8% | 80.6% | 906 | 1,216 |
-| UniAnn | 42.1% | 45.5% | 43.7% | 464 | 1,108 |
-| EviAnn + UniAnn | 68.2% | 90.6% | 77.8% | 924 | 1,308 |
+| UniAnn | 42.1% | 46.4% | 44.1% | 473 | 1,131 |
+| EviAnn + UniAnn | 68.8% | 90.7% | 78.2% | 925 | 1,309 |
 
 These corrected union results normalize EviAnn and UniAnn separately to the
 same annotation syntax before concatenation and `gffread -M`. The earlier
 direct GTF/GFF3 concatenation caused the UniAnn records to be ignored and
 incorrectly made the union identical to EviAnn alone.
+
+This is a chr1-included deployment diagnostic, not a held-out estimate. Vector
+scaling slightly improves the prior joint-softmax T=9 Human result, but the
+union remains below EviAnn-only F1 because the sensitivity gain is accompanied
+by a larger precision loss.

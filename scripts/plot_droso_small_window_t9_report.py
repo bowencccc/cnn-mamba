@@ -251,12 +251,12 @@ def load_vector_builtin_locus_metrics() -> pd.DataFrame:
         if key == "w10":
             source = (
                 ROOT
-                / "work/uniann/vector_builtin_t3_comparison_v1/w10/locus_metrics.tsv"
+                / "work/uniann/vector_builtin_t3_headered_v1/w10/locus_metrics.tsv"
             )
         else:
             source = (
                 ROOT
-                / "work/uniann/droso_small_window_v1_four_state_vector_builtin_t3"
+                / "work/uniann/droso_small_window_v1_four_state_vector_builtin_t3_headered_v1"
                 / key
                 / "locus_metrics.tsv"
             )
