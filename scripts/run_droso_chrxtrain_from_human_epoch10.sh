@@ -5,7 +5,7 @@
 set -euo pipefail
 
 repo_dir="${CNN_MAMBA_REPO:-$(cd "$(dirname "$0")/.." && pwd)}"
-python_bin="${CNN_MAMBA_PYTHON:-/home/bowencccc/miniconda3/envs/mamba3_env/bin/python}"
+python_bin="${CNN_MAMBA_PYTHON:-python}"
 data_root="$repo_dir/data/processed/cds_gating/w10_frame"
 human_checkpoint="$repo_dir/runs/human/human_joint_frame_beta010_es5_v1/chr1train/best_model.pt"
 output_dir="$repo_dir/runs/droso_from_human_pretrain_v1/chrxtrain/w10"

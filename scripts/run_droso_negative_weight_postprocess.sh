@@ -5,7 +5,7 @@ set -euo pipefail
 
 label="${1:-n050}"
 repo_dir="${CNN_MAMBA_REPO:-$(cd "$(dirname "$0")/.." && pwd)}"
-python_bin="${CNN_MAMBA_PYTHON:-/home/bowencccc/miniconda3/envs/mamba3_env/bin/python}"
+python_bin="${CNN_MAMBA_PYTHON:-python}"
 tag="incomplete_label_v2/negative_weight/$label"
 score_dir="$repo_dir/artifacts/scores/$tag/chrxtrain/w10"
 result_dir="$repo_dir/results/$tag/chrxtrain/w10"

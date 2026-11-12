@@ -4,7 +4,7 @@
 set -euo pipefail
 
 repo_dir="${CNN_MAMBA_REPO:-$(cd "$(dirname "$0")/.." && pwd)}"
-python_bin="${CNN_MAMBA_PYTHON:-/home/bowencccc/miniconda3/envs/mamba3_env/bin/python}"
+python_bin="${CNN_MAMBA_PYTHON:-python}"
 data_root="$repo_dir/data/processed/human_lgbm_p90_w100_refseq_chr1held"
 weight_root="$repo_dir/data/weights/human_lgbm_p90_w100_refseq_chr1held"
 

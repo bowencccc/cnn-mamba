@@ -2,8 +2,8 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-python_bin="${CNN_MAMBA_PYTHON:-/home/bowencccc/miniconda3/envs/mamba3_env/bin/python}"
-uniann_root="/home/bowencccc/UniAnn"
+python_bin="${CNN_MAMBA_PYTHON:-python}"
+uniann_root="${UNIANN_ROOT:-$root/../UniAnn}"
 fasta="$root/data/raw/dmel_chrX.fa"
 reference="$root/data/raw/dmel_chrX_plus_CDS_reference.gtf"
 eviann="$root/data/raw/dmel_chrX_plus_EviAnn_CDS.gff"

@@ -4,7 +4,7 @@
 set -euo pipefail
 
 repo_dir="${CNN_MAMBA_REPO:-$(cd "$(dirname "$0")/.." && pwd)}"
-python_bin="${CNN_MAMBA_PYTHON:-/home/bowencccc/miniconda3/envs/mamba3_env/bin/python}"
+python_bin="${CNN_MAMBA_PYTHON:-python}"
 mlm_checkpoint="$repo_dir/runs/mlm_pretrain/human_grch38_w10_v1/best_model.pt"
 data_root="$repo_dir/data/processed/cds_gating/w10_frame"
 summary_dir="$repo_dir/results/mlm_transfer_regularization_v1/summary"

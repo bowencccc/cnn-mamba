@@ -4,7 +4,7 @@
 set -euo pipefail
 
 repo_dir="${CNN_MAMBA_REPO:-$(cd "$(dirname "$0")/.." && pwd)}"
-python_bin="${CNN_MAMBA_PYTHON:-/home/bowencccc/miniconda3/envs/mamba3_env/bin/python}"
+python_bin="${CNN_MAMBA_PYTHON:-python}"
 uniann_root="${UNIANN_ROOT:-$repo_dir/../UniAnn}"
 tag="incomplete_label_v3/propensity_teacher/p095_w010"
 propensity_root="$repo_dir/data/propensity/droso_teacher_b010_p095_w10"

@@ -51,6 +51,12 @@ def strict_compare(gffread, gffcompare, reference, query, prefix, cwd):
     return Path(str(output) + ".stats")
 
 
+def normalize_gtf(gffread, source, destination, cwd):
+    """Normalize GFF3 or GTF independently before combining annotations."""
+    run([gffread, "-T", source, "-o", destination], cwd,
+        Path(cwd) / f"{Path(destination).stem}.normalize.log")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--uniann-root", type=Path, required=True)
@@ -111,12 +117,19 @@ def main():
     rows = [{"method": "UniAnn", **parse_stats(alone_stats)}]
 
     if args.eviann_gff:
-        combined = work / "eviann_uniann.concat.gff"
+        # Do not concatenate GTF and GFF3 directly. gffread selects one parser
+        # from the first records and can silently ignore the other syntax.
+        eviann_gtf = work / "eviann.normalized.gtf"
+        uniann_gtf = work / "uniann.normalized.gtf"
+        normalize_gtf(gffread, args.eviann_gff.resolve(), eviann_gtf, work)
+        normalize_gtf(gffread, raw, uniann_gtf, work)
+        combined = work / "eviann_uniann.concat.gtf"
         with combined.open("w") as output:
-            with args.eviann_gff.open() as source:
-                output.writelines(source)
-            with raw.open() as source:
-                output.writelines(line for line in source if not line.startswith("#"))
+            for normalized in (eviann_gtf, uniann_gtf):
+                with normalized.open() as source:
+                    output.writelines(
+                        line for line in source if not line.startswith("#")
+                    )
         stats = strict_compare(gffread, gffcompare, args.reference_gtf.resolve(), combined,
                                "eviann_uniann", work)
         rows.append({"method": "EviAnn+UniAnn", **parse_stats(stats)})
@@ -130,6 +143,7 @@ def main():
     if args.eviann_gff:
         inputs["eviann_gff"] = args.eviann_gff
     provenance = {"uniann_root": str(args.uniann_root.resolve()),
+                  "union_normalization": "each source normalized to GTF before concatenation",
                   "inputs": {key: str(value.resolve()) for key, value in inputs.items()},
                   "metrics": rows}
     (work / "provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")

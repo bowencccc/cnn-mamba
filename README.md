@@ -11,6 +11,46 @@ tracked in `results/`. Large biological inputs, generated NPZ windows, raw
 score arrays and PyTorch checkpoints are excluded from Git and described in
 `external_manifest.tsv` with exact byte sizes and SHA256 hashes.
 
+## Public software interface
+
+The stable interface is the installed `cnn-mamba` command. The many files under
+`scripts/` are retained research recipes and figure generators; they are not
+the public API.
+
+```bash
+cnn-mamba --help
+cnn-mamba doctor --uniann-root /path/to/UniAnn
+cnn-mamba prepare-droso --help
+cnn-mamba train --help
+cnn-mamba score --help
+cnn-mamba uniann-eval --help
+```
+
+Multi-stage runs can be defined without editing source files. Copy the example
+JSON file, change only its variables, inspect the generated commands, then run it:
+
+```bash
+cp configs/workflow.droso.example.json configs/my_workflow.json
+export UNIANN_ROOT=/path/to/UniAnn
+cnn-mamba workflow configs/my_workflow.json --dry-run
+cnn-mamba workflow configs/my_workflow.json
+```
+
+Every workflow writes per-stage logs and a machine-readable `run.json` under
+`workflow_runs/<UTC timestamp>/`. Paths support `${PROJECT_ROOT}` and ordinary
+environment variables such as `${UNIANN_ROOT}`. No packaged source or supported
+script contains a user-specific `/home/...` path. See
+[`docs/SOFTWARE_LAYOUT.md`](docs/SOFTWARE_LAYOUT.md) for the boundary between
+software, external data, generated state, and historical experiments.
+
+The example makes coding-frame calibration explicit. The default recipe fits
+and applies four-class **vector scaling** on the validation split. It then
+reproduces the selected UniAnn input behavior explicitly: independent
+binary-odds scaling at `T=3` followed by the frame/non-CDS gate. These are two
+different transformations; both are recorded in metadata and the emission
+manifest. The older joint-softmax `T=9` experiment is retained only as a
+historical comparison and is not the software default.
+
 ## Reproducibility boundary
 
 The preserved recipe is:

@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "project_root": "..",
+  "variables": {
+    "FASTA": "${PROJECT_ROOT}/data/raw/dmel_genome.fa",
+    "EVIANN": "${PROJECT_ROOT}/data/raw/dmel_eviann_pseudo_label.gff",
+    "REFERENCE": "${PROJECT_ROOT}/data/raw/dmel_reference.gtf",
+    "CHRX_FASTA": "${PROJECT_ROOT}/data/raw/dmel_chrX.fa",
+    "CHRX_REFERENCE": "${PROJECT_ROOT}/data/raw/dmel_chrX_plus_CDS_reference.gtf",
+    "CHRX_EVIANN": "${PROJECT_ROOT}/data/raw/dmel_chrX_plus_EviAnn_CDS.gff",
+    "WINDOWS": "${PROJECT_ROOT}/data/processed/software_example/w10_frame",
+    "VECTOR_CALIBRATION": "${PROJECT_ROOT}/results/software_example/vector_scaling"
+  },
+  "steps": [
+    {
+      "name": "prepare",
+      "command": "prepare-droso",
+      "args": [
+        "--config", "${PROJECT_ROOT}/configs/droso_frame_w10.json",
+        "--fasta", "${FASTA}",
+        "--eviann-gff", "${EVIANN}",
+        "--reference-gtf", "${REFERENCE}",
+        "--output-root", "${PROJECT_ROOT}/data/processed/software_example",
+        "--include-phase-labels"
+      ]
+    },
+    {
+      "name": "train-heldout",
+      "command": "train",
+      "args": [
+        "--data-root", "${WINDOWS}",
+        "--mode", "baseline",
+        "--architecture", "cnn_mamba",
+        "--cnn-kernel-size", "7",
+        "--frame-dilation", "3",
+        "--joint-frame-aux-weight", "0.1",
+        "--joint-noncoding-weight", "0.1",
+        "--window-size", "10000",
+        "--stride", "5000",
+        "--epochs", "30",
+        "--early-stopping-patience", "3",
+        "--early-stopping-min-delta", "0.0001",
+        "--output-dir", "${PROJECT_ROOT}/runs/software_example/heldout"
+      ]
+    },
+    {
+      "name": "score-heldout",
+      "command": "score",
+      "args": [
+        "--checkpoint", "${PROJECT_ROOT}/runs/software_example/heldout/best_model.pt",
+        "--fasta", "${FASTA}",
+        "--chrom", "NC_004354.4",
+        "--display-chrom", "chrX",
+        "--output-dir", "${PROJECT_ROOT}/artifacts/scores/software_example/heldout"
+      ]
+    },
+    {
+      "name": "evaluate-heldout",
+      "command": "auprc",
+      "args": [
+        "--score-dir", "${PROJECT_ROOT}/artifacts/scores/software_example/heldout",
+        "--reference-gtf", "${REFERENCE}",
+        "--fasta", "${FASTA}",
+        "--chrom", "NC_004354.4",
+        "--output", "${PROJECT_ROOT}/results/software_example/heldout_candidate_auprc.tsv"
+      ]
+    },
+    {
+      "name": "train-deployment",
+      "command": "train",
+      "args": [
+        "--data-root", "${WINDOWS}",
+        "--mode", "baseline",
+        "--architecture", "cnn_mamba",
+        "--cnn-kernel-size", "7",
+        "--frame-dilation", "3",
+        "--joint-frame-aux-weight", "0.1",
+        "--joint-noncoding-weight", "0.1",
+        "--window-size", "10000",
+        "--stride", "5000",
+        "--epochs", "30",
+        "--early-stopping-patience", "3",
+        "--early-stopping-min-delta", "0.0001",
+        "--include-test-in-train",
+        "--output-dir", "${PROJECT_ROOT}/runs/software_example/deployment"
+      ]
+    },
+    {
+      "name": "score-deployment",
+      "command": "score",
+      "args": [
+        "--checkpoint", "${PROJECT_ROOT}/runs/software_example/deployment/best_model.pt",
+        "--fasta", "${FASTA}",
+        "--chrom", "NC_004354.4",
+        "--display-chrom", "chrX",
+        "--output-dir", "${PROJECT_ROOT}/artifacts/scores/software_example/deployment"
+      ]
+    },
+    {
+      "name": "export-sites",
+      "command": "export-uniann",
+      "args": [
+        "--score-dir", "${PROJECT_ROOT}/artifacts/scores/software_example/deployment",
+        "--output", "${PROJECT_ROOT}/artifacts/scores/software_example/deployment/chrX_plus_scores.tsv",
+        "--chrom", "X",
+        "--fasta", "${FASTA}",
+        "--accession", "NC_004354.4"
+      ]
+    },
+    {
+      "name": "sample-calibration-data",
+      "command": "calibrate-joint-frame",
+      "args": [
+        "--checkpoint", "${PROJECT_ROOT}/runs/software_example/deployment/best_model.pt",
+        "--data-root", "${WINDOWS}",
+        "--split", "val",
+        "--output-dir", "${VECTOR_CALIBRATION}",
+        "--batch-size", "8",
+        "--workers", "4",
+        "--samples-per-window", "32",
+        "--seed", "42",
+        "--bins", "20",
+        "--save-sample"
+      ]
+    },
+    {
+      "name": "fit-vector-scaling",
+      "command": "fit-vector-scaling",
+      "args": [
+        "--sample", "${VECTOR_CALIBRATION}/calibration_sample.npz",
+        "--metadata-json", "${VECTOR_CALIBRATION}/temperature.json",
+        "--output-dir", "${VECTOR_CALIBRATION}",
+        "--regularization", "0.0001"
+      ]
+    },
+    {
+      "name": "score-joint-frame",
+      "command": "score-joint-frame",
+      "args": [
+        "--checkpoint", "${PROJECT_ROOT}/runs/software_example/deployment/best_model.pt",
+        "--fasta", "${FASTA}",
+        "--chrom", "NC_004354.4",
+        "--display-chrom", "chrX",
+        "--vector-calibration-json", "${VECTOR_CALIBRATION}/vector_scaling.json",
+        "--output-dir", "${PROJECT_ROOT}/artifacts/joint_frame_predictions/software_example/deployment"
+      ]
+    },
+    {
+      "name": "build-uniann-emissions",
+      "command": "build-uniann-emissions",
+      "args": [
+        "--probabilities", "${PROJECT_ROOT}/artifacts/joint_frame_predictions/software_example/deployment/joint_frame_probabilities.npy",
+        "--fasta", "${CHRX_FASTA}",
+        "--output", "${PROJECT_ROOT}/artifacts/uniann_emissions/software_example/deployment/out.ps.txt",
+        "--seqid", "NC_004354.4",
+        "--expected-calibration-method", "vector_scaling",
+        "--binary-odds-temperature", "3",
+        "--frame-noncoding-gate"
+      ]
+    },
+    {
+      "name": "evaluate-uniann",
+      "command": "uniann-eval",
+      "args": [
+        "--uniann-root", "${UNIANN_ROOT}",
+        "--fasta", "${CHRX_FASTA}",
+        "--coding-frame", "${PROJECT_ROOT}/artifacts/joint_frame_predictions/software_example/deployment/joint_frame_probabilities.npy",
+        "--precomputed-emissions", "${PROJECT_ROOT}/artifacts/uniann_emissions/software_example/deployment/out.ps.txt",
+        "--scores", "${PROJECT_ROOT}/artifacts/scores/software_example/deployment/chrX_plus_scores.tsv",
+        "--reference-gtf", "${CHRX_REFERENCE}",
+        "--eviann-gff", "${CHRX_EVIANN}",
+        "--output-dir", "${PROJECT_ROOT}/results/software_example/uniann"
+      ]
+    }
+  ]
+}

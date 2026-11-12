@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cnn-mamba-k7"
-version = "0.1.0"
+version = "0.2.0"
 description = "Portable CNN-Mamba-k7 genomic site prediction pipeline"
 requires-python = ">=3.10,<3.13"
 dependencies = [
@@ -19,15 +19,20 @@ dependencies = [
 ]
 
 [project.scripts]
+cnn-mamba = "cnn_mamba.cli:main"
 cnn-mamba-prepare-droso = "cnn_mamba.prepare_droso:main"
 cnn-mamba-prepare-human = "cnn_mamba.prepare_human:main"
 cnn-mamba-train = "cnn_mamba.train:main"
 cnn-mamba-score = "cnn_mamba.score_chromosome:main"
+cnn-mamba-score-joint-frame = "cnn_mamba.score_joint_frame_chromosome:main"
 cnn-mamba-auprc = "cnn_mamba.evaluate_candidates:main"
 cnn-mamba-annotation-gap = "cnn_mamba.evaluate_annotation_gap:main"
 cnn-mamba-export-uniann = "cnn_mamba.export_uniann_scores:main"
+cnn-mamba-export-joint-frame = "cnn_mamba.export_joint_frame_tsv:main"
+cnn-mamba-build-uniann-emissions = "cnn_mamba.build_uniann_emissions:main"
 cnn-mamba-uniann-eval = "cnn_mamba.uniann_evaluate:main"
 cnn-mamba-calibrate-joint-frame = "cnn_mamba.calibrate_joint_frame:main"
+cnn-mamba-fit-vector-scaling = "cnn_mamba.fit_vector_scaling:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

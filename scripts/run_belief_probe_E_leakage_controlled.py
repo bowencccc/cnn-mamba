@@ -25,7 +25,7 @@ from cnn_mamba.probe_features import sha256_file  # noqa: E402
 from cnn_mamba.probe_overcounting import group_balanced_prior_correction  # noqa: E402
 
 
-UNIANN = Path("/home/bowencccc/UniAnn")
+UNIANN = Path(os.environ.get("UNIANN_ROOT", ROOT.parent / "UniAnn"))
 CHECKPOINT = ROOT / "runs/joint_frame_grid_v1/b010/chrxtrain/w10/best_model.pt"
 WINDOWS = ROOT / "data/processed/cds_gating/w10_frame"
 FULL_FASTA = ROOT / "data/raw/dmel_genome.fa"

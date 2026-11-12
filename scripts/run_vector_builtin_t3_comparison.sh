@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_dir="${CNN_MAMBA_REPO:-$(cd "$(dirname "$0")/.." && pwd)}"
-python_bin="${CNN_MAMBA_PYTHON:-/home/bowencccc/miniconda3/envs/mamba3_env/bin/python}"
+python_bin="${CNN_MAMBA_PYTHON:-python}"
 uniann_root="${UNIANN_ROOT:-$repo_dir/../UniAnn}"
 fasta="$repo_dir/data/raw/dmel_genome.fa"
 chrx_fasta="$repo_dir/data/raw/dmel_chrX.fa"

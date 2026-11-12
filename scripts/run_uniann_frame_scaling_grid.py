@@ -13,7 +13,7 @@ import time
 
 
 ROOT = Path(__file__).resolve().parents[1]
-UNIANN = Path("/home/bowencccc/UniAnn")
+UNIANN = Path(os.environ.get("UNIANN_ROOT", ROOT.parent / "UniAnn"))
 FASTA = ROOT / "data/raw/dmel_chrX.fa"
 REFERENCE = ROOT / "data/raw/dmel_chrX_plus_CDS_reference.gtf"
 EVIANN = ROOT / "data/raw/dmel_chrX_plus_EviAnn_CDS.gff"

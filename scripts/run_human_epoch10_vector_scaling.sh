@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT=/home/bowencccc/cnn_mamba_k7_portable
-PYTHON=/home/bowencccc/miniconda3/envs/mamba3_env/bin/python
+PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PYTHON="${CNN_MAMBA_PYTHON:-python}"
 CHECKPOINT="$PROJECT/runs/human/human_joint_frame_beta010_es5_v1/chr1train/epoch_checkpoints/epoch_010.pt"
 DATA_ROOT="$PROJECT/data/processed/human_joint_frame_w10_chr1held"
 CALIBRATION_DIR="$PROJECT/results/human_joint_frame_beta010_es5_v1/chr1train/epoch10_vector_scaling"
 OUTPUT_DIR="$PROJECT/artifacts/joint_frame_predictions/human_joint_frame_beta010_es5_v1/chr1train/epoch10_vector_scaled/chr1_plus"
-FASTA=/home/bowencccc/ssm_splice_site/GCF_000001405.40_GRCh38.p14_genomic.fna
+FASTA="${HUMAN_FASTA:-$PROJECT/data/raw/human_grch38.fa}"
 LOG="$CALIBRATION_DIR/run.log"
 
 mkdir -p "$CALIBRATION_DIR" "$OUTPUT_DIR"

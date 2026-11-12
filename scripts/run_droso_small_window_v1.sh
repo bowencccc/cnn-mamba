@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo_dir="${CNN_MAMBA_REPO:-$(cd "$(dirname "$0")/.." && pwd)}"
-python_bin="${CNN_MAMBA_PYTHON:-/home/bowencccc/miniconda3/envs/mamba3_env/bin/python}"
+python_bin="${CNN_MAMBA_PYTHON:-python}"
 config="$repo_dir/configs/droso_small_window_v1.json"
 data_root="$repo_dir/data/processed/droso_small_window_v1"
 tag="droso_small_window_v1"
