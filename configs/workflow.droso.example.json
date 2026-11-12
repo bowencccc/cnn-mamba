@@ -3,11 +3,11 @@
   "project_root": "..",
   "variables": {
     "FASTA": "${PROJECT_ROOT}/data/raw/dmel_genome.fa",
-    "EVIANN": "${PROJECT_ROOT}/data/raw/dmel_eviann_pseudo_label.gff",
+    "EVIANN": "${PROJECT_ROOT}/data/raw/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.pseudo_label.coleoptera.gff.gz",
     "REFERENCE": "${PROJECT_ROOT}/data/raw/dmel_reference.gtf",
     "CHRX_FASTA": "${PROJECT_ROOT}/data/raw/dmel_chrX.fa",
     "CHRX_REFERENCE": "${PROJECT_ROOT}/data/raw/dmel_chrX_plus_CDS_reference.gtf",
-    "CHRX_EVIANN": "${PROJECT_ROOT}/data/raw/dmel_chrX_plus_EviAnn_CDS.gff",
+    "CHRX_EVIANN": "${PROJECT_ROOT}/data/processed/coleoptera_eviann_v1/chrX_plus_EviAnn_CDS.gff",
     "WINDOWS": "${PROJECT_ROOT}/data/processed/software_example/w10_frame",
     "VECTOR_CALIBRATION": "${PROJECT_ROOT}/results/software_example/vector_scaling"
   },

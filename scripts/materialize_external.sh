@@ -18,7 +18,9 @@ cd "$repo_root"
 while IFS=$'\t' read -r group required logical bytes digest original description; do
   [[ "$group" == "group" ]] && continue
   if [[ "$selected_group" != "all" && "$group" != "$selected_group" ]]; then
-    [[ "$selected_group" == "drosophila" && ("$group" == "raw" || "$group" == "checkpoint") ]] || continue
+    [[ "$selected_group" == "drosophila" && ("$group" == "raw" || "$group" == "checkpoint" || "$group" == "coleoptera") ]] \
+      || [[ "$selected_group" == "human" && "$group" == "rodentia" ]] \
+      || continue
   fi
   if [[ ! -f "$logical" ]]; then
     echo "missing: $logical" >&2

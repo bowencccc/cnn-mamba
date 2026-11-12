@@ -34,6 +34,8 @@ external.
 - `evidence_source_comparison_v1/`: report-ready Drosophila-versus-Coleoptera
   evidence PR--Sn curves, EviAnn operating points, four-state metrics and
   strict locus comparison.
+- `viterbi_current_best/`: explicitly promoted Human Rodentia and Dmel
+  Coleoptera checkpoints/metrics used by downstream structured decoders.
 
 For the latest four-state experiment, `joint_frame_grid_v1/summary/` contains
 the cross-model candidate AUPRC table, held-out and chrX-in-training PR--Sn

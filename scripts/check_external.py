@@ -30,7 +30,11 @@ def main():
             selected = (
                 args.group == "all"
                 or row["group"] == args.group
-                or (args.group == "drosophila" and row["group"] in {"raw", "checkpoint"})
+                or (
+                    args.group == "drosophila"
+                    and row["group"] in {"raw", "checkpoint", "coleoptera"}
+                )
+                or (args.group == "human" and row["group"] == "rodentia")
             )
             if not selected:
                 continue

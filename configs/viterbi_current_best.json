@@ -1,0 +1,124 @@
+{
+  "schema": "cnn_mamba_viterbi_current_best_v1",
+  "project_root": "..",
+  "selection_policy": "Explicit promotion of the highest validation mean AP checkpoint within the fixed evidence-source experiment; never select by modification time.",
+  "species": {
+    "human": {
+      "evidence_source": "rodentia",
+      "regime": "chr1-included deployment",
+      "selection": {
+        "checkpoint_epoch": 3,
+        "validation_mean_ap": 0.6695055083051856,
+        "reference": "RefSeq GRCh38.p14",
+        "training_state": "best completed epoch; original run was interrupted during epoch 4"
+      },
+      "prediction_assets": [
+        "site_scores",
+        "joint_frame_probabilities",
+        "joint_frame_logits"
+      ],
+      "assets": {
+        "annotation": {
+          "source": "data/raw/GCF_000001405.40_GRCh38.p14_genomic.noalpsnopatches.fna.pseudo_label.rodentia.gff.gz",
+          "link": "eviann_annotation.gff.gz",
+          "required": true,
+          "sha256": true
+        },
+        "windows": {
+          "source": "data/processed/human_rodentia_joint_frame_w10_refseq_chr1held",
+          "link": "windows",
+          "required": true
+        },
+        "checkpoint": {
+          "source": "artifacts/checkpoints/current_best/human_rodentia/best_model.pt",
+          "link": "best_model.pt",
+          "required": true,
+          "sha256": true
+        },
+        "site_scores": {
+          "source": "artifacts/scores/human_rodentia_joint_frame_beta010_es5_v1/chr1train/chr1_plus/chr1_plus_scores.tsv",
+          "link": "site_scores.tsv",
+          "required": false
+        },
+        "joint_frame_probabilities": {
+          "source": "artifacts/joint_frame_predictions/human_rodentia_joint_frame_beta010_es5_v1/chr1train/chr1_plus_vector/joint_frame_probabilities.npy",
+          "link": "joint_frame_probabilities.npy",
+          "required": false
+        },
+        "joint_frame_logits": {
+          "source": "artifacts/joint_frame_predictions/human_rodentia_joint_frame_beta010_es5_v1/chr1train/chr1_plus_vector/joint_frame_logits.npy",
+          "link": "joint_frame_logits.npy",
+          "required": false
+        },
+        "vector_scaling": {
+          "source": "results/human_rodentia_joint_frame_beta010_es5_v1/chr1train/vector_scaling/vector_scaling.json",
+          "link": "vector_scaling.json",
+          "required": false
+        }
+      }
+    },
+    "dmel": {
+      "evidence_source": "coleoptera",
+      "regime": "chrX-included deployment",
+      "selection": {
+        "checkpoint_epoch": 21,
+        "validation_mean_ap": 0.8972689258809186,
+        "reference": "D. melanogaster RefSeq chrX+",
+        "training_state": "complete early-stopping run"
+      },
+      "prediction_assets": [
+        "site_scores",
+        "joint_frame_probabilities",
+        "joint_frame_tsv",
+        "vector_scaling",
+        "locus_metrics"
+      ],
+      "assets": {
+        "annotation": {
+          "source": "data/raw/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.pseudo_label.coleoptera.gff.gz",
+          "link": "eviann_annotation.gff.gz",
+          "required": true,
+          "sha256": true
+        },
+        "windows": {
+          "source": "data/processed/coleoptera_eviann_v1/w10",
+          "link": "windows",
+          "required": true
+        },
+        "checkpoint": {
+          "source": "artifacts/checkpoints/current_best/dmel_coleoptera/best_model.pt",
+          "link": "best_model.pt",
+          "required": true,
+          "sha256": true
+        },
+        "site_scores": {
+          "source": "artifacts/scores/coleoptera_eviann_v1/retrained/chrxtrain/w10/chrX_plus_scores.tsv",
+          "link": "site_scores.tsv",
+          "required": false
+        },
+        "joint_frame_probabilities": {
+          "source": "artifacts/joint_frame_predictions/coleoptera_eviann_v1/retrained/chrxtrain/w10/chrX_plus_vector_default/joint_frame_probabilities.npy",
+          "link": "joint_frame_probabilities.npy",
+          "required": false
+        },
+        "joint_frame_tsv": {
+          "source": "artifacts/joint_frame_predictions/coleoptera_eviann_v1/retrained/chrxtrain/w10/chrX_plus_vector_default/chrX_plus_joint_frame_probabilities.tsv",
+          "link": "joint_frame_probabilities.tsv",
+          "required": false
+        },
+        "vector_scaling": {
+          "source": "results/coleoptera_eviann_v1/retrained/chrxtrain/w10/vector_builtin_t3_default/calibration/vector_scaling/vector_scaling.json",
+          "link": "vector_scaling.json",
+          "required": false,
+          "sha256": true
+        },
+        "locus_metrics": {
+          "source": "results/coleoptera_eviann_v1/retrained/chrxtrain/w10/vector_builtin_t3_default/strict_locus_metrics.tsv",
+          "link": "strict_locus_metrics.tsv",
+          "required": false,
+          "sha256": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,3 @@
+species	evidence_source	regime	checkpoint_epoch	donor_AP	acceptor_AP	start_AP	stop_AP	mean_AP	joint_CDS_AP
+human	Rodentia	chr1-included deployment	3	0.9174661394	0.8831199752	0.4631843388	0.4142515798	0.6695055083	0.9112164674
+dmel	Coleoptera	chrX-included deployment	21	0.9601904121	0.9454970742	0.8328256479	0.8505625693	0.8972689259	0.9835269052

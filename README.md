@@ -87,7 +87,7 @@ repository.
 |---|---|
 | `data/raw/dmel_genome.fa` | D. melanogaster genome FASTA |
 | `data/raw/dmel_genome.fa.fai` | FASTA index |
-| `data/raw/dmel_eviann_pseudo_label.gff` | EviAnn training labels |
+| `data/raw/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.pseudo_label.coleoptera.gff.gz` | Current Dmel EviAnn training labels, generated with Coleoptera protein evidence |
 | `data/raw/dmel_reference.gtf` | reference labels and held-out evaluation |
 
 ### Additional files for Drosophila UniAnn evaluation
@@ -96,7 +96,7 @@ repository.
 |---|---|
 | `data/raw/dmel_chrX.fa` | chrX FASTA with sequence name `NC_004354.4` |
 | `data/raw/dmel_chrX_plus_CDS_reference.gtf` | chrX+ strict-match reference |
-| `data/raw/dmel_chrX_plus_EviAnn_CDS.gff` | chrX+ EviAnn annotation for the union |
+| `data/processed/coleoptera_eviann_v1/chrX_plus_EviAnn_CDS.gff` | chrX+ annotation filtered from the Coleoptera-evidence EviAnn GFF for the union |
 
 The current pipeline does **not** require PSAURON. It uses the model's
 vector-scaled four-state probabilities as UniAnn's coding-frame input.
@@ -109,7 +109,7 @@ legacy comparisons.
 |---|---|
 | `data/raw/human_grch38.fa` | GRCh38.p14 genome FASTA |
 | `data/raw/human_grch38.fa.fai` | FASTA index |
-| `data/raw/human_eviann_pseudo_label.gff` | EviAnn training labels |
+| `data/raw/GCF_000001405.40_GRCh38.p14_genomic.noalpsnopatches.fna.pseudo_label.rodentia.gff.gz` | Current Human EviAnn training labels, generated with Rodentia protein evidence |
 | `data/raw/human_refseq_grch38_p14.gff.gz` | RefSeq validation and test reference |
 
 CHESS and Human PSAURON files are optional historical inputs, not requirements
@@ -121,7 +121,8 @@ Example setup using symbolic links:
 mkdir -p data/raw
 ln -s /data/genomes/dmel.fa data/raw/dmel_genome.fa
 ln -s /data/genomes/dmel.fa.fai data/raw/dmel_genome.fa.fai
-ln -s /data/annotations/dmel_eviann.gff data/raw/dmel_eviann_pseudo_label.gff
+ln -s /data/annotations/dmel_coleoptera_eviann.gff.gz \
+  data/raw/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.pseudo_label.coleoptera.gff.gz
 ln -s /data/annotations/dmel_reference.gtf data/raw/dmel_reference.gtf
 ```
 
@@ -209,7 +210,7 @@ options.
 cnn-mamba prepare-droso \
   --config configs/droso_frame_w10.json \
   --fasta data/raw/dmel_genome.fa \
-  --eviann-gff data/raw/dmel_eviann_pseudo_label.gff \
+  --eviann-gff data/raw/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.pseudo_label.coleoptera.gff.gz \
   --reference-gtf data/raw/dmel_reference.gtf \
   --output-root data/processed/droso \
   --include-phase-labels
@@ -337,7 +338,7 @@ Generate RefSeq-labeled Human windows:
 ```bash
 cnn-mamba prepare-human \
   --fasta data/raw/human_grch38.fa \
-  --eviann-gff data/raw/human_eviann_pseudo_label.gff \
+  --eviann-gff data/raw/GCF_000001405.40_GRCh38.p14_genomic.noalpsnopatches.fna.pseudo_label.rodentia.gff.gz \
   --reference-annotation data/raw/human_refseq_grch38_p14.gff.gz \
   --output-dir data/processed/human_refseq_w10_chr1held \
   --window-size 10000 \
@@ -365,7 +366,41 @@ deployment model. Do not report that run as held-out chr1 performance.
 Always report the regime with the result. The two regimes answer different
 questions and should not be compared as if they were the same test.
 
-## 8. Repository layout
+## 8. Current-best inputs for downstream Viterbi code
+
+Downstream structured-decoder experiments use two fixed evidence sources:
+
+- Human: Rodentia-evidence EviAnn annotation;
+- Dmel: Coleoptera-evidence EviAnn annotation.
+
+The versioned registry is `configs/viterbi_current_best.json`. It promotes a
+checkpoint explicitly by validation mean AP; it never guesses from file dates.
+Materialize stable links after copying results to a server or after promoting a
+new experiment:
+
+```bash
+cnn-mamba current-best
+```
+
+Viterbi code can then use paths that do not change between experiments:
+
+```text
+artifacts/current_best/viterbi/human/best_model.pt
+artifacts/current_best/viterbi/human/windows/
+artifacts/current_best/viterbi/human/eviann_annotation.gff.gz
+artifacts/current_best/viterbi/dmel/best_model.pt
+artifacts/current_best/viterbi/dmel/windows/
+artifacts/current_best/viterbi/dmel/site_scores.tsv
+artifacts/current_best/viterbi/dmel/joint_frame_probabilities.npy
+```
+
+The command reports `model_ready` and `prediction_ready` separately. It removes
+a stale managed link when its promoted source is missing, so downstream code
+cannot silently consume an older annotation/model combination. See
+[`results/viterbi_current_best/README.md`](results/viterbi_current_best/README.md)
+for the promoted metrics and exact commands.
+
+## 9. Repository layout
 
 ```text
 src/cnn_mamba/     reusable model, training, scoring and evaluation code

@@ -14,4 +14,5 @@ COMMAND_MODULES = {
     "uniann-eval": "cnn_mamba.uniann_evaluate",
     "calibrate-joint-frame": "cnn_mamba.calibrate_joint_frame",
     "fit-vector-scaling": "cnn_mamba.fit_vector_scaling",
+    "current-best": "cnn_mamba.current_best",
 }
