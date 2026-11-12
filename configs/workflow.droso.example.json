@@ -40,6 +40,7 @@
         "--epochs", "30",
         "--early-stopping-patience", "3",
         "--early-stopping-min-delta", "0.0001",
+        "--amp", "--amp-dtype", "bf16",
         "--output-dir", "${PROJECT_ROOT}/runs/software_example/heldout"
       ]
     },
@@ -81,6 +82,7 @@
         "--epochs", "30",
         "--early-stopping-patience", "3",
         "--early-stopping-min-delta", "0.0001",
+        "--amp", "--amp-dtype", "bf16",
         "--include-test-in-train",
         "--output-dir", "${PROJECT_ROOT}/runs/software_example/deployment"
       ]

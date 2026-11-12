@@ -242,8 +242,14 @@ cnn-mamba train \
   --epochs 30 \
   --early-stopping-patience 3 \
   --early-stopping-min-delta 0.0001 \
+  --amp --amp-dtype bf16 \
   --output-dir runs/droso/heldout
 ```
+
+`--amp --amp-dtype bf16` is the recommended precision: about 1.2x (10 kb,
+micro-batch 4) to 1.4x (20 kb) faster than fp32 on an RTX A4500, with less
+memory and no GradScaler. Avoid `--amp-dtype fp16`: it produced non-finite
+forward passes and false early stopping in 20 kb Drosophila training.
 
 ### Score chrX+ and calculate AUPRC
 

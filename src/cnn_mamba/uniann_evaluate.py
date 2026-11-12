@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -119,6 +120,8 @@ def main():
     for path in (uniann, gffread, gffcompare):
         if not path.is_file():
             parser.error(f"missing UniAnn executable: {path}")
+    # uniann.sh calls gffread by bare name; make UniAnn's own bin/ win on PATH.
+    os.environ["PATH"] = f"{bindir}{os.pathsep}{os.environ.get('PATH', '')}"
 
     work = args.output_dir.resolve()
     work.mkdir(parents=True, exist_ok=True)

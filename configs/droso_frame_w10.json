@@ -8,7 +8,9 @@
       "stride_bp": 5000,
       "micro_batch": 4,
       "grad_accum": 2,
-      "score_batch": 8
+      "score_batch": 8,
+      "amp": true,
+      "amp_dtype": "bf16"
     }
   ]
 }

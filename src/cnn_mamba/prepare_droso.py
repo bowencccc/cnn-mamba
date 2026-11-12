@@ -523,8 +523,12 @@ def labels_for_window(start: int, strand: str, indexed, window: int):
 def generate_cell(
     output: Path, cell: dict, regions, eviann, reference,
     eviann_phase=None, reference_phase=None, cds_boundary_radius=0,
-    eviann_transcript_selection=None,
+    eviann_transcript_selection=None, eviann_phase_all=None,
 ) -> dict:
+    """``eviann_phase_all`` (all-transcript CDS records) is given only when the
+    CDS/phase tracks use a transcript subset; bases that are CDS in some other
+    EviAnn isoform but not in the selected one are then excluded from the
+    joint-frame loss via ``joint_frame_mask`` instead of being called non-CDS."""
     window, stride = int(cell["window_bp"]), int(cell["stride_bp"])
     summary = {}
     fasta = pysam.FastaFile(str(FASTA))
@@ -565,6 +569,13 @@ def generate_cell(
                     },
                     "reference_cds": reference_cds,
                 }
+                if eviann_phase_all is not None:
+                    phase_tracks["eviann_alt_only_cds"] = {
+                        strand: build_cds_track(
+                            eviann_phase_all[chrom][strand], chrom_len
+                        ) & ~eviann_cds[strand]
+                        for strand in ("+", "-")
+                    }
                 if cds_boundary_radius:
                     phase_tracks["eviann_cds_boundary"] = {
                         strand: build_cds_boundary_mask(
@@ -602,6 +613,10 @@ def generate_cell(
                         e_phase = phase_tracks["eviann"][strand][start:start + window]
                         r_phase = phase_tracks["reference"][strand][start:start + window]
                         e_cds = phase_tracks["eviann_cds"][strand][start:start + window]
+                        e_alt = (
+                            phase_tracks["eviann_alt_only_cds"][strand][start:start + window]
+                            if "eviann_alt_only_cds" in phase_tracks else None
+                        )
                         r_cds = phase_tracks["reference_cds"][strand][start:start + window]
                         if cds_boundary_radius:
                             e_cds_boundary = phase_tracks[
@@ -616,6 +631,8 @@ def generate_cell(
                             e_phase = e_phase[::-1]
                             r_phase = r_phase[::-1]
                             e_cds = e_cds[::-1]
+                            if e_alt is not None:
+                                e_alt = e_alt[::-1]
                             r_cds = r_cds[::-1]
                             if cds_boundary_radius:
                                 e_cds_boundary = e_cds_boundary[::-1]
@@ -628,6 +645,8 @@ def generate_cell(
                             cds_labels=e_cds,
                             reference_cds_labels=r_cds,
                         )
+                        if e_alt is not None:
+                            arrays["joint_frame_mask"] = ~e_alt
                         if cds_boundary_radius:
                             arrays.update(
                                 cds_boundary_mask=e_cds_boundary,
@@ -673,6 +692,11 @@ def generate_cell(
             if cds_boundary_radius else None
         ),
         "eviann_transcript_selection": eviann_transcript_selection,
+        "joint_frame_mask": (
+            "False on bases that are CDS only in non-selected EviAnn isoforms "
+            "(excluded from the joint-frame loss); absent means all True"
+            if eviann_phase_all is not None else None
+        ),
         "owned_local_interval": [(window - stride) // 2, (window - stride) // 2 + stride],
         "splits": SPLITS, "accessions": CHROMS, "summary": summary,
         "sources": {
@@ -703,6 +727,17 @@ def main() -> None:
             "Select representative EviAnn transcripts for start/stop labels "
             "only. Donor/acceptor, CDS, phase, and window-region labels always "
             "retain all EviAnn transcripts."
+        ),
+    )
+    parser.add_argument(
+        "--eviann-cds-phase-selection",
+        choices=("all", "longest-cds-per-locus"),
+        default="all",
+        help=(
+            "EviAnn transcripts that define the CDS and codon-phase tracks "
+            "(joint-frame / phase / CDS targets). 'longest-cds-per-locus' keeps "
+            "one transcript per locus, so CDS bases found only in other isoforms "
+            "become non-CDS. Start/stop and donor/acceptor labels are unaffected."
         ),
     )
     parser.add_argument("--reference-gtf", type=Path, default=REFERENCE_GTF)
@@ -742,11 +777,24 @@ def main() -> None:
         ss_meta, ss_exons, ss_cds, eviann_selection = parse_eviann(
             EVIANN_GFF, args.eviann_transcript_selection
         )
+    cds_phase_transcripts = None
+    cds_phase_selection = {"mode": "all_transcripts"}
+    if args.eviann_cds_phase_selection == "longest-cds-per-locus":
+        cds_phase_meta, _, _, cds_phase_selection = parse_eviann(
+            EVIANN_GFF, "longest-cds-per-locus"
+        )
+        cds_phase_transcripts = set(cds_phase_meta)
     eviann_selection = {
         **eviann_selection,
         "applies_to": ["start", "stop"],
         "donor_acceptor_source": "all EviAnn transcripts (union)",
-        "cds_phase_source": "all EviAnn transcripts (union; conflicts masked)",
+        "cds_phase_source": (
+            "all EviAnn transcripts (union; conflicts masked)"
+            if cds_phase_transcripts is None else
+            "longest CDS transcript per EviAnn locus (union across loci; "
+            "conflicts between overlapping loci masked)"
+        ),
+        "cds_phase_selection": cds_phase_selection,
         "window_region_source": "all EviAnn coding transcripts",
     }
     r_meta, r_exons, r_cds, explicit = parse_reference(REFERENCE_GTF)
@@ -760,10 +808,15 @@ def main() -> None:
     r_sites, r_rejected = extract_sites(r_meta, r_exons, r_cds, explicit)
     e_index, r_index = index_sites(e_sites), index_sites(r_sites)
     e_phase = (
-        parse_cds_phase_records(EVIANN_GFF)
+        parse_cds_phase_records(EVIANN_GFF, cds_phase_transcripts)
         if args.include_phase_labels else None
     )
     r_phase = parse_cds_phase_records(REFERENCE_GTF) if args.include_phase_labels else None
+    e_phase_all = (
+        parse_cds_phase_records(EVIANN_GFF)
+        if args.include_phase_labels and cds_phase_transcripts is not None
+        else None
+    )
     completed = []
     for cell in config["cells"]:
         cell_dir = args.output_root / cell["id"]
@@ -781,7 +834,7 @@ def main() -> None:
             manifest = generate_cell(
                 cell_dir, cell, regions, e_index, r_index, e_phase, r_phase,
                 args.cds_boundary_radius,
-                eviann_selection,
+                eviann_selection, e_phase_all,
             )
         completed.append({"cell": cell["id"], "manifest": str(manifest_path.resolve()), "windows": sum(manifest["summary"][s]["windows"] for s in SPLITS)})
     atomic_json(args.output_root / ".complete.json", {

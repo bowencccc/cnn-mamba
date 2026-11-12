@@ -14,6 +14,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.amp import GradScaler, autocast
+
+AMP_DTYPE = torch.bfloat16  # set from --amp-dtype in main()
 from torch.utils.data import DataLoader, Dataset
 
 from .model import SpliceMamba
@@ -370,7 +372,7 @@ def evaluate(
         sequence = batch[0].to(device, non_blocking=True)
         chess_splice = batch[5].to(device, non_blocking=True)
         chess_ss = batch[6].to(device, non_blocking=True)
-        with autocast("cuda", enabled=use_amp):
+        with autocast("cuda", enabled=use_amp, dtype=AMP_DTYPE):
             if (
                 phase_aux_weight > 0 or cds_aux_weight > 0
                 or joint_frame_aux_weight > 0
@@ -632,7 +634,21 @@ def main():
     )
     parser.add_argument("--window-size", type=int, default=10000)
     parser.add_argument("--stride", type=int, default=5000)
-    parser.add_argument("--amp", action="store_true")
+    parser.add_argument(
+        "--amp", action="store_true",
+        help="CUDA autocast for training and validation (recommended: with the default bf16).",
+    )
+    parser.add_argument(
+        "--dropout", type=float, default=0.1,
+        help="dropout rate for every Dropout layer (0 removes the train/eval mismatch).",
+    )
+    parser.add_argument(
+        "--amp-dtype", choices=("fp16", "bf16"), default="bf16",
+        help=(
+            "autocast dtype for --amp. bf16 (default) needs no GradScaler; fp16 "
+            "overflowed (non-finite forward passes) in 20 kb Drosophila training."
+        ),
+    )
     parser.add_argument(
         "--gradient-checkpointing",
         action="store_true",
@@ -894,7 +910,7 @@ def main():
         d_model=192,
         d_state=64,
         n_layers=8,
-        dropout=0.1,
+        dropout=args.dropout,
         architecture=args.architecture,
         cnn_kernel_size=args.cnn_kernel_size,
         frame_dilation=args.frame_dilation,
@@ -1027,7 +1043,9 @@ def main():
     frozen_parameter_count = sum(
         parameter.numel() for _, parameter in frozen_parameters
     )
-    scaler = GradScaler(enabled=args.amp)
+    global AMP_DTYPE
+    AMP_DTYPE = torch.bfloat16 if args.amp_dtype == "bf16" else torch.float16
+    scaler = GradScaler(enabled=args.amp and args.amp_dtype == "fp16")
     steps_per_epoch = math.ceil(len(train_loader) / args.grad_accum)
     scheduler_epochs = args.scheduler_epochs or args.epochs
     scheduler_steps = scheduler_epochs * steps_per_epoch
@@ -1105,7 +1123,7 @@ def main():
                 for tensor in gradient_probe
             )
             probe_sequence = probe_batch[0]
-            with autocast("cuda", enabled=args.amp):
+            with autocast("cuda", enabled=args.amp, dtype=AMP_DTYPE):
                 probe_outputs = model(
                     probe_sequence,
                     return_phase=args.phase_aux_weight > 0,
@@ -1251,7 +1269,7 @@ def main():
                         for name, values in epoch_gradient_norms.items()
                     )
                 )
-            with autocast("cuda", enabled=args.amp):
+            with autocast("cuda", enabled=args.amp, dtype=AMP_DTYPE):
                 if (
                     args.phase_aux_weight > 0 or args.cds_aux_weight > 0
                     or args.joint_frame_aux_weight > 0
@@ -1499,7 +1517,7 @@ def main():
                     else str(args.init_backbone_checkpoint.resolve())
                 ),
                 "initialization": initialization,
-                "d_model": 192, "d_state": 64, "n_layers": 8, "dropout": 0.1,
+                "d_model": 192, "d_state": 64, "n_layers": 8, "dropout": args.dropout,
                 "regime": "chrxtrain" if args.include_test_in_train else "heldout",
             },
         }

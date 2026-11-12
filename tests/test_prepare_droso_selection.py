@@ -46,6 +46,20 @@ class EviAnnTranscriptSelectionTests(unittest.TestCase):
     def tearDown(self):
         self.temporary.cleanup()
 
+    def test_longest_cds_per_locus_restricts_cds_phase_records(self):
+        meta, _, _, summary = parse_eviann(self.gff, "longest-cds-per-locus")
+        self.assertEqual(
+            set(meta),
+            {"tx_k_longest", "tx_k_long", "tx_incomplete_equal", "tx_complete_j"},
+        )
+        records = parse_cds_phase_records(self.gff, set(meta))["NC_004354.4"]["+"]
+        self.assertEqual(
+            sorted(records),
+            [(500, 750, 0), (900, 1020, 0), (1100, 1300, 0), (1400, 1600, 0)],
+        )
+        all_records = parse_cds_phase_records(self.gff)["NC_004354.4"]["+"]
+        self.assertEqual(len(all_records), 7)
+
     def test_priority_and_fallback_selection(self):
         meta, exons, cds, summary = parse_eviann(
             self.gff, "longest-complete-equal-else-k"

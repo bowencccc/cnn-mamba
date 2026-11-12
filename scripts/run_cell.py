@@ -53,6 +53,10 @@ def main():
         "--candidate-propensity-negative-weight", type=float, default=1.0
     )
     parser.add_argument("--record-gradient-norms", action="store_true")
+    parser.add_argument("--amp", action="store_true",
+                        help="enable CUDA automatic mixed precision in training")
+    parser.add_argument("--amp-dtype", choices=("fp16", "bf16"),
+                        help="autocast dtype (default: cell amp_dtype or bf16)")
     parser.add_argument("--init-backbone-checkpoint", type=Path)
     parser.add_argument("--backbone-lr-multiplier", type=float, default=1.0)
     parser.add_argument("--freeze-pretrained-layers", type=int, default=0)
@@ -130,6 +134,11 @@ def main():
             ])
         if args.regime == "chrxtrain":
             command.append("--include-test-in-train")
+        if args.amp or cell.get("amp"):
+            command.append("--amp")
+            command.extend(["--amp-dtype", args.amp_dtype or cell.get("amp_dtype", "bf16")])
+        if cell.get("dropout") is not None:
+            command.extend(["--dropout", str(cell["dropout"])])
         if cell.get("gradient_checkpointing"):
             command.append("--gradient-checkpointing")
         if (run_dir / "last_model.pt").is_file():
