@@ -9,13 +9,27 @@ made with another annotation must not overwrite these entries.
 
 | Species | Evidence | Regime | Best epoch | Validation mean AP | Model | Chromosome outputs |
 |---|---|---|---:|---:|---|---|
-| Human | Rodentia proteins | chr1 included | 3 | 0.669506 | ready | not produced yet |
+| Human | Rodentia proteins | chr1 included | 3 | 0.669506 | ready | ready |
 | Dmel | Coleoptera proteins | chrX included | 21 | 0.897269 | ready | ready |
 
 The Human value is the best fully completed epoch. Its original job stopped in
 the middle of epoch 4; it is a usable checkpoint but not a completed
 early-stopping run. The four task values used for selection are recorded in
-`checkpoint_validation_metrics.tsv`.
+`checkpoint_validation_metrics.tsv`. The promoted epoch-3 checkpoint was
+subsequently scored over chr1+ and all decoder inputs completed on 2026-11-13.
+
+Human chr1+ candidate AUPRC against RefSeq is:
+
+| Task | AUPRC |
+|---|---:|
+| Donor | 0.837593 |
+| Acceptor | 0.802664 |
+| Start | 0.354366 |
+| Stop | 0.322378 |
+
+The exact table is in `human_chr1_candidate_auprc.tsv`. Validation-fitted
+vector scaling reduced four-state NLL from 0.226524 to 0.019961; see
+`human_vector_scaling_metrics.tsv`.
 
 The promoted Dmel vector-scaled output has these corrected, header-preserving
 strict locus results:
@@ -40,8 +54,8 @@ prepared windows and checkpoint. Chromosome-wide predictions are tracked
 separately, which allows the command to report `model_ready=true` while keeping
 `prediction_ready=false` until every decoder input exists.
 
-To produce the missing Human chr1+ scores, raw four-state logits and
-vector-scaled probabilities without retraining:
+To regenerate the Human chr1+ scores, raw four-state logits and vector-scaled
+probabilities without retraining:
 
 ```bash
 CNN_MAMBA_PYTHON=/path/to/mamba3_env/bin/python \
