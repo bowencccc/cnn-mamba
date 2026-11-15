@@ -11,6 +11,8 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
+from cnn_mamba.window_storage import WindowStore
+
 
 def open_text(path: Path):
     return gzip.open(path, "rt") if path.suffix == ".gz" else path.open()
@@ -49,11 +51,13 @@ def parse_features(path: Path, accessions: set[str]):
 def load_windows(cell_dir: Path, accessions: dict[str, str]):
     windows = defaultdict(list)
     for split in ("train", "val", "test"):
-        for path in (cell_dir / split).glob("*.npz"):
-            stem = path.stem
+        store = WindowStore(cell_dir / split)
+        for path in store.files:
+            stem = Path(path).stem
             chrom, orientation, start_text = stem.rsplit("_", 2)
             strand = "+" if orientation == "plus" else "-"
             windows[(split, accessions[chrom], strand)].append(int(start_text))
+        store.close()
     for starts in windows.values():
         starts.sort()
     return windows

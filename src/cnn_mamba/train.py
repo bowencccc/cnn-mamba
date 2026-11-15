@@ -17,6 +17,7 @@ from torch.amp import GradScaler, autocast
 from torch.utils.data import DataLoader, Dataset
 
 from .model import SpliceMamba
+from .window_storage import WindowStore
 from .common import (
     BinnedPR,
     format_metrics,
@@ -56,12 +57,8 @@ class PUDataset(Dataset):
         propensity_root=None,
     ):
         directories = directory if isinstance(directory, (list, tuple)) else [directory]
-        self.files = sorted(
-            str(Path(item) / name)
-            for item in directories
-            for name in os.listdir(item)
-            if name.endswith(".npz")
-        )
+        self._windows = WindowStore(directories)
+        self.files = self._windows.files
         self.require_phase = require_phase
         self.require_cds = require_cds
         self.require_cds_boundary = require_cds_boundary
@@ -80,7 +77,7 @@ class PUDataset(Dataset):
         return len(self.files)
 
     def __getitem__(self, index):
-        with np.load(self.files[index]) as data:
+        with self._windows.load(index) as data:
             keys = (
                 "sequence",
                 "labels",

@@ -4,7 +4,7 @@
 Split policy (fixed and recorded in ``split_manifest.json``):
   * chr1: independent test
   * remaining primary chromosomes: deterministic 80/20 train/validation split
-  * train/validation/test NPZ windows: only coding-gene regions
+  * train/validation/test HDF5 windows: only coding-gene regions
 
 Each saved sample is a 10 kb strand-oriented sequence with the same label schema
 as the existing human EviAnn SSM run.
@@ -23,6 +23,8 @@ import time
 
 import numpy as np
 import pysam
+
+from .window_storage import WindowWriter
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -283,56 +285,58 @@ def fill_labels(win_start, donors, acceptors, starts, stops, strand, window_size
 
 
 def generate_split(output_dir, split, chroms, regions, splice, starts, stops, fasta_path):
-    split_dir = output_dir / split
-    split_dir.mkdir(parents=True, exist_ok=True)
+    """Generate one complete split; existing split files are never appended to."""
+    output_dir.mkdir(parents=True, exist_ok=True)
     fasta = pysam.FastaFile(str(fasta_path))
     summary = {"windows": 0, "with_any_label": 0, "with_start_stop": 0, "by_chrom": {}}
-    for chrom in chroms:
-        nc = CHR_TO_NC[chrom]
-        chrom_len = fasta.get_reference_length(nc)
-        chrom_row = {"windows": 0, "with_any_label": 0, "with_start_stop": 0}
-        for strand in ("+", "-"):
-            starts_grid = window_starts_for_regions(
-                regions[chrom][strand], chrom_len, WINDOW_SIZE, STRIDE
-            )
-            splice_pairs = splice[chrom][strand]
-            donor_sites = sorted(donor for donor, _ in splice_pairs)
-            acceptor_sites = sorted(acceptor for _, acceptor in splice_pairs)
-            start_sites = sorted(starts[chrom][strand])
-            stop_sites = sorted(stops[chrom][strand])
-            for win_start in starts_grid:
-                seq = fasta.fetch(nc, win_start, win_start + WINDOW_SIZE).upper()
-                if len(seq) != WINDOW_SIZE or seq.count("N") > WINDOW_SIZE // 2:
-                    continue
-                splice_labels, ss_labels = fill_labels(
-                    win_start,
-                    donor_sites,
-                    acceptor_sites,
-                    start_sites,
-                    stop_sites,
-                    strand,
-                    WINDOW_SIZE,
+    with WindowWriter(output_dir / f"{split}.h5") as writer:
+        for chrom in chroms:
+            nc = CHR_TO_NC[chrom]
+            chrom_len = fasta.get_reference_length(nc)
+            chrom_row = {"windows": 0, "with_any_label": 0, "with_start_stop": 0}
+            for strand in ("+", "-"):
+                starts_grid = window_starts_for_regions(
+                    regions[chrom][strand], chrom_len, WINDOW_SIZE, STRIDE
                 )
-                if strand == "-":
-                    seq = seq.translate(COMPLEMENT)[::-1]
-                encoded = ENCODE[np.frombuffer(seq.encode("ascii"), dtype=np.uint8)]
-                has_any = bool(np.any(splice_labels) or np.any(ss_labels))
-                has_ss = bool(np.any(ss_labels))
-                filename = f"{chrom[3:]}_{'plus' if strand == '+' else 'minus'}_{win_start}.npz"
-                np.savez_compressed(
-                    split_dir / filename,
-                    sequence=encoded,
-                    labels=splice_labels,
-                    start_stop_labels=ss_labels,
-                    has_any_label=np.array(has_any, dtype=np.bool_),
-                )
-                chrom_row["windows"] += 1
-                chrom_row["with_any_label"] += int(has_any)
-                chrom_row["with_start_stop"] += int(has_ss)
-        summary["by_chrom"][chrom] = chrom_row
-        for key in ("windows", "with_any_label", "with_start_stop"):
-            summary[key] += chrom_row[key]
-        print(f"[{split}] {chrom}: {chrom_row}", flush=True)
+                splice_pairs = splice[chrom][strand]
+                donor_sites = sorted(donor for donor, _ in splice_pairs)
+                acceptor_sites = sorted(acceptor for _, acceptor in splice_pairs)
+                start_sites = sorted(starts[chrom][strand])
+                stop_sites = sorted(stops[chrom][strand])
+                for win_start in starts_grid:
+                    seq = fasta.fetch(nc, win_start, win_start + WINDOW_SIZE).upper()
+                    if len(seq) != WINDOW_SIZE or seq.count("N") > WINDOW_SIZE // 2:
+                        continue
+                    splice_labels, ss_labels = fill_labels(
+                        win_start,
+                        donor_sites,
+                        acceptor_sites,
+                        start_sites,
+                        stop_sites,
+                        strand,
+                        WINDOW_SIZE,
+                    )
+                    if strand == "-":
+                        seq = seq.translate(COMPLEMENT)[::-1]
+                    encoded = ENCODE[np.frombuffer(seq.encode("ascii"), dtype=np.uint8)]
+                    has_any = bool(np.any(splice_labels) or np.any(ss_labels))
+                    has_ss = bool(np.any(ss_labels))
+                    filename = f"{chrom[3:]}_{'plus' if strand == '+' else 'minus'}_{win_start}.npz"
+                    writer.append(
+                        filename, dict(
+                            sequence=encoded,
+                            labels=splice_labels,
+                            start_stop_labels=ss_labels,
+                            has_any_label=np.array(has_any, dtype=np.bool_),
+                        ),
+                    )
+                    chrom_row["windows"] += 1
+                    chrom_row["with_any_label"] += int(has_any)
+                    chrom_row["with_start_stop"] += int(has_ss)
+            summary["by_chrom"][chrom] = chrom_row
+            for key in ("windows", "with_any_label", "with_start_stop"):
+                summary[key] += chrom_row[key]
+            print(f"[{split}] {chrom}: {chrom_row}", flush=True)
     fasta.close()
     return summary
 

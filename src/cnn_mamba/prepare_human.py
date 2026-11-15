@@ -19,6 +19,8 @@ from pathlib import Path
 import numpy as np
 import pysam
 
+from .window_storage import WindowWriter
+
 from .human_annotations import (
     CHR_TO_NC,
     EVIANN_GFF,
@@ -220,8 +222,8 @@ def generate_split(
     eviann_phase=None, eviann_excluded_phase=None, reference_phase=None,
     medium_start_stop=None, medium_start_stop_weight=0.3,
 ):
-    split_dir = output_dir / split
-    split_dir.mkdir(parents=True, exist_ok=True)
+    """Generate one complete split; existing split files are never appended to."""
+    output_dir.mkdir(parents=True, exist_ok=True)
     fasta = pysam.FastaFile(str(fasta_path))
     summary = {
         "windows": 0,
@@ -232,168 +234,169 @@ def generate_split(
         "joint_frame_masked_bases": 0,
         "by_chrom": {},
     }
-    for chrom in chroms:
-        accession = CHR_TO_NC[chrom]
-        chrom_len = fasta.get_reference_length(accession)
-        chrom_windows = 0
-        for strand in ("+", "-"):
-            phase_tracks = None
-            if eviann_phase is not None:
-                e_phase_track = build_phase_track(
-                    eviann_phase[chrom][strand], chrom_len, strand
-                )
-                c_phase_track = build_phase_track(
-                    reference_phase[chrom][strand], chrom_len, strand
-                )
-                e_cds_track = build_cds_track(
-                    eviann_phase[chrom][strand], chrom_len
-                )
-                excluded_cds_track = (
-                    build_cds_track(
-                        eviann_excluded_phase[chrom][strand], chrom_len
+    with WindowWriter(output_dir / f"{split}.h5") as writer:
+        for chrom in chroms:
+            accession = CHR_TO_NC[chrom]
+            chrom_len = fasta.get_reference_length(accession)
+            chrom_windows = 0
+            for strand in ("+", "-"):
+                phase_tracks = None
+                if eviann_phase is not None:
+                    e_phase_track = build_phase_track(
+                        eviann_phase[chrom][strand], chrom_len, strand
                     )
-                    if eviann_excluded_phase is not None
-                    else np.zeros(chrom_len, dtype=np.bool_)
-                )
-                phase_tracks = {
-                    "phase": e_phase_track,
-                    "phase_mask": e_phase_track >= 0,
-                    "reference_phase": c_phase_track,
-                    "reference_phase_mask": c_phase_track >= 0,
-                    "cds": e_cds_track,
-                    "reference_cds": build_cds_track(
-                        reference_phase[chrom][strand], chrom_len
-                    ),
-                    # Excluded EviAnn CDS bases are known not to be noncoding.
-                    # Retained complete-HQ CDS wins in overlapping isoforms.
-                    "joint_frame_mask": (~excluded_cds_track) | e_cds_track,
-                }
-            starts = window_starts_for_region_overlap(
-                regions[chrom][strand], chrom_len, region_overlap_bp
-            )
-            starts = evenly_limit(starts, max_per_chrom_strand)
-            eviann_local = {
-                name: eviann[name][chrom][strand] for name in SITE_TYPES
-            }
-            ignored_local = {
-                name: eviann_ignored[name][chrom][strand] for name in SITE_TYPES
-            }
-            reference_local = {
-                name: reference[name][chrom][strand] for name in SITE_TYPES
-            }
-            medium_local = (
-                {
-                    name: medium_start_stop[name][chrom][strand]
-                    for name in SITE_TYPES
-                }
-                if medium_start_stop is not None else None
-            )
-            for win_start in starts:
-                sequence = fasta.fetch(accession, win_start, win_start + WINDOW_SIZE).upper()
-                if len(sequence) != WINDOW_SIZE or sequence.count("N") > WINDOW_SIZE // 2:
-                    continue
-                e_splice, e_ss = make_two_head_labels(win_start, strand, eviann_local)
-                i_splice, i_ss = make_two_head_labels(
-                    win_start, strand, ignored_local
-                )
-                c_splice, c_ss = make_two_head_labels(
-                    win_start, strand, reference_local
-                )
-                if medium_local is not None:
-                    _, medium_ss = make_two_head_labels(
-                        win_start, strand, medium_local
+                    c_phase_track = build_phase_track(
+                        reference_phase[chrom][strand], chrom_len, strand
                     )
-                    start_stop_weights = np.ones(WINDOW_SIZE, dtype=np.float32)
-                    # medium_start_stop excludes any site also supported by a
-                    # complete transcript, so high-confidence support wins.
-                    start_stop_weights[(medium_ss != 0) & (e_ss != 0)] = (
-                        medium_start_stop_weight
+                    e_cds_track = build_cds_track(
+                        eviann_phase[chrom][strand], chrom_len
                     )
-
-                # Excluded EviAnn evidence is unlabeled, not negative. RefSeq
-                # truth is never consulted by the training ignore mask.
-                splice_ignore = (i_splice != 0) & (e_splice == 0)
-                ss_ignore = (i_ss != 0) & (e_ss == 0)
-
-                if strand == "-":
-                    sequence = sequence.translate(COMPLEMENT)[::-1]
-                encoded = ENCODE[np.frombuffer(sequence.encode("ascii"), dtype=np.uint8)]
-                filename = f"{chrom[3:]}_{'plus' if strand == '+' else 'minus'}_{win_start}.npz"
-                arrays = dict(
-                    sequence=encoded,
-                    labels=e_splice,
-                    start_stop_labels=e_ss,
-                    splice_ignore=splice_ignore,
-                    start_stop_ignore=ss_ignore,
-                    reference_labels=c_splice,
-                    reference_start_stop_labels=c_ss,
-                )
-                if medium_local is not None:
-                    arrays["start_stop_weights"] = start_stop_weights
-                if phase_tracks is not None:
-                    end = win_start + WINDOW_SIZE
-                    e_phase = phase_tracks["phase"][win_start:end]
-                    e_phase_mask = phase_tracks["phase_mask"][win_start:end]
-                    c_phase = phase_tracks["reference_phase"][win_start:end]
-                    c_phase_mask = phase_tracks[
-                        "reference_phase_mask"
-                    ][win_start:end]
-                    e_cds = phase_tracks["cds"][win_start:end]
-                    c_cds = phase_tracks["reference_cds"][win_start:end]
-                    joint_frame_mask = phase_tracks[
-                        "joint_frame_mask"
-                    ][win_start:end]
-                    if strand == "-":
-                        e_phase = e_phase[::-1]
-                        e_phase_mask = e_phase_mask[::-1]
-                        c_phase = c_phase[::-1]
-                        c_phase_mask = c_phase_mask[::-1]
-                        e_cds = e_cds[::-1]
-                        c_cds = c_cds[::-1]
-                        joint_frame_mask = joint_frame_mask[::-1]
-                    arrays.update(
-                        phase_labels=np.maximum(e_phase, 0),
-                        phase_mask=e_phase_mask,
-                        reference_phase_labels=np.maximum(c_phase, 0),
-                        reference_phase_mask=c_phase_mask,
-                        cds_labels=e_cds,
-                        reference_cds_labels=c_cds,
-                        joint_frame_mask=joint_frame_mask,
-                        reference_joint_frame_mask=np.ones_like(
-                            c_cds, dtype=np.bool_
+                    excluded_cds_track = (
+                        build_cds_track(
+                            eviann_excluded_phase[chrom][strand], chrom_len
+                        )
+                        if eviann_excluded_phase is not None
+                        else np.zeros(chrom_len, dtype=np.bool_)
+                    )
+                    phase_tracks = {
+                        "phase": e_phase_track,
+                        "phase_mask": e_phase_track >= 0,
+                        "reference_phase": c_phase_track,
+                        "reference_phase_mask": c_phase_track >= 0,
+                        "cds": e_cds_track,
+                        "reference_cds": build_cds_track(
+                            reference_phase[chrom][strand], chrom_len
                         ),
+                        # Excluded EviAnn CDS bases are known not to be noncoding.
+                        # Retained complete-HQ CDS wins in overlapping isoforms.
+                        "joint_frame_mask": (~excluded_cds_track) | e_cds_track,
+                    }
+                starts = window_starts_for_region_overlap(
+                    regions[chrom][strand], chrom_len, region_overlap_bp
+                )
+                starts = evenly_limit(starts, max_per_chrom_strand)
+                eviann_local = {
+                    name: eviann[name][chrom][strand] for name in SITE_TYPES
+                }
+                ignored_local = {
+                    name: eviann_ignored[name][chrom][strand] for name in SITE_TYPES
+                }
+                reference_local = {
+                    name: reference[name][chrom][strand] for name in SITE_TYPES
+                }
+                medium_local = (
+                    {
+                        name: medium_start_stop[name][chrom][strand]
+                        for name in SITE_TYPES
+                    }
+                    if medium_start_stop is not None else None
+                )
+                for win_start in starts:
+                    sequence = fasta.fetch(accession, win_start, win_start + WINDOW_SIZE).upper()
+                    if len(sequence) != WINDOW_SIZE or sequence.count("N") > WINDOW_SIZE // 2:
+                        continue
+                    e_splice, e_ss = make_two_head_labels(win_start, strand, eviann_local)
+                    i_splice, i_ss = make_two_head_labels(
+                        win_start, strand, ignored_local
                     )
-                np.savez_compressed(split_dir / filename, **arrays)
-                chrom_windows += 1
-                summary["windows"] += 1
-                for name, e_arr, i_arr, c_arr, ign_arr, cls in (
-                    ("donor", e_splice, i_splice, c_splice, splice_ignore, 1),
-                    ("acceptor", e_splice, i_splice, c_splice, splice_ignore, 2),
-                    ("start", e_ss, i_ss, c_ss, ss_ignore, 1),
-                    ("stop", e_ss, i_ss, c_ss, ss_ignore, 2),
-                ):
-                    summary["eviann_positive_positions"][name] += int(np.sum(e_arr == cls))
-                    summary["reference_positive_positions"][name] += int(np.sum(c_arr == cls))
-                    summary["masked_excluded_eviann_positions"][name] += int(
-                        np.sum(ign_arr & (i_arr == cls))
+                    c_splice, c_ss = make_two_head_labels(
+                        win_start, strand, reference_local
                     )
-                    if name in {"start", "stop"} and medium_local is not None:
-                        summary["medium_weight_start_stop_positions"][name] += int(
-                            np.sum((medium_ss == cls) & (e_arr == cls))
+                    if medium_local is not None:
+                        _, medium_ss = make_two_head_labels(
+                            win_start, strand, medium_local
+                        )
+                        start_stop_weights = np.ones(WINDOW_SIZE, dtype=np.float32)
+                        # medium_start_stop excludes any site also supported by a
+                        # complete transcript, so high-confidence support wins.
+                        start_stop_weights[(medium_ss != 0) & (e_ss != 0)] = (
+                            medium_start_stop_weight
+                        )
+
+                    # Excluded EviAnn evidence is unlabeled, not negative. RefSeq
+                    # truth is never consulted by the training ignore mask.
+                    splice_ignore = (i_splice != 0) & (e_splice == 0)
+                    ss_ignore = (i_ss != 0) & (e_ss == 0)
+
+                    if strand == "-":
+                        sequence = sequence.translate(COMPLEMENT)[::-1]
+                    encoded = ENCODE[np.frombuffer(sequence.encode("ascii"), dtype=np.uint8)]
+                    filename = f"{chrom[3:]}_{'plus' if strand == '+' else 'minus'}_{win_start}.npz"
+                    arrays = dict(
+                        sequence=encoded,
+                        labels=e_splice,
+                        start_stop_labels=e_ss,
+                        splice_ignore=splice_ignore,
+                        start_stop_ignore=ss_ignore,
+                        reference_labels=c_splice,
+                        reference_start_stop_labels=c_ss,
+                    )
+                    if medium_local is not None:
+                        arrays["start_stop_weights"] = start_stop_weights
+                    if phase_tracks is not None:
+                        end = win_start + WINDOW_SIZE
+                        e_phase = phase_tracks["phase"][win_start:end]
+                        e_phase_mask = phase_tracks["phase_mask"][win_start:end]
+                        c_phase = phase_tracks["reference_phase"][win_start:end]
+                        c_phase_mask = phase_tracks[
+                            "reference_phase_mask"
+                        ][win_start:end]
+                        e_cds = phase_tracks["cds"][win_start:end]
+                        c_cds = phase_tracks["reference_cds"][win_start:end]
+                        joint_frame_mask = phase_tracks[
+                            "joint_frame_mask"
+                        ][win_start:end]
+                        if strand == "-":
+                            e_phase = e_phase[::-1]
+                            e_phase_mask = e_phase_mask[::-1]
+                            c_phase = c_phase[::-1]
+                            c_phase_mask = c_phase_mask[::-1]
+                            e_cds = e_cds[::-1]
+                            c_cds = c_cds[::-1]
+                            joint_frame_mask = joint_frame_mask[::-1]
+                        arrays.update(
+                            phase_labels=np.maximum(e_phase, 0),
+                            phase_mask=e_phase_mask,
+                            reference_phase_labels=np.maximum(c_phase, 0),
+                            reference_phase_mask=c_phase_mask,
+                            cds_labels=e_cds,
+                            reference_cds_labels=c_cds,
+                            joint_frame_mask=joint_frame_mask,
+                            reference_joint_frame_mask=np.ones_like(
+                                c_cds, dtype=np.bool_
+                            ),
+                        )
+                    writer.append(filename, arrays)
+                    chrom_windows += 1
+                    summary["windows"] += 1
+                    for name, e_arr, i_arr, c_arr, ign_arr, cls in (
+                        ("donor", e_splice, i_splice, c_splice, splice_ignore, 1),
+                        ("acceptor", e_splice, i_splice, c_splice, splice_ignore, 2),
+                        ("start", e_ss, i_ss, c_ss, ss_ignore, 1),
+                        ("stop", e_ss, i_ss, c_ss, ss_ignore, 2),
+                    ):
+                        summary["eviann_positive_positions"][name] += int(np.sum(e_arr == cls))
+                        summary["reference_positive_positions"][name] += int(np.sum(c_arr == cls))
+                        summary["masked_excluded_eviann_positions"][name] += int(
+                            np.sum(ign_arr & (i_arr == cls))
+                        )
+                        if name in {"start", "stop"} and medium_local is not None:
+                            summary["medium_weight_start_stop_positions"][name] += int(
+                                np.sum((medium_ss == cls) & (e_arr == cls))
+                            )
+                    if phase_tracks is not None:
+                        summary["joint_frame_masked_bases"] += int(
+                            np.sum(~joint_frame_mask)
                         )
                 if phase_tracks is not None:
-                    summary["joint_frame_masked_bases"] += int(
-                        np.sum(~joint_frame_mask)
+                    # Release chromosome-sized dense tracks before allocating the
+                    # next strand/chromosome (chr1 alone is about 249 Mb/base track).
+                    del (
+                        phase_tracks, e_phase_track, c_phase_track,
+                        e_cds_track, excluded_cds_track,
                     )
-            if phase_tracks is not None:
-                # Release chromosome-sized dense tracks before allocating the
-                # next strand/chromosome (chr1 alone is about 249 Mb/base track).
-                del (
-                    phase_tracks, e_phase_track, c_phase_track,
-                    e_cds_track, excluded_cds_track,
-                )
-        summary["by_chrom"][chrom] = chrom_windows
-        print(f"[{split}] {chrom}: {chrom_windows:,} windows", flush=True)
+            summary["by_chrom"][chrom] = chrom_windows
+            print(f"[{split}] {chrom}: {chrom_windows:,} windows", flush=True)
     fasta.close()
     return summary
 

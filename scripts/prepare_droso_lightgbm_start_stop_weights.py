@@ -12,6 +12,7 @@ import re
 import numpy as np
 
 from cnn_mamba.prepare_droso import CHROMS
+from cnn_mamba.window_storage import WindowStore
 
 
 NAME = re.compile(r"^(.+)_(plus|minus)_(\d+)\.npz$")
@@ -62,7 +63,9 @@ def main():
         source_dir = args.data_root / split
         target_dir = args.output_root / split
         target_dir.mkdir(parents=True, exist_ok=True)
-        for source in sorted(source_dir.glob("*.npz")):
+        store = WindowStore(source_dir)
+        for index, name in enumerate(store.files):
+            source = Path(name)
             match = NAME.match(source.name)
             if not match:
                 raise ValueError(f"unexpected window name: {source}")
@@ -70,7 +73,7 @@ def main():
             chrom = CHROMS[chrom_name]
             strand = "+" if strand_name == "plus" else "-"
             window_start = int(start_text)
-            with np.load(source) as data:
+            with store.load(index) as data:
                 labels = data["start_stop_labels"]
             weights = np.ones(labels.shape, dtype=np.float32)
             for offset in np.flatnonzero(labels):
@@ -89,6 +92,7 @@ def main():
                 weights[offset] = weight
                 counts[split, tier, label] += 1
             np.savez_compressed(target_dir / source.name, start_stop_weights=weights)
+        store.close()
 
     summary = {
         "schema": "dmel_human_lightgbm_start_stop_weights_v1",

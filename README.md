@@ -7,7 +7,7 @@ candidate scoring, exact AUPRC, codon/frame prediction, UniAnn input export,
 strict `gffcompare`, and EviAnn+UniAnn evaluation.
 
 Small result tables, plots, training histories and strict-match statistics are
-tracked in `results/`. Large biological inputs, generated NPZ windows, raw
+tracked in `results/`. Large biological inputs, generated HDF5 windows, raw
 score arrays and PyTorch checkpoints are excluded from Git and described in
 `external_manifest.tsv` with exact byte sizes and SHA256 hashes.
 
@@ -128,6 +128,59 @@ cnn-mamba-prepare-droso \
 
 Splits are fixed: train = 2L/2R/3R/4/Y, validation = 3L, test = X. Both strands
 are used for training; downstream candidate scoring is chrX positive strand.
+
+### Training storage and migration of existing runs
+
+Window preparation writes one HDF5 file per split: `train.h5`, `val.h5`, and
+`test.h5`. Each window includes its sequence and existing labels/masks. Training,
+calibration, and tools consuming windows read HDF5 exclusively, with no NPZ-window
+autodetection or fallback. Separately stored weight/teacher-mask sidecars keep
+their existing NPZ format. `h5py` is a new required dependency in both
+`pyproject.toml` and `environment.yml`.
+
+Keep existing runs, results and checkpoints with their original code revision and
+input files. They remain valid and do not need to be recomputed. To reuse legacy
+window inputs with this revision, either regenerate them with the preparation
+command above or run this one-time snippet in the activated environment:
+
+```bash
+python - /path/to/npz_windows /path/to/hdf5_windows <<'PY'
+from pathlib import Path
+import sys
+import numpy as np
+from cnn_mamba.window_storage import WindowWriter
+
+source_root, target_root = map(Path, sys.argv[1:])
+for split in ("train", "val", "test"):
+    source = source_root / split
+    if not source.is_dir():
+        raise FileNotFoundError(source)
+    with WindowWriter(target_root / f"{split}.h5") as writer:
+        for path in sorted(source.glob("*.npz")):
+            with np.load(path) as data:
+                writer.append(path.name, {key: data[key] for key in data.files})
+PY
+python -m cnn_mamba.train --data-root /path/to/hdf5_windows --mode baseline
+```
+
+This snippet leaves every source file untouched and refuses to overwrite existing
+HDF5 files. Copy the original split manifest to the new window root for provenance.
+When resuming a checkpoint, pass the converted window root with `--data-root`;
+existing `--start-stop-weight-root` / `--candidate-propensity-root` values can
+stay unchanged. Checkpoints, result tables, score arrays and singleton calibration
+samples keep their existing formats.
+
+Each split stores original sample IDs and one stacked dataset per array. Readers
+sort by the same IDs as before, preserving sample order, dtypes and labels. The
+`.npz` suffix in a retained sample ID is historical identity, not an NPZ file.
+Arrays must have consistent keys, shapes and dtypes within each split. Missing
+HDF5 files fail with a pointer to the migration instructions instead of silently
+reading old data.
+
+Default compression is gzip level 6 with one window per chunk; larger chunks can
+amplify random-read decompression. Reader handles are opened independently in each
+DataLoader process. Existing NPZ sidecars are still matched by split and original
+sample ID.
 
 ## 4. Train, score and evaluate
 
@@ -442,7 +495,7 @@ Best epoch 4; early stopping at epoch 7; mean test-window candidate AP 0.426755.
 
 The Human external group contains GRCh38, NCBI RefSeq GRCh38.p14, CHESS 3.1.3, the Human EviAnn
 pseudo-label GFF, full Human PSAURON scores, and the current 10 kb
-CNN--Mamba-k7 chr1-in-training checkpoint. Generated NPZ windows and chr1 score
+CNN--Mamba-k7 chr1-in-training checkpoint. Generated HDF5 windows and chr1 score
 arrays are omitted and can be rebuilt.
 
 ```bash
@@ -538,7 +591,7 @@ CUDA_VISIBLE_DEVICES=0 python scripts/run_human.py \
 
 ```text
 src/cnn_mamba/model.py                 model definition/checkpoint loader
-src/cnn_mamba/prepare_droso.py         raw annotations -> NPZ windows
+src/cnn_mamba/prepare_droso.py         raw annotations -> HDF5 windows
 src/cnn_mamba/train.py                 training and validation
 src/cnn_mamba/score_chromosome.py      all canonical candidate scores
 src/cnn_mamba/evaluate_candidates.py   exact held-out AUPRC

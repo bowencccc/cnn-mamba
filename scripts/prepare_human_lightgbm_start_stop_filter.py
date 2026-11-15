@@ -13,6 +13,8 @@ import re
 
 import numpy as np
 
+from cnn_mamba.window_storage import WindowStore
+
 
 NAME = re.compile(r"^(1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|X|Y)_(plus|minus)_(\d+)\.npz$")
 
@@ -67,7 +69,8 @@ def main():
         source_dir = args.data_root / split
         target_dir = args.output_root / split
         target_dir.mkdir(parents=True, exist_ok=True)
-        files = sorted(source_dir.glob("*.npz"))
+        store = WindowStore(source_dir)
+        files = [Path(name) for name in store.files]
         for index, source in enumerate(files, 1):
             match = NAME.match(source.name)
             if not match:
@@ -76,7 +79,7 @@ def main():
             chrom = f"chr{chrom_text}"
             strand = "+" if strand_text == "plus" else "-"
             window_start = int(start_text)
-            with np.load(source) as data:
+            with store.load(index - 1) as data:
                 labels = data["start_stop_labels"]
             weights = np.ones(labels.shape, dtype=np.float32)
             for offset in np.flatnonzero(labels):
@@ -96,6 +99,7 @@ def main():
             np.savez_compressed(target_dir / source.name, start_stop_weights=weights)
             if index % 5000 == 0:
                 print(f"[{split}] {index:,}/{len(files):,}", flush=True)
+        store.close()
 
     output = {
         "schema": "human_lightgbm_crossfit_p90_start_stop_filter_v1",

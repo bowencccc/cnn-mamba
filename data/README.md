@@ -22,10 +22,14 @@ data/raw/psauron_score_human.csv
 
 The exact source files, byte sizes and SHA256 hashes from the original server
 are recorded in `external_manifest.tsv`. Run `python scripts/check_external.py`
-after filling the paths. `cnn-mamba-prepare-droso` creates NPZ windows under
-`data/processed/<window-id>/{train,val,test}`; those generated files are also
+after filling the paths. `cnn-mamba-prepare-droso` creates HDF5 windows at
+`data/processed/<window-id>/{train,val,test}.h5`; those generated files are also
 ignored by Git.
 
+Historical manifest entries for NPZ windows describe the original inputs and keep
+their original hashes. Regenerate windows or use the one-time conversion snippet
+in the main README before using them with the HDF5-only training code.
+
 The Human core group additionally includes the full Human PSAURON file and the
-current chr1-in-training CNN--Mamba-k7 checkpoint. Generated Human NPZ windows
+current chr1-in-training CNN--Mamba-k7 checkpoint. Generated Human HDF5 windows
 and chr1 score arrays are intentionally omitted because they can be regenerated.

@@ -15,6 +15,7 @@ import torch
 
 from .common import splice_candidate_masks, start_stop_candidate_masks
 from .model import model_from_checkpoint
+from .window_storage import WindowStore
 
 
 def atomic_npz(path, **arrays):
@@ -47,10 +48,16 @@ def main():
     splits = [value.strip() for value in args.splits.split(",") if value.strip()]
 
     files = []
+    stores = {}
+    indices = {}
     for split in splits:
-        files.extend((split, path) for path in sorted((args.data_root / split).glob("*.npz")))
+        store = stores[split] = WindowStore(args.data_root / split)
+        for index, name in enumerate(store.files):
+            path = Path(name)
+            files.append((split, path))
+            indices[(split, path)] = index
     if not files:
-        raise RuntimeError("no input NPZ files found")
+        raise RuntimeError("no input windows found")
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA GPU is required")
 
@@ -66,8 +73,8 @@ def main():
     for batch_start in range(0, len(files), args.batch_size):
         batch_files = files[batch_start:batch_start + args.batch_size]
         sequences, splice_labels, ss_labels = [], [], []
-        for _split, path in batch_files:
-            with np.load(path) as data:
+        for split, path in batch_files:
+            with stores[split].load(indices[(split, path)]) as data:
                 sequences.append(data["sequence"].astype(np.int64, copy=False))
                 splice_labels.append(data["labels"].astype(np.int64, copy=False))
                 ss_labels.append(data["start_stop_labels"].astype(np.int64, copy=False))
@@ -127,6 +134,9 @@ def main():
             completed += 1
         if completed % 500 < len(batch_files) or completed == len(files):
             print(f"processed={completed:,}/{len(files):,}", flush=True)
+
+    for store in stores.values():
+        store.close()
 
     payload = {
         "schema": "candidate_teacher_propensity_masks_v1",
