@@ -64,8 +64,6 @@ def _make_windows(tmp_path, embedded_weights=False):
                      start_stop_propensity=np.roll(labels, 2))
         output = tmp_path / f"{split}.h5"
         pack_windows(directory, output)
-        pack_windows(weights / split, weights / f"{split}.h5")
-        pack_windows(propensity / split, propensity / f"{split}.h5")
         npz_dirs.append(directory)
         h5_files.append(output)
     options = dict(require_phase=True, require_cds=True, require_cds_boundary=True,

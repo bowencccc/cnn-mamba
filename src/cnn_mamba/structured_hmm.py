@@ -61,7 +61,7 @@ def _transition_scores(device=None, dtype=torch.float32):
         allow(f"acceptor{phase}", f"exon{phase}")
 
     # STOP is placed on the third nucleotide of a stop codon.  The first two
-    # nucleotides remain exon0/exon1, matching the stored window phase labels.
+    # nucleotides remain exon0/exon1, matching the phase labels in the NPZs.
     allow("exon1", "stop")
     allow("stop", "intergenic")
     return scores

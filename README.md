@@ -132,9 +132,11 @@ are used for training; downstream candidate scoring is chrX positive strand.
 ### Training storage and migration of existing runs
 
 Window preparation writes one HDF5 file per split: `train.h5`, `val.h5`, and
-`test.h5`. Training, calibration, and auxiliary weight/mask tools use this format
-exclusively. `h5py` is a required dependency in both environment specifications.
-There is no NPZ autodetection or fallback in the regular input path.
+`test.h5`. Each window includes its sequence and existing labels/masks. Training,
+calibration, and tools consuming windows read HDF5 exclusively, with no NPZ-window
+autodetection or fallback. Separately stored weight/teacher-mask sidecars keep
+their existing NPZ format. `h5py` is a new required dependency in both
+`pyproject.toml` and `environment.yml`.
 
 Keep existing runs, results and checkpoints with their original code revision and
 input files. They remain valid and do not need to be recomputed. To reuse legacy
@@ -162,13 +164,11 @@ python -m cnn_mamba.train --data-root /path/to/hdf5_windows --mode baseline
 ```
 
 This snippet leaves every source file untouched and refuses to overwrite existing
-HDF5 files. Run it for legacy weight/propensity sidecar roots if the run uses them
-(adjust the split list to those present in the sidecar root). Copy
-the original split manifest to the new root for provenance. When resuming a
-checkpoint, pass the converted root with `--data-root` and, if applicable, the
-converted `--start-stop-weight-root` / `--candidate-propensity-root`; no checkpoint
-rewrite is needed. Result tables, score arrays and singleton calibration samples
-keep their existing formats.
+HDF5 files. Copy the original split manifest to the new window root for provenance.
+When resuming a checkpoint, pass the converted window root with `--data-root`;
+existing `--start-stop-weight-root` / `--candidate-propensity-root` values can
+stay unchanged. Checkpoints, result tables, score arrays and singleton calibration
+samples keep their existing formats.
 
 Each split stores original sample IDs and one stacked dataset per array. Readers
 sort by the same IDs as before, preserving sample order, dtypes and labels. The
@@ -179,8 +179,8 @@ reading old data.
 
 Default compression is gzip level 6 with one window per chunk; larger chunks can
 amplify random-read decompression. Reader handles are opened independently in each
-DataLoader process. Sidecars also use one HDF5 file
-per split and are matched by the original sample ID.
+DataLoader process. Existing NPZ sidecars are still matched by split and original
+sample ID.
 
 ## 4. Train, score and evaluate
 

@@ -40,10 +40,6 @@ class _H5Row:
             value = np.asarray(value, dtype=np.dtype(dataset.attrs["numpy_dtype"]))
         return value
 
-    def get(self, key, default=None):
-        return self[key] if key in self else default
-
-
 class WindowStore:
     """HDF5 rows sorted by original sample ID, with per-process read handles."""
 
@@ -82,7 +78,6 @@ class WindowStore:
         self._handles = {}
         self._datasets = {}
         self._pid = os.getpid()
-        self._by_name = None
 
     def __len__(self):
         return len(self.files)
@@ -102,21 +97,6 @@ class WindowStore:
             }
         row, keys = info
         yield _H5Row(self._datasets[h5_path], row, keys)
-
-    def load_name(self, name):
-        """Look up a stable sample ID, typically in a single-split sidecar."""
-        if self._by_name is None:
-            self._by_name = {}
-            for index, path in enumerate(self.files):
-                basename = Path(path).name
-                if basename in self._by_name:
-                    raise ValueError(f"ambiguous sample ID: {basename}")
-                self._by_name[basename] = index
-        try:
-            index = self._by_name[Path(name).name]
-        except KeyError as exc:
-            raise KeyError(f"missing sample ID {name!r}") from exc
-        return self.load(index)
 
     def close(self):
         if self._pid == os.getpid():

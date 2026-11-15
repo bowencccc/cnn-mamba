@@ -6,7 +6,7 @@ import sys
 import numpy as np
 import torch
 
-from cnn_mamba.window_storage import WindowStore, WindowWriter
+from cnn_mamba.window_storage import WindowWriter
 from cnn_mamba import build_propensity_masks
 
 
@@ -31,11 +31,8 @@ def _windows(root):
 
 
 def _weights(root, name):
-    store = WindowStore(root / 'train')
-    with store.load_name(name) as row:
-        values = row['start_stop_weights']
-    store.close()
-    return values
+    with np.load(root / 'train' / name) as data:
+        return data['start_stop_weights']
 
 
 def test_droso_sidecars_keep_coordinate_and_tier_rules(tmp_path, monkeypatch):
@@ -53,7 +50,7 @@ def test_droso_sidecars_keep_coordinate_and_tier_rules(tmp_path, monkeypatch):
     module.main()
     np.testing.assert_allclose(_weights(out, '1_plus_100.npz'), [1, .3, 1, 0, 1, 1])
     np.testing.assert_allclose(_weights(out, '1_minus_100.npz'), np.ones(6))
-    assert not list(out.rglob('*.npz'))
+    assert not list(out.rglob('*.h5'))
 
 
 def test_human_sidecars_filter_passed_and_unmapped(tmp_path, monkeypatch):
@@ -72,7 +69,7 @@ def test_human_sidecars_filter_passed_and_unmapped(tmp_path, monkeypatch):
     module.main()
     np.testing.assert_array_equal(_weights(out, '1_plus_100.npz'), [1, 1, 1, 0, 1, 1])
     np.testing.assert_array_equal(_weights(out, '1_minus_100.npz'), [1, 0, 1, 0, 1, 1])
-    assert not list(out.rglob('*.npz'))
+    assert not list(out.rglob('*.h5'))
 
 
 def test_propensity_sidecars_preserve_selection(tmp_path, monkeypatch):
@@ -97,12 +94,10 @@ def test_propensity_sidecars_preserve_selection(tmp_path, monkeypatch):
                                     '--data-root', str(data), '--output-root', str(out),
                                     '--splits', 'train,val', '--batch-size', '3'])
     build_propensity_masks.main()
-    store = WindowStore(out / 'train')
-    with store.load_name('1_plus_100.npz') as row:
+    with np.load(out / 'train' / '1_plus_100.npz') as row:
         np.testing.assert_array_equal(row['splice_propensity'], np.ones(6, dtype=bool))
         np.testing.assert_array_equal(row['start_stop_propensity'], [1, 0, 1, 0, 1, 1])
-    store.close()
     manifest = json.loads((out / 'manifest.json').read_text())
     assert manifest['files'] == 4
     assert manifest['totals_with_overlapping_windows']['start']['selected_unlabeled'] == 16
-    assert not list(out.rglob('*.npz'))
+    assert not list(out.rglob('*.h5'))

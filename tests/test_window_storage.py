@@ -80,16 +80,15 @@ def test_legacy_npz_requires_explicit_conversion(tmp_path):
     assert len(list(source.glob("*.npz"))) == 2
 
 
-def test_streaming_writer_keeps_global_id_order_and_named_lookup(tmp_path):
+def test_streaming_writer_keeps_global_id_order(tmp_path):
     path = tmp_path / "train.h5"
     with WindowWriter(path) as writer:
         writer.append("z.npz", {"count": np.array(9)})
         writer.append("a.npz", {"count": np.array(1)})
     store = WindowStore(path)
     assert [os.path.basename(p) for p in store.files] == ["a.npz", "z.npz"]
-    with store.load(0) as row, store.load_name("z.npz") as other:
+    with store.load(0) as row, store.load(1) as other:
         assert row["count"] == 1 and other["count"] == 9
-        assert row.get("missing", 3) == 3
     store.close()
 
 
