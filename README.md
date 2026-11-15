@@ -129,6 +129,36 @@ cnn-mamba-prepare-droso \
 Splits are fixed: train = 2L/2R/3R/4/Y, validation = 3L, test = X. Both strands
 are used for training; downstream candidate scoring is chrX positive strand.
 
+### Optional HDF5 storage for training
+
+To consolidate individual windows without changing their arrays, install the
+optional dependency with `conda install -c conda-forge h5py`, then pack each split
+into a new directory:
+
+```bash
+mkdir -p /path/to/hdf5_windows
+for split in train val test; do
+  python -m cnn_mamba.window_storage \
+    /path/to/npz_windows/$split /path/to/hdf5_windows/$split.h5
+done
+python -m cnn_mamba.train --data-root /path/to/hdf5_windows --mode baseline
+```
+
+The existing NPZ workflow remains the default and does not require h5py.
+`PUDataset` uses `<split>.h5` when the requested `<split>/` directory is absent;
+it also accepts an explicit HDF5 path. Each file stores sorted original sample
+names and one stacked dataset per array, preserving dtypes, labels and sample
+order. Arrays must have consistent keys, shapes and dtypes within each split.
+Conversion streams the input and refuses to overwrite an existing output.
+Keep the original split manifest alongside the packed files for input provenance.
+
+Default compression is gzip level 6 with one window per chunk. Use
+`--compression lzf` for faster compression or `--chunk-windows N` to test larger
+chunks; larger chunks can amplify random-read decompression. Reader handles are
+opened independently in each DataLoader process. Existing NPZ sidecars retain
+their original split/name lookup. Other tools that explicitly scan NPZ files are
+unchanged: retain their source windows until those tools no longer need them.
+
 ## 4. Train, score and evaluate
 
 One command runs a single cell and is safe to assign to one GPU:
