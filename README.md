@@ -7,7 +7,7 @@ candidate scoring, exact AUPRC, codon/frame prediction, UniAnn input export,
 strict `gffcompare`, and EviAnn+UniAnn evaluation.
 
 Small result tables, plots, training histories and strict-match statistics are
-tracked in `results/`. Large biological inputs, generated NPZ windows, raw
+tracked in `results/`. Large biological inputs, generated HDF5 windows, raw
 score arrays and PyTorch checkpoints are excluded from Git and described in
 `external_manifest.tsv` with exact byte sizes and SHA256 hashes.
 
@@ -129,35 +129,58 @@ cnn-mamba-prepare-droso \
 Splits are fixed: train = 2L/2R/3R/4/Y, validation = 3L, test = X. Both strands
 are used for training; downstream candidate scoring is chrX positive strand.
 
-### Optional HDF5 storage for training
+### Training storage and migration of existing runs
 
-To consolidate individual windows without changing their arrays, install the
-optional dependency with `conda install -c conda-forge h5py`, then pack each split
-into a new directory:
+Window preparation writes one HDF5 file per split: `train.h5`, `val.h5`, and
+`test.h5`. Training, calibration, and auxiliary weight/mask tools use this format
+exclusively. `h5py` is a required dependency in both environment specifications.
+There is no NPZ autodetection or fallback in the regular input path.
+
+Keep existing runs, results and checkpoints with their original code revision and
+input files. They remain valid and do not need to be recomputed. To reuse legacy
+window inputs with this revision, either regenerate them with the preparation
+command above or run this one-time snippet in the activated environment:
 
 ```bash
-mkdir -p /path/to/hdf5_windows
-for split in train val test; do
-  python -m cnn_mamba.window_storage \
-    /path/to/npz_windows/$split /path/to/hdf5_windows/$split.h5
-done
+python - /path/to/npz_windows /path/to/hdf5_windows <<'PY'
+from pathlib import Path
+import sys
+import numpy as np
+from cnn_mamba.window_storage import WindowWriter
+
+source_root, target_root = map(Path, sys.argv[1:])
+for split in ("train", "val", "test"):
+    source = source_root / split
+    if not source.is_dir():
+        raise FileNotFoundError(source)
+    with WindowWriter(target_root / f"{split}.h5") as writer:
+        for path in sorted(source.glob("*.npz")):
+            with np.load(path) as data:
+                writer.append(path.name, {key: data[key] for key in data.files})
+PY
 python -m cnn_mamba.train --data-root /path/to/hdf5_windows --mode baseline
 ```
 
-The existing NPZ workflow remains the default and does not require h5py.
-`PUDataset` uses `<split>.h5` when the requested `<split>/` directory is absent;
-it also accepts an explicit HDF5 path. Each file stores sorted original sample
-names and one stacked dataset per array, preserving dtypes, labels and sample
-order. Arrays must have consistent keys, shapes and dtypes within each split.
-Conversion streams the input and refuses to overwrite an existing output.
-Keep the original split manifest alongside the packed files for input provenance.
+This snippet leaves every source file untouched and refuses to overwrite existing
+HDF5 files. Run it for legacy weight/propensity sidecar roots if the run uses them
+(adjust the split list to those present in the sidecar root). Copy
+the original split manifest to the new root for provenance. When resuming a
+checkpoint, pass the converted root with `--data-root` and, if applicable, the
+converted `--start-stop-weight-root` / `--candidate-propensity-root`; no checkpoint
+rewrite is needed. Result tables, score arrays and singleton calibration samples
+keep their existing formats.
 
-Default compression is gzip level 6 with one window per chunk. Use
-`--compression lzf` for faster compression or `--chunk-windows N` to test larger
-chunks; larger chunks can amplify random-read decompression. Reader handles are
-opened independently in each DataLoader process. Existing NPZ sidecars retain
-their original split/name lookup. Other tools that explicitly scan NPZ files are
-unchanged: retain their source windows until those tools no longer need them.
+Each split stores original sample IDs and one stacked dataset per array. Readers
+sort by the same IDs as before, preserving sample order, dtypes and labels. The
+`.npz` suffix in a retained sample ID is historical identity, not an NPZ file.
+Arrays must have consistent keys, shapes and dtypes within each split. Missing
+HDF5 files fail with a pointer to the migration instructions instead of silently
+reading old data.
+
+Default compression is gzip level 6 with one window per chunk; larger chunks can
+amplify random-read decompression. Reader handles are opened independently in each
+DataLoader process. Sidecars also use one HDF5 file
+per split and are matched by the original sample ID.
 
 ## 4. Train, score and evaluate
 
@@ -472,7 +495,7 @@ Best epoch 4; early stopping at epoch 7; mean test-window candidate AP 0.426755.
 
 The Human external group contains GRCh38, NCBI RefSeq GRCh38.p14, CHESS 3.1.3, the Human EviAnn
 pseudo-label GFF, full Human PSAURON scores, and the current 10 kb
-CNN--Mamba-k7 chr1-in-training checkpoint. Generated NPZ windows and chr1 score
+CNN--Mamba-k7 chr1-in-training checkpoint. Generated HDF5 windows and chr1 score
 arrays are omitted and can be rebuilt.
 
 ```bash
@@ -568,7 +591,7 @@ CUDA_VISIBLE_DEVICES=0 python scripts/run_human.py \
 
 ```text
 src/cnn_mamba/model.py                 model definition/checkpoint loader
-src/cnn_mamba/prepare_droso.py         raw annotations -> NPZ windows
+src/cnn_mamba/prepare_droso.py         raw annotations -> HDF5 windows
 src/cnn_mamba/train.py                 training and validation
 src/cnn_mamba/score_chromosome.py      all canonical candidate scores
 src/cnn_mamba/evaluate_candidates.py   exact held-out AUPRC

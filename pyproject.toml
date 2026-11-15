@@ -9,6 +9,7 @@ description = "Portable CNN-Mamba-k7 genomic site prediction pipeline"
 requires-python = ">=3.10,<3.13"
 dependencies = [
   "numpy==2.2.6",
+  "h5py>=3.10",
   "pandas==2.3.3",
   "matplotlib==3.10.8",
   "pysam==0.23.3",
@@ -17,9 +18,6 @@ dependencies = [
   "mamba-ssm @ git+https://github.com/state-spaces/mamba.git@be0303b971cd79a4fbbcfc411a01b33f6b0e3602",
   "causal-conv1d==1.6.1",
 ]
-
-[project.optional-dependencies]
-hdf5 = ["h5py>=3.10"]
 
 [project.scripts]
 cnn-mamba-prepare-droso = "cnn_mamba.prepare_droso:main"

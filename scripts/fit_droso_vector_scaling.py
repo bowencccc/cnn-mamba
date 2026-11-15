@@ -3,7 +3,7 @@
 
 The stored calibration sample contains logits/targets but no genomic metadata.
 This script deterministically replays the original sampling indices against the
-validation NPZ files, verifies every reconstructed target, and assigns samples
+validation windows, verifies every reconstructed target, and assigns samples
 to alternating non-overlapping genomic blocks.  Even blocks fit calibration;
 odd blocks are evaluation-only.
 """
@@ -21,13 +21,15 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+from cnn_mamba.window_storage import WindowStore
+
 
 CLASS_NAMES = ("non_CDS", "frame_0", "frame_1", "frame_2")
 COLORS = {"raw": "#777777", "scalar": "#C44E52", "vector": "#4C72B0"}
 
 
-def targets_from_npz(path: Path, left: int, right: int):
-    with np.load(path) as data:
+def targets_from_window(store, index: int, left: int, right: int):
+    with store.load(index) as data:
         phase = torch.from_numpy(data["reference_phase_labels"][left:right].astype(np.int64))
         phase_mask = torch.from_numpy(data["reference_phase_mask"][left:right].astype(bool))
         cds = torch.from_numpy(data["reference_cds_labels"][left:right].astype(bool))
@@ -38,8 +40,9 @@ def targets_from_npz(path: Path, left: int, right: int):
     return targets, valid
 
 
-def replay_sample(files, stored_targets, seed, samples_per_window, batch_size,
+def replay_sample(store, stored_targets, seed, samples_per_window, batch_size,
                   center_left, center_right, window_size, block_size):
+    files = [Path(path) for path in store.files]
     generator = torch.Generator().manual_seed(seed)
     replayed, block_ids, file_indices = [], [], []
     width = center_right - center_left
@@ -47,7 +50,8 @@ def replay_sample(files, stored_targets, seed, samples_per_window, batch_size,
     for batch_start in range(0, len(files), batch_size):
         batch_files = files[batch_start:batch_start + batch_size]
         target_rows, valid_rows = zip(*[
-            targets_from_npz(path, center_left, center_right) for path in batch_files
+            targets_from_window(store, index, center_left, center_right)
+            for index in range(batch_start, batch_start + len(batch_files))
         ])
         targets = torch.stack(target_rows)
         valid = torch.stack(valid_rows)
@@ -206,13 +210,14 @@ def main():
     with np.load(args.sample) as sample:
         logits = sample["logits"].astype(np.float64)
         targets = sample["targets"].astype(np.uint8)
-    files = sorted((args.data_root / "val").glob("*.npz"))
+    store = WindowStore(args.data_root / "val")
     block_ids, file_indices, dropped_windows = replay_sample(
-        files, targets, int(metadata["seed"]), int(metadata["samples_per_window"]),
+        store, targets, int(metadata["seed"]), int(metadata["samples_per_window"]),
         args.batch_size, int(metadata["owned_center"][0]),
         int(metadata["owned_center"][1]), int(metadata["window_size"]),
         args.block_size,
     )
+    store.close()
     retained = block_ids >= 0
     calibration = retained & (block_ids % 2 == 0)
     evaluation = retained & (block_ids % 2 == 1)

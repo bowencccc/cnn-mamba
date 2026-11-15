@@ -70,11 +70,18 @@ class PUDataset(Dataset):
         self.propensity_root = (
             None if propensity_root is None else Path(propensity_root)
         )
+        self._sidecars = {}
         if require_cds_boundary and not require_cds:
             raise ValueError("CDS boundary masks require CDS labels")
 
     def __len__(self):
         return len(self.files)
+
+    def _sidecar(self, root, source):
+        split = root / source.parent.name
+        if split not in self._sidecars:
+            self._sidecars[split] = WindowStore(split)
+        return self._sidecars[split].load_name(source.name)
 
     def __getitem__(self, index):
         with self._windows.load(index) as data:
@@ -159,14 +166,8 @@ class PUDataset(Dataset):
                     value = data[key]
                 elif self.start_stop_weight_root is not None:
                     source = Path(self.files[index])
-                    sidecar = (
-                        self.start_stop_weight_root / source.parent.name / source.name
-                    )
-                    if not sidecar.is_file():
-                        raise FileNotFoundError(
-                            f"missing start/stop weight sidecar for {source}: {sidecar}"
-                        )
-                    with np.load(sidecar) as weight_data:
+                    sidecar = self.start_stop_weight_root / f"{source.parent.name}.h5"
+                    with self._sidecar(self.start_stop_weight_root, source) as weight_data:
                         if key not in weight_data:
                             raise KeyError(f"missing {key!r} in {sidecar}")
                         value = weight_data[key]
@@ -187,12 +188,8 @@ class PUDataset(Dataset):
                 ))
             if self.propensity_root is not None:
                 source = Path(self.files[index])
-                sidecar = self.propensity_root / source.parent.name / source.name
-                if not sidecar.is_file():
-                    raise FileNotFoundError(
-                        f"missing propensity sidecar for {source}: {sidecar}"
-                    )
-                with np.load(sidecar) as propensity:
+                sidecar = self.propensity_root / f"{source.parent.name}.h5"
+                with self._sidecar(self.propensity_root, source) as propensity:
                     for key in ("splice_propensity", "start_stop_propensity"):
                         if key not in propensity:
                             raise KeyError(f"missing {key!r} in {sidecar}")
@@ -543,7 +540,7 @@ def main():
     parser.add_argument(
         "--candidate-propensity-root", type=Path,
         help=(
-            "Optional sidecar root containing train/test NPZ files with "
+            "Optional sidecar root containing train/test HDF5 files with "
             "splice_propensity and start_stop_propensity masks."
         ),
     )
@@ -557,14 +554,14 @@ def main():
     parser.add_argument(
         "--use-start-stop-weights", action="store_true",
         help=(
-            "Read start_stop_weights from training NPZ files and apply them "
+            "Read start_stop_weights from training HDF5 files and apply them "
             "only to the start/stop candidate loss."
         ),
     )
     parser.add_argument(
         "--start-stop-weight-root", type=Path,
         help=(
-            "Optional sidecar root containing split/name.npz files with a "
+            "Optional sidecar root containing split.h5 files with a "
             "start_stop_weights array. Implies --use-start-stop-weights."
         ),
     )

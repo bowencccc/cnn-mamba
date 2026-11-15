@@ -27,6 +27,7 @@ data/weights/
 *.pt
 *.npy
 *.npz
+*.h5
 *.fa
 *.fna
 *.fai

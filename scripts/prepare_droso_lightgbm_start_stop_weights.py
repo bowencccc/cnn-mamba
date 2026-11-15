@@ -11,6 +11,8 @@ import re
 
 import numpy as np
 
+from cnn_mamba.window_storage import WindowStore, WindowWriter
+
 from cnn_mamba.prepare_droso import CHROMS
 
 
@@ -59,36 +61,38 @@ def main():
     }
     counts = Counter()
     for split in ("train", "val", "test"):
-        source_dir = args.data_root / split
-        target_dir = args.output_root / split
-        target_dir.mkdir(parents=True, exist_ok=True)
-        for source in sorted(source_dir.glob("*.npz")):
-            match = NAME.match(source.name)
-            if not match:
-                raise ValueError(f"unexpected window name: {source}")
-            chrom_name, strand_name, start_text = match.groups()
-            chrom = CHROMS[chrom_name]
-            strand = "+" if strand_name == "plus" else "-"
-            window_start = int(start_text)
-            with np.load(source) as data:
-                labels = data["start_stop_labels"]
-            weights = np.ones(labels.shape, dtype=np.float32)
-            for offset in np.flatnonzero(labels):
-                label = int(labels[offset])
-                position = (
-                    window_start + int(offset)
-                    if strand == "+"
-                    else window_start + len(labels) - 3 - int(offset)
-                )
-                score = score_lookup[label].get((chrom, strand, position))
-                if score is None:
-                    counts[split, "unmapped", label] += 1
-                    continue
-                medium, high = thresholds[label]
-                weight, tier = tier_weight(score, medium, high, args.medium_weight)
-                weights[offset] = weight
-                counts[split, tier, label] += 1
-            np.savez_compressed(target_dir / source.name, start_stop_weights=weights)
+        store = WindowStore(args.data_root / split)
+        with WindowWriter(args.output_root / f"{split}.h5") as writer:
+            for index, path in enumerate(store.files):
+                source = Path(path)
+                match = NAME.match(source.name)
+                if not match:
+                    raise ValueError(f"unexpected window name: {source}")
+                chrom_name, strand_name, start_text = match.groups()
+                chrom = CHROMS[chrom_name]
+                strand = "+" if strand_name == "plus" else "-"
+                window_start = int(start_text)
+                with store.load(index) as data:
+                    labels = data["start_stop_labels"]
+                weights = np.ones(labels.shape, dtype=np.float32)
+                for offset in np.flatnonzero(labels):
+                    label = int(labels[offset])
+                    position = (
+                        window_start + int(offset)
+                        if strand == "+"
+                        else window_start + len(labels) - 3 - int(offset)
+                    )
+                    score = score_lookup[label].get((chrom, strand, position))
+                    if score is None:
+                        counts[split, "unmapped", label] += 1
+                        continue
+                    medium, high = thresholds[label]
+                    weight, tier = tier_weight(score, medium, high, args.medium_weight)
+                    weights[offset] = weight
+                    counts[split, tier, label] += 1
+                writer.append(source.name, {"start_stop_weights": weights})
+
+        store.close()
 
     summary = {
         "schema": "dmel_human_lightgbm_start_stop_weights_v1",

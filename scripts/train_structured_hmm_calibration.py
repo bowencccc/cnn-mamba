@@ -17,6 +17,7 @@ from torch.amp import autocast
 
 from cnn_mamba.model import model_from_checkpoint
 from cnn_mamba.structured_hmm import StructuredGeneHMM, build_partial_constraints
+from cnn_mamba.window_storage import WindowStore
 
 
 LABEL_KEYS = (
@@ -26,12 +27,14 @@ LABEL_KEYS = (
 
 def choose_examples(directory, count, crop_length, seed):
     """Choose boundary-containing windows and a deterministic crop in each."""
-    files = sorted(Path(directory).glob("*.npz"))
+    store = WindowStore(directory)
+    files = [Path(path) for path in store.files]
+    indices = {path: index for index, path in enumerate(files)}
     generator = random.Random(seed)
     generator.shuffle(files)
     selected = []
     for path in files:
-        with np.load(path) as data:
+        with store.load(indices[path]) as data:
             boundaries = np.flatnonzero(
                 (data["labels"] > 0) | (data["start_stop_labels"] > 0)
             )
@@ -43,6 +46,7 @@ def choose_examples(directory, count, crop_length, seed):
         selected.append((path, start))
         if len(selected) == count:
             break
+    store.close()
     if len(selected) != count:
         raise RuntimeError(
             f"requested {count} boundary windows from {directory}, found {len(selected)}"
@@ -54,13 +58,15 @@ def build_cache(model, examples, crop_length, batch_size, device, amp):
     cached = {key: [] for key in ("sequence", "splice_logits", "start_stop_logits",
                                   "frame_logits", *LABEL_KEYS)}
     started = time.time()
+    store = WindowStore(examples[0][0].parent)
+    indices = {Path(path): index for index, path in enumerate(store.files)}
     with torch.inference_mode():
         for offset in range(0, len(examples), batch_size):
             chunk = examples[offset:offset + batch_size]
             full_sequences = []
             loaded = []
             for path, start in chunk:
-                with np.load(path) as data:
+                with store.load(indices[path]) as data:
                     arrays = {key: np.asarray(data[key]) for key in ("sequence", *LABEL_KEYS)}
                 full_sequences.append(torch.from_numpy(arrays["sequence"].astype(np.int64)))
                 loaded.append((arrays, start))
@@ -85,6 +91,7 @@ def build_cache(model, examples, crop_length, batch_size, device, amp):
                 f"cached {min(offset + batch_size, len(examples))}/{len(examples)}",
                 flush=True,
             )
+    store.close()
     result = {key: torch.stack(values) for key, values in cached.items()}
     result["collection_seconds"] = time.time() - started
     return result

@@ -5,7 +5,8 @@ import pickle
 import numpy as np
 import pytest
 
-from cnn_mamba.window_storage import WindowStore, pack_windows
+from cnn_mamba.window_storage import WindowStore, WindowWriter
+from window_test_helpers import pack_windows
 
 h5py = pytest.importorskip("h5py")
 
@@ -30,11 +31,11 @@ def test_roundtrip_raw_equality_and_lazy_rows(tmp_path, compression):
     _write_windows(directory)
     output = tmp_path / "train.h5"
     pack_windows(directory, output, compression=compression, chunk_windows=2)
-    originals = WindowStore(directory)
     packed = WindowStore(output)
-    assert originals.files == packed.files
-    for i in range(len(originals)):
-        with originals.load(i) as expected, packed.load(i) as actual:
+    originals = sorted(directory.glob("*.npz"))
+    assert [str(path) for path in originals] == packed.files
+    for i, path in enumerate(originals):
+        with np.load(path) as expected, packed.load(i) as actual:
             assert "missing" not in actual
             assert all(key in actual for key in expected.files)
             for key in expected.files:
@@ -49,10 +50,11 @@ def test_roundtrip_raw_equality_and_lazy_rows(tmp_path, compression):
     assert not handle.id.valid
 
 
-def test_global_sort_and_directory_fallback(tmp_path):
+def test_global_sort_logical_split_paths_and_empty_split(tmp_path):
     a, b = tmp_path / "a", tmp_path / "b"
     _write_windows(a)
     _write_windows(b)
+    pack_windows(a, tmp_path / "a.h5")
     pack_windows(b, tmp_path / "b.h5")
     for f in b.iterdir():
         f.unlink()
@@ -63,10 +65,32 @@ def test_global_sort_and_directory_fallback(tmp_path):
         assert int(row["count"]) == 1
     store.close()
     empty = tmp_path / "empty"
-    empty.mkdir()
+    with WindowWriter(tmp_path / "empty.h5"):
+        pass
     assert len(WindowStore(empty)) == 0
     with pytest.raises(FileNotFoundError):
         WindowStore(tmp_path / "missing")
+
+
+def test_legacy_npz_requires_explicit_conversion(tmp_path):
+    source = tmp_path / "train"
+    _write_windows(source)
+    with pytest.raises(FileNotFoundError, match="Generate HDF5 windows"):
+        WindowStore(source)
+    assert len(list(source.glob("*.npz"))) == 2
+
+
+def test_streaming_writer_keeps_global_id_order_and_named_lookup(tmp_path):
+    path = tmp_path / "train.h5"
+    with WindowWriter(path) as writer:
+        writer.append("z.npz", {"count": np.array(9)})
+        writer.append("a.npz", {"count": np.array(1)})
+    store = WindowStore(path)
+    assert [os.path.basename(p) for p in store.files] == ["a.npz", "z.npz"]
+    with store.load(0) as row, store.load_name("z.npz") as other:
+        assert row["count"] == 1 and other["count"] == 9
+        assert row.get("missing", 3) == 3
+    store.close()
 
 
 def test_schema_mismatch_atomic_and_existing_file(tmp_path):

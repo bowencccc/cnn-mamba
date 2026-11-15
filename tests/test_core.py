@@ -30,6 +30,7 @@ from cnn_mamba.train import (
 from cnn_mamba.temperature_scaling import (
     calibration_metrics, fit_temperature, joint_frame_targets,
 )
+from cnn_mamba.window_storage import WindowWriter
 from cnn_mamba.uniann_evaluate import parse_stats
 
 
@@ -422,9 +423,11 @@ class CoreTests(unittest.TestCase):
                     [True, True, False, False] * 3, dtype=bool
                 ),
             }
-            np.savez_compressed(Path(directory) / "sample.npz", **arrays)
+            path = Path(directory) / "train.h5"
+            with WindowWriter(path) as writer:
+                writer.append("sample.npz", arrays)
             batch = PUDataset(
-                Path(directory), require_phase=True, require_cds=True,
+                path, require_phase=True, require_cds=True,
                 require_cds_boundary=True,
             )[0]
         self.assertEqual(len(batch), 17)

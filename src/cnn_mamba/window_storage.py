@@ -1,6 +1,5 @@
-"""Read NPZ windows or pack them into a single HDF5 file per split."""
+"""Stream and read HDF5 training windows with stable sample IDs."""
 
-import argparse
 from contextlib import contextmanager
 import json
 import os
@@ -9,17 +8,10 @@ import tempfile
 from urllib.parse import quote
 
 import numpy as np
+import h5py
 
 
 _SCHEMA = "cnn_mamba_windows_v1"
-
-
-def _h5py():
-    try:
-        import h5py
-    except ImportError as exc:
-        raise ImportError("HDF5 window storage requires h5py") from exc
-    return h5py
 
 
 def _dataset_name(key):
@@ -34,6 +26,7 @@ class _H5Row:
         self._arrays = arrays
         self._row = row
         self._keys = keys
+        self.files = keys
 
     def __contains__(self, key):
         return key in self._keys
@@ -47,9 +40,12 @@ class _H5Row:
             value = np.asarray(value, dtype=np.dtype(dataset.attrs["numpy_dtype"]))
         return value
 
+    def get(self, key, default=None):
+        return self[key] if key in self else default
+
 
 class WindowStore:
-    """Ordered virtual NPZ paths with process-local, reusable HDF5 handles."""
+    """HDF5 rows sorted by original sample ID, with per-process read handles."""
 
     def __init__(self, directories):
         if isinstance(directories, (str, os.PathLike)):
@@ -57,23 +53,20 @@ class WindowStore:
         entries = []
         for item in directories:
             path = Path(item)
-            if path.is_dir():
-                entries.extend((str(p), None, None) for p in path.iterdir()
-                               if p.name.endswith(".npz"))
-                continue
-            if path.is_file() and path.suffix != ".h5":
-                raise ValueError(f"unsupported window source: {path}")
             h5_path = path if path.suffix == ".h5" else path.with_name(path.name + ".h5")
             if not h5_path.is_file():
-                raise FileNotFoundError(f"window directory or HDF5 file not found: {path}")
-            with _h5py().File(h5_path, "r") as handle:
+                raise FileNotFoundError(
+                    f"HDF5 windows not found: {h5_path}. Generate HDF5 windows or "
+                    "use the one-time migration snippet in README.md."
+                )
+            with h5py.File(h5_path, "r") as handle:
                 if handle.attrs.get("schema") != _SCHEMA:
                     raise ValueError(f"unsupported window schema in {h5_path}")
                 try:
                     names = handle["sample_names"].asstr()[:].tolist()
                     arrays = handle["arrays"]
                     keys = json.loads(arrays.attrs["keys"])
-                    if (not names or names != sorted(names) or len(set(names)) != len(names)
+                    if (len(set(names)) != len(names)
                             or any(Path(name).name != name or not name.endswith(".npz") for name in names)
                             or any(_dataset_name(key) not in arrays or arrays[_dataset_name(key)].shape[0] != len(names) for key in keys)):
                         raise ValueError("invalid names or array lengths")
@@ -89,6 +82,7 @@ class WindowStore:
         self._handles = {}
         self._datasets = {}
         self._pid = os.getpid()
+        self._by_name = None
 
     def __len__(self):
         return len(self.files)
@@ -96,22 +90,33 @@ class WindowStore:
     @contextmanager
     def load(self, index):
         path, h5_path, info = self._entries[index]
-        if h5_path is None:
-            with np.load(path) as data:
-                yield data
-            return
         if self._pid != os.getpid():
             self._handles = {}
             self._datasets = {}
             self._pid = os.getpid()
         if h5_path not in self._handles:
-            self._handles[h5_path] = _h5py().File(h5_path, "r")
+            self._handles[h5_path] = h5py.File(h5_path, "r")
             self._datasets[h5_path] = {
                 key: self._handles[h5_path]["arrays"][_dataset_name(key)]
                 for key in info[1]
             }
         row, keys = info
         yield _H5Row(self._datasets[h5_path], row, keys)
+
+    def load_name(self, name):
+        """Look up a stable sample ID, typically in a single-split sidecar."""
+        if self._by_name is None:
+            self._by_name = {}
+            for index, path in enumerate(self.files):
+                basename = Path(path).name
+                if basename in self._by_name:
+                    raise ValueError(f"ambiguous sample ID: {basename}")
+                self._by_name[basename] = index
+        try:
+            index = self._by_name[Path(name).name]
+        except KeyError as exc:
+            raise KeyError(f"missing sample ID {name!r}") from exc
+        return self.load(index)
 
     def close(self):
         if self._pid == os.getpid():
@@ -132,79 +137,88 @@ class WindowStore:
             self.close()
 
 
-def pack_windows(source_dir, output_file, compression="gzip", compression_opts=6, chunk_windows=1):
-    """Stream a directory of consistently shaped NPZ files into one HDF5 file."""
-    source = Path(source_dir)
-    output = Path(output_file)
-    if not source.is_dir():
-        raise FileNotFoundError(f"window directory not found: {source}")
-    files = sorted(p for p in source.iterdir() if p.name.endswith(".npz"))
-    if not files:
-        raise ValueError(f"no NPZ windows in {source}")
-    if compression not in ("gzip", "lzf", "none", None):
-        raise ValueError(f"unsupported compression: {compression}")
-    if not isinstance(chunk_windows, int) or chunk_windows <= 0:
-        raise ValueError("chunk_windows must be a positive integer")
-    if compression == "gzip" and (not isinstance(compression_opts, int) or not 0 <= compression_opts <= 9):
-        raise ValueError("gzip level must be an integer from 0 to 9")
-    if output.exists():
-        raise FileExistsError(output)
-    h5py = _h5py()
-    fd, temp_name = tempfile.mkstemp(prefix=f".{output.name}.", suffix=".tmp", dir=output.parent)
-    os.close(fd)
-    try:
-        with h5py.File(temp_name, "w") as handle:
-            handle.attrs["schema"] = _SCHEMA
-            handle.create_dataset("sample_names", data=[p.name for p in files], dtype=h5py.string_dtype("utf-8"))
-            arrays = handle.create_group("arrays")
-            datasets = {}
-            schema = None
-            for index, path in enumerate(files):
-                with np.load(path) as data:
-                    keys = sorted(data.files)
-                    values = {key: data[key] for key in keys}
-                    current = {key: (value.shape, value.dtype) for key, value in values.items()}
-                    if schema is None:
-                        schema = current
-                        arrays.attrs["keys"] = json.dumps(keys)
-                        for key, value in values.items():
-                            dtype = value.dtype
-                            opaque = dtype.kind in "UmM"
-                            stored_dtype = h5py.opaque_dtype(dtype) if opaque else dtype
-                            chunks = (min(chunk_windows, len(files)), *(max(1, size) for size in value.shape))
-                            kwargs = {"compression": None if compression == "none" else compression}
-                            if compression == "gzip":
-                                kwargs["compression_opts"] = compression_opts
-                            dataset = arrays.create_dataset(
-                                _dataset_name(key), shape=(len(files), *value.shape),
-                                maxshape=(len(files), *(None if size == 0 else size for size in value.shape)),
-                                chunks=chunks, dtype=stored_dtype, **kwargs)
-                            if opaque:
-                                dataset.attrs["numpy_dtype"] = dtype.str
-                            datasets[key] = dataset
-                    elif current != schema:
-                        raise ValueError(f"window schema mismatch in {path}: expected {schema}, got {current}")
-                    for key, value in values.items():
-                        dataset = datasets[key]
-                        if "numpy_dtype" in dataset.attrs:
-                            value = value.view(dataset.dtype)
-                        dataset[index] = value
-        # link is an atomic no-overwrite publication even if another writer races us.
-        os.link(temp_name, output)
-    finally:
-        os.unlink(temp_name)
+class WindowWriter:
+    """Stream one split to HDF5, publishing atomically only on success."""
 
+    def __init__(self, output_file, compression="gzip", compression_opts=6, chunk_windows=1):
+        self.output = Path(output_file)
+        if compression not in ("gzip", "lzf", "none", None):
+            raise ValueError(f"unsupported compression: {compression}")
+        if not isinstance(chunk_windows, int) or chunk_windows <= 0:
+            raise ValueError("chunk_windows must be a positive integer")
+        if compression == "gzip" and (not isinstance(compression_opts, int) or not 0 <= compression_opts <= 9):
+            raise ValueError("gzip level must be an integer from 0 to 9")
+        self.compression = None if compression == "none" else compression
+        self.compression_opts = compression_opts
+        self.chunk_windows = chunk_windows
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("source_dir")
-    parser.add_argument("output_file")
-    parser.add_argument("--compression", choices=("gzip", "lzf", "none"), default="gzip")
-    parser.add_argument("--gzip-level", type=int, default=6)
-    parser.add_argument("--chunk-windows", type=int, default=1)
-    args = parser.parse_args()
-    pack_windows(args.source_dir, args.output_file, args.compression, args.gzip_level, args.chunk_windows)
+    def __enter__(self):
+        if self.output.exists():
+            raise FileExistsError(self.output)
+        self.output.parent.mkdir(parents=True, exist_ok=True)
+        fd, self._temp = tempfile.mkstemp(prefix=f".{self.output.name}.", suffix=".tmp", dir=self.output.parent)
+        os.close(fd)
+        self._handle = h5py.File(self._temp, "w")
+        self._handle.attrs["schema"] = _SCHEMA
+        self._arrays = self._handle.create_group("arrays")
+        self._arrays.attrs["keys"] = "[]"
+        self._datasets, self._schema = {}, None
+        self._names, self._seen = [], set()
+        self._capacity = 0
+        return self
 
+    def append(self, name, arrays):
+        name = str(name)
+        if Path(name).name != name or not name.endswith(".npz"):
+            raise ValueError(f"invalid sample ID: {name!r}")
+        if name in self._seen:
+            raise ValueError(f"duplicate sample ID: {name}")
+        values = {key: np.asarray(value) for key, value in arrays.items()}
+        schema = {key: (value.shape, value.dtype) for key, value in values.items()}
+        if self._schema is None:
+            self._schema = schema
+            self._arrays.attrs["keys"] = json.dumps(sorted(values))
+            for key, value in values.items():
+                opaque = value.dtype.kind in "UmM"
+                dtype = h5py.opaque_dtype(value.dtype) if opaque else value.dtype
+                kwargs = {"compression": self.compression}
+                if self.compression == "gzip":
+                    kwargs["compression_opts"] = self.compression_opts
+                dataset = self._arrays.create_dataset(
+                    _dataset_name(key), shape=(0, *value.shape),
+                    maxshape=(None, *(None if size == 0 else size for size in value.shape)),
+                    chunks=(self.chunk_windows, *(max(1, size) for size in value.shape)),
+                    dtype=dtype, **kwargs,
+                )
+                if opaque:
+                    dataset.attrs["numpy_dtype"] = value.dtype.str
+                self._datasets[key] = dataset
+        elif schema != self._schema:
+            raise ValueError(f"window schema mismatch in {name}: expected {self._schema}, got {schema}")
+        index = len(self._names)
+        if index == self._capacity:
+            self._capacity += max(256, self.chunk_windows)
+            for dataset in self._datasets.values():
+                dataset.resize(self._capacity, axis=0)
+        for key, value in values.items():
+            dataset = self._datasets[key]
+            if "numpy_dtype" in dataset.attrs:
+                value = value.view(dataset.dtype)
+            dataset[index] = value
+        self._names.append(name)
+        self._seen.add(name)
 
-if __name__ == "__main__":
-    main()
+    def __exit__(self, exc_type, exc, traceback):
+        try:
+            if exc_type is None:
+                for dataset in self._datasets.values():
+                    dataset.resize(len(self._names), axis=0)
+                self._handle.create_dataset("sample_names", data=self._names,
+                                            dtype=h5py.string_dtype("utf-8"))
+            self._handle.close()
+            if exc_type is None:
+                # Atomic no-overwrite publication, including concurrent writers.
+                os.link(self._temp, self.output)
+        finally:
+            self._handle.close()
+            os.unlink(self._temp)

@@ -8,6 +8,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
+from cnn_mamba.window_storage import WindowStore
+
 from fit_droso_vector_scaling import (
     CLASS_NAMES, binned_rows, metrics, replay_sample, softmax,
 )
@@ -64,13 +66,14 @@ def main():
         logits = sample["logits"].astype(np.float64)
         targets = sample["targets"].astype(np.uint8)
 
-    files = sorted((DATA_ROOT / "val").glob("*.npz"))
+    store = WindowStore(DATA_ROOT / "val")
     block_ids, _file_indices, _dropped = replay_sample(
-        files, targets, int(sampling["seed"]),
+        store, targets, int(sampling["seed"]),
         int(sampling["samples_per_window"]), BATCH_SIZE,
         int(sampling["owned_center"][0]), int(sampling["owned_center"][1]),
         int(sampling["window_size"]), BLOCK_SIZE,
     )
+    store.close()
     evaluation = (block_ids >= 0) & (block_ids % 2 == 1)
     eval_logits = logits[evaluation]
     eval_targets = targets[evaluation]

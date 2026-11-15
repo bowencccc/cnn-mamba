@@ -13,6 +13,8 @@ import re
 
 import numpy as np
 
+from cnn_mamba.window_storage import WindowStore, WindowWriter
+
 
 NAME = re.compile(r"^(1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|X|Y)_(plus|minus)_(\d+)\.npz$")
 
@@ -64,38 +66,39 @@ def main():
 
     counts = Counter()
     for split in ("train", "val", "test"):
-        source_dir = args.data_root / split
-        target_dir = args.output_root / split
-        target_dir.mkdir(parents=True, exist_ok=True)
-        files = sorted(source_dir.glob("*.npz"))
-        for index, source in enumerate(files, 1):
-            match = NAME.match(source.name)
-            if not match:
-                raise ValueError(f"unexpected Human window name: {source.name}")
-            chrom_text, strand_text, start_text = match.groups()
-            chrom = f"chr{chrom_text}"
-            strand = "+" if strand_text == "plus" else "-"
-            window_start = int(start_text)
-            with np.load(source) as data:
-                labels = data["start_stop_labels"]
-            weights = np.ones(labels.shape, dtype=np.float32)
-            for offset in np.flatnonzero(labels):
-                label = int(labels[offset])
-                position = (
-                    window_start + int(offset)
-                    if strand == "+"
-                    else window_start + len(labels) - 3 - int(offset)
-                )
-                key = (chrom, strand, position)
-                if key in passed[label]:
-                    counts[split, "retained", label] += 1
-                else:
-                    weights[offset] = 0.0
-                    state = "filtered" if key in available[label] else "unmapped_filtered"
-                    counts[split, state, label] += 1
-            np.savez_compressed(target_dir / source.name, start_stop_weights=weights)
-            if index % 5000 == 0:
-                print(f"[{split}] {index:,}/{len(files):,}", flush=True)
+        store = WindowStore(args.data_root / split)
+        with WindowWriter(args.output_root / f"{split}.h5") as writer:
+            for index, path in enumerate(store.files):
+                source = Path(path)
+                match = NAME.match(source.name)
+                if not match:
+                    raise ValueError(f"unexpected Human window name: {source.name}")
+                chrom_text, strand_text, start_text = match.groups()
+                chrom = f"chr{chrom_text}"
+                strand = "+" if strand_text == "plus" else "-"
+                window_start = int(start_text)
+                with store.load(index) as data:
+                    labels = data["start_stop_labels"]
+                weights = np.ones(labels.shape, dtype=np.float32)
+                for offset in np.flatnonzero(labels):
+                    label = int(labels[offset])
+                    position = (
+                        window_start + int(offset)
+                        if strand == "+"
+                        else window_start + len(labels) - 3 - int(offset)
+                    )
+                    key = (chrom, strand, position)
+                    if key in passed[label]:
+                        counts[split, "retained", label] += 1
+                    else:
+                        weights[offset] = 0.0
+                        state = "filtered" if key in available[label] else "unmapped_filtered"
+                        counts[split, state, label] += 1
+                writer.append(source.name, {"start_stop_weights": weights})
+                if (index + 1) % 5000 == 0:
+                    print(f"[{split}] {index + 1:,}/{len(store):,}", flush=True)
+
+        store.close()
 
     output = {
         "schema": "human_lightgbm_crossfit_p90_start_stop_filter_v1",

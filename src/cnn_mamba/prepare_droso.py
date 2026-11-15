@@ -18,6 +18,8 @@ import time
 import numpy as np
 import pysam
 
+from .window_storage import WindowStore, WindowWriter
+
 ROOT = Path(__file__).resolve().parents[2]
 CONFIG = ROOT / "configs" / "droso_window_grid.json"
 EVIANN_GFF = ROOT / "data" / "raw" / "dmel_eviann_pseudo_label.gff"
@@ -527,125 +529,125 @@ def generate_cell(
 ) -> dict:
     window, stride = int(cell["window_bp"]), int(cell["stride_bp"])
     summary = {}
+    output.mkdir(parents=True, exist_ok=True)
     fasta = pysam.FastaFile(str(FASTA))
     for split, chrom_names in SPLITS.items():
-        split_dir = output / split
-        split_dir.mkdir(parents=True, exist_ok=True)
         split_summary = {"windows": 0, "by_chrom": {}, "eviann": defaultdict(int), "reference": defaultdict(int)}
-        for name in chrom_names:
-            chrom = CHROMS[name]
-            chrom_len = fasta.get_reference_length(chrom)
-            phase_tracks = None
-            if eviann_phase is not None:
-                eviann_cds = {
-                    strand: build_cds_track(
-                        eviann_phase[chrom][strand], chrom_len
-                    )
-                    for strand in ("+", "-")
-                }
-                reference_cds = {
-                    strand: build_cds_track(
-                        reference_phase[chrom][strand], chrom_len
-                    )
-                    for strand in ("+", "-")
-                }
-                phase_tracks = {
-                    "eviann": {
-                        strand: build_phase_track(
-                            eviann_phase[chrom][strand], chrom_len, strand
-                        )
-                        for strand in ("+", "-")
-                    },
-                    "eviann_cds": eviann_cds,
-                    "reference": {
-                        strand: build_phase_track(
-                            reference_phase[chrom][strand], chrom_len, strand
-                        )
-                        for strand in ("+", "-")
-                    },
-                    "reference_cds": reference_cds,
-                }
-                if cds_boundary_radius:
-                    phase_tracks["eviann_cds_boundary"] = {
-                        strand: build_cds_boundary_mask(
-                            eviann_cds[strand], cds_boundary_radius
+        with WindowWriter(output / f"{split}.h5") as writer:
+            for name in chrom_names:
+                chrom = CHROMS[name]
+                chrom_len = fasta.get_reference_length(chrom)
+                phase_tracks = None
+                if eviann_phase is not None:
+                    eviann_cds = {
+                        strand: build_cds_track(
+                            eviann_phase[chrom][strand], chrom_len
                         )
                         for strand in ("+", "-")
                     }
-                    phase_tracks["reference_cds_boundary"] = {
-                        strand: build_cds_boundary_mask(
-                            reference_cds[strand], cds_boundary_radius
+                    reference_cds = {
+                        strand: build_cds_track(
+                            reference_phase[chrom][strand], chrom_len
                         )
                         for strand in ("+", "-")
                     }
-            count = 0
-            for strand in ("+", "-"):
-                starts = window_starts(regions[chrom][strand], chrom_len, window, stride)
-                e_local = {site: eviann[site][chrom][strand] for site in SITE_TYPES}
-                r_local = {site: reference[site][chrom][strand] for site in SITE_TYPES}
-                for start in starts:
-                    text = fasta.fetch(chrom, start, start + window).upper()
-                    if len(text) != window or text.count("N") > window // 2:
-                        continue
-                    e_splice, e_ss = labels_for_window(start, strand, e_local, window)
-                    r_splice, r_ss = labels_for_window(start, strand, r_local, window)
-                    if strand == "-":
-                        text = text.translate(COMPLEMENT)[::-1]
-                    sequence = ENCODE[np.frombuffer(text.encode("ascii"), dtype=np.uint8)]
-                    filename = f"{name}_{'plus' if strand == '+' else 'minus'}_{start}.npz"
-                    arrays = {
-                        "sequence": sequence, "labels": e_splice,
-                        "start_stop_labels": e_ss, "chess_labels": r_splice,
-                        "chess_start_stop_labels": r_ss,
-                    }
-                    if phase_tracks is not None:
-                        e_phase = phase_tracks["eviann"][strand][start:start + window]
-                        r_phase = phase_tracks["reference"][strand][start:start + window]
-                        e_cds = phase_tracks["eviann_cds"][strand][start:start + window]
-                        r_cds = phase_tracks["reference_cds"][strand][start:start + window]
-                        if cds_boundary_radius:
-                            e_cds_boundary = phase_tracks[
-                                "eviann_cds_boundary"
-                            ][strand][start:start + window]
-                            r_cds_boundary = phase_tracks[
-                                "reference_cds_boundary"
-                            ][strand][start:start + window]
-                        if strand == "-":
-                            # Tracks are indexed in genomic order; model input is
-                            # reverse-complemented into transcript order.
-                            e_phase = e_phase[::-1]
-                            r_phase = r_phase[::-1]
-                            e_cds = e_cds[::-1]
-                            r_cds = r_cds[::-1]
-                            if cds_boundary_radius:
-                                e_cds_boundary = e_cds_boundary[::-1]
-                                r_cds_boundary = r_cds_boundary[::-1]
-                        arrays.update(
-                            phase_labels=np.maximum(e_phase, 0),
-                            phase_mask=e_phase >= 0,
-                            reference_phase_labels=np.maximum(r_phase, 0),
-                            reference_phase_mask=r_phase >= 0,
-                            cds_labels=e_cds,
-                            reference_cds_labels=r_cds,
-                        )
-                        if cds_boundary_radius:
-                            arrays.update(
-                                cds_boundary_mask=e_cds_boundary,
-                                reference_cds_boundary_mask=r_cds_boundary,
+                    phase_tracks = {
+                        "eviann": {
+                            strand: build_phase_track(
+                                eviann_phase[chrom][strand], chrom_len, strand
                             )
-                    np.savez_compressed(split_dir / filename, **arrays)
-                    count += 1
-                    split_summary["windows"] += 1
-                    owned_left = (window - stride) // 2
-                    owned_right = owned_left + stride
-                    for site, ea, ra, cls in (
-                        ("donor", e_splice, r_splice, 1), ("acceptor", e_splice, r_splice, 2),
-                        ("start", e_ss, r_ss, 1), ("stop", e_ss, r_ss, 2),
-                    ):
-                        split_summary["eviann"][site] += int(np.sum(ea[owned_left:owned_right] == cls))
-                        split_summary["reference"][site] += int(np.sum(ra[owned_left:owned_right] == cls))
-            split_summary["by_chrom"][name] = count
-            print(f"[{cell['id']}:{split}] {name}: {count:,}", flush=True)
+                            for strand in ("+", "-")
+                        },
+                        "eviann_cds": eviann_cds,
+                        "reference": {
+                            strand: build_phase_track(
+                                reference_phase[chrom][strand], chrom_len, strand
+                            )
+                            for strand in ("+", "-")
+                        },
+                        "reference_cds": reference_cds,
+                    }
+                    if cds_boundary_radius:
+                        phase_tracks["eviann_cds_boundary"] = {
+                            strand: build_cds_boundary_mask(
+                                eviann_cds[strand], cds_boundary_radius
+                            )
+                            for strand in ("+", "-")
+                        }
+                        phase_tracks["reference_cds_boundary"] = {
+                            strand: build_cds_boundary_mask(
+                                reference_cds[strand], cds_boundary_radius
+                            )
+                            for strand in ("+", "-")
+                        }
+                count = 0
+                for strand in ("+", "-"):
+                    starts = window_starts(regions[chrom][strand], chrom_len, window, stride)
+                    e_local = {site: eviann[site][chrom][strand] for site in SITE_TYPES}
+                    r_local = {site: reference[site][chrom][strand] for site in SITE_TYPES}
+                    for start in starts:
+                        text = fasta.fetch(chrom, start, start + window).upper()
+                        if len(text) != window or text.count("N") > window // 2:
+                            continue
+                        e_splice, e_ss = labels_for_window(start, strand, e_local, window)
+                        r_splice, r_ss = labels_for_window(start, strand, r_local, window)
+                        if strand == "-":
+                            text = text.translate(COMPLEMENT)[::-1]
+                        sequence = ENCODE[np.frombuffer(text.encode("ascii"), dtype=np.uint8)]
+                        filename = f"{name}_{'plus' if strand == '+' else 'minus'}_{start}.npz"
+                        arrays = {
+                            "sequence": sequence, "labels": e_splice,
+                            "start_stop_labels": e_ss, "chess_labels": r_splice,
+                            "chess_start_stop_labels": r_ss,
+                        }
+                        if phase_tracks is not None:
+                            e_phase = phase_tracks["eviann"][strand][start:start + window]
+                            r_phase = phase_tracks["reference"][strand][start:start + window]
+                            e_cds = phase_tracks["eviann_cds"][strand][start:start + window]
+                            r_cds = phase_tracks["reference_cds"][strand][start:start + window]
+                            if cds_boundary_radius:
+                                e_cds_boundary = phase_tracks[
+                                    "eviann_cds_boundary"
+                                ][strand][start:start + window]
+                                r_cds_boundary = phase_tracks[
+                                    "reference_cds_boundary"
+                                ][strand][start:start + window]
+                            if strand == "-":
+                                # Tracks are indexed in genomic order; model input is
+                                # reverse-complemented into transcript order.
+                                e_phase = e_phase[::-1]
+                                r_phase = r_phase[::-1]
+                                e_cds = e_cds[::-1]
+                                r_cds = r_cds[::-1]
+                                if cds_boundary_radius:
+                                    e_cds_boundary = e_cds_boundary[::-1]
+                                    r_cds_boundary = r_cds_boundary[::-1]
+                            arrays.update(
+                                phase_labels=np.maximum(e_phase, 0),
+                                phase_mask=e_phase >= 0,
+                                reference_phase_labels=np.maximum(r_phase, 0),
+                                reference_phase_mask=r_phase >= 0,
+                                cds_labels=e_cds,
+                                reference_cds_labels=r_cds,
+                            )
+                            if cds_boundary_radius:
+                                arrays.update(
+                                    cds_boundary_mask=e_cds_boundary,
+                                    reference_cds_boundary_mask=r_cds_boundary,
+                                )
+                        writer.append(filename, arrays)
+                        count += 1
+                        split_summary["windows"] += 1
+                        owned_left = (window - stride) // 2
+                        owned_right = owned_left + stride
+                        for site, ea, ra, cls in (
+                            ("donor", e_splice, r_splice, 1), ("acceptor", e_splice, r_splice, 2),
+                            ("start", e_ss, r_ss, 1), ("stop", e_ss, r_ss, 2),
+                        ):
+                            split_summary["eviann"][site] += int(np.sum(ea[owned_left:owned_right] == cls))
+                            split_summary["reference"][site] += int(np.sum(ra[owned_left:owned_right] == cls))
+                split_summary["by_chrom"][name] = count
+                print(f"[{cell['id']}:{split}] {name}: {count:,}", flush=True)
         summary[split] = {
             **split_summary, "eviann": dict(split_summary["eviann"]),
             "reference": dict(split_summary["reference"]),
@@ -771,7 +773,13 @@ def main() -> None:
         if manifest_path.is_file():
             manifest = json.loads(manifest_path.read_text())
             expected = sum(int(manifest["summary"][s]["windows"]) for s in SPLITS)
-            actual = sum(1 for s in SPLITS for _ in (cell_dir / s).glob("*.npz"))
+            actual = 0
+            for split in SPLITS:
+                store = WindowStore(cell_dir / split)
+                try:
+                    actual += len(store)
+                finally:
+                    store.close()
             if actual != expected:
                 raise RuntimeError(f"partial cached cell {cell['id']}: {actual}/{expected}")
             print(f"validated cached {cell['id']}: {actual:,} windows", flush=True)

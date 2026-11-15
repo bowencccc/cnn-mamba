@@ -1,4 +1,5 @@
 import copy
+from contextlib import contextmanager
 import multiprocessing as mp
 
 import numpy as np
@@ -8,9 +9,21 @@ from torch.utils.data import DataLoader
 
 from cnn_mamba.model import SpliceMamba
 from cnn_mamba.train import PUDataset, candidate_loss
-from cnn_mamba.window_storage import pack_windows
+from window_test_helpers import pack_windows
 
 pytest.importorskip("h5py")
+
+
+class _LegacyFixtureRows:
+    """Test-only pre-migration input reader, never a production fallback."""
+
+    def __init__(self, directories):
+        self.files = sorted(str(p) for d in directories for p in d.glob("*.npz"))
+
+    @contextmanager
+    def load(self, index):
+        with np.load(self.files[index]) as row:
+            yield row
 
 
 def _make_windows(tmp_path, embedded_weights=False):
@@ -51,12 +64,17 @@ def _make_windows(tmp_path, embedded_weights=False):
                      start_stop_propensity=np.roll(labels, 2))
         output = tmp_path / f"{split}.h5"
         pack_windows(directory, output)
+        pack_windows(weights / split, weights / f"{split}.h5")
+        pack_windows(propensity / split, propensity / f"{split}.h5")
         npz_dirs.append(directory)
         h5_files.append(output)
     options = dict(require_phase=True, require_cds=True, require_cds_boundary=True,
                    require_start_stop_weights=True, start_stop_weight_root=weights,
                    propensity_root=propensity)
-    return PUDataset(npz_dirs, **options), PUDataset(h5_files, **options)
+    original = PUDataset(h5_files, **options)
+    original._windows = _LegacyFixtureRows(npz_dirs)
+    original.files = original._windows.files
+    return original, PUDataset(h5_files, **options)
 
 
 def _assert_batch_equal(a, b):

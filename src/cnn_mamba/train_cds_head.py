@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import os
 from pathlib import Path
 import sys
 import time
@@ -19,6 +18,7 @@ from torch.utils.data import DataLoader, Dataset
 
 from .common import BinnedPR
 from .model import SpliceMamba
+from .window_storage import WindowStore
 
 
 SEED = 42
@@ -26,20 +26,14 @@ SEED = 42
 
 class CDSDataset(Dataset):
     def __init__(self, directories):
-        if not isinstance(directories, (list, tuple)):
-            directories = [directories]
-        self.files = sorted(
-            str(Path(directory) / name)
-            for directory in directories
-            for name in os.listdir(directory)
-            if name.endswith(".npz")
-        )
+        self._windows = WindowStore(directories)
+        self.files = self._windows.files
 
     def __len__(self):
         return len(self.files)
 
     def __getitem__(self, index):
-        with np.load(self.files[index]) as data:
+        with self._windows.load(index) as data:
             missing = {
                 key for key in ("sequence", "cds_labels", "reference_cds_labels")
                 if key not in data
