@@ -24,7 +24,10 @@ def recall_at_precision(labels, scores, target_precision):
 def site_sets(path, kind, fasta):
     prepare_droso.FASTA = Path(fasta).resolve()
     if kind == "eviann":
-        meta, exons, cds, explicit = prepare_droso.parse_eviann(Path(path))
+        # The 4th value is transcript-selection metadata; EviAnn start/stop
+        # come from CDS ends, as in prepare_droso.main.
+        meta, exons, cds, _selection = prepare_droso.parse_eviann(Path(path))
+        explicit = None
     else:
         meta, exons, cds, explicit = prepare_droso.parse_reference(Path(path))
     sites, rejected = prepare_droso.extract_sites(meta, exons, cds, explicit)

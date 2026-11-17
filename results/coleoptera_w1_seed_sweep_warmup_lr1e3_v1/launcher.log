@@ -1,0 +1,400 @@
+[2026-11-15T16:33:38-05:00] seed 42: training
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.train --data-root /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_w1_v1/w1 --mode baseline --architecture cnn_mamba --cnn-kernel-size 7 --epochs 30 --batch-size 80 --grad-accum 1 --window-size 1000 --stride 500 --workers 4 --seed 42 --output-dir /home/bchen103/cnn-mamba/runs/coleoptera_w1_seed_sweep_warmup_lr1e3_v1/seed42/chrxtrain/w1 --reference-name FlyBase --test-name chrX --frame-dilation 3 --phase-aux-weight 0.0 --cds-aux-weight 0.0 --cds-boundary-radius 0 --cds-far-loss-weight 0.1 --joint-frame-aux-weight 0.1 --joint-noncoding-weight 0.1 --candidate-negative-weight 1.0 --backbone-lr-multiplier 1.0 --freeze-pretrained-layers 0 --freeze-pretrained-epochs 0 --early-stopping-patience 3 --early-stopping-min-delta 0.0001 --lr 0.001 --warmup-epoch-fraction 0.01 --include-test-in-train --amp --amp-dtype bf16 --dropout 0.0
+mode=baseline device=NVIDIA RTX A4500 train=124,655 val=33,287 test=0 epochs=30 scheduler_epochs=30 scheduler_steps=46740 lr=0.001 warmup_steps=16 start_epoch=1 early_stopping_patience=3 early_stopping_min_delta=0.0001 candidate_negative_weight=1 candidate_propensity_root=None candidate_propensity_negative_weight=1 use_start_stop_weights=False frame_dilation=3 phase_aux_weight=0 cds_aux_weight=0 cds_boundary_radius=0 cds_far_loss_weight=0.1 joint_frame_aux_weight=0.1 joint_noncoding_weight=0.1 backbone_lr_multiplier=1 freeze_pretrained_layers=0 freeze_pretrained_epochs=0 frozen_parameter_count=0 record_gradient_norms=False shared_backbone_parameters=4,404,416 gradient_probe=None
+epoch=1 batch=500/1,558 loss=0.10878 lr=1.00e-03
+epoch=1 batch=1,000/1,558 loss=0.07358 lr=9.99e-04
+epoch=1 batch=1,500/1,558 loss=0.05925 lr=9.98e-04
+Epoch 1: train loss=0.05807; validation loss=0.02771; mean FlyBase AP=0.8290
+    donor    AP=0.9176 F1=0.8637 P=0.9085 R=0.8232 thr=0.6601 pos=6,673/856,417
+    acceptor AP=0.9042 F1=0.8513 P=0.8817 R=0.8228 thr=0.4901 pos=6,785/932,536
+    start    AP=0.7133 F1=0.6775 P=0.7250 R=0.6358 thr=0.3534 pos=2,367/280,522
+    stop     AP=0.7808 F1=0.7458 P=0.8579 R=0.6597 thr=0.2772 pos=2,342/780,975
+    Joint CDS AP=0.9768 F1=0.9361 P=0.9376 R=0.9346 thr=0.9766
+epoch=2 batch=500/1,558 loss=0.02719 lr=9.96e-04
+epoch=2 batch=1,000/1,558 loss=0.02668 lr=9.93e-04
+epoch=2 batch=1,500/1,558 loss=0.02679 lr=9.91e-04
+Epoch 2: train loss=0.02684; validation loss=0.02815; mean FlyBase AP=0.8360
+    donor    AP=0.9270 F1=0.8726 P=0.9247 R=0.8260 thr=0.4100 pos=6,673/856,417
+    acceptor AP=0.9138 F1=0.8610 P=0.8913 R=0.8327 thr=0.4139 pos=6,785/932,536
+    start    AP=0.7299 F1=0.6947 P=0.7560 R=0.6426 thr=0.2889 pos=2,367/280,522
+    stop     AP=0.7731 F1=0.7409 P=0.8557 R=0.6533 thr=0.4354 pos=2,342/780,975
+    Joint CDS AP=0.9801 F1=0.9354 P=0.9373 R=0.9334 thr=0.9570
+epoch=3 batch=500/1,558 loss=0.02533 lr=9.87e-04
+epoch=3 batch=1,000/1,558 loss=0.02464 lr=9.83e-04
+epoch=3 batch=1,500/1,558 loss=0.02428 lr=9.79e-04
+Epoch 3: train loss=0.02425; validation loss=0.02219; mean FlyBase AP=0.8671
+    donor    AP=0.9473 F1=0.8975 P=0.9219 R=0.8743 thr=0.3788 pos=6,673/856,417
+    acceptor AP=0.9283 F1=0.8792 P=0.9025 R=0.8570 thr=0.3358 pos=6,785/932,536
+    start    AP=0.7732 F1=0.7284 P=0.7954 R=0.6717 thr=0.4862 pos=2,367/280,522
+    stop     AP=0.8195 F1=0.7843 P=0.8519 R=0.7267 thr=0.2557 pos=2,342/780,975
+    Joint CDS AP=0.9843 F1=0.9466 P=0.9501 R=0.9432 thr=0.9766
+epoch=4 batch=500/1,558 loss=0.02426 lr=9.73e-04
+epoch=4 batch=1,000/1,558 loss=0.02425 lr=9.68e-04
+epoch=4 batch=1,500/1,558 loss=0.02393 lr=9.62e-04
+Epoch 4: train loss=0.02393; validation loss=0.02287; mean FlyBase AP=0.8551
+    donor    AP=0.9368 F1=0.8872 P=0.9185 R=0.8579 thr=0.3534 pos=6,673/856,417
+    acceptor AP=0.9136 F1=0.8689 P=0.9064 R=0.8345 thr=0.2176 pos=6,785/932,536
+    start    AP=0.7636 F1=0.7205 P=0.7585 R=0.6861 thr=0.3201 pos=2,367/280,522
+    stop     AP=0.8062 F1=0.7765 P=0.8786 R=0.6956 thr=0.4491 pos=2,342/780,975
+    Joint CDS AP=0.9758 F1=0.9327 P=0.9280 R=0.9375 thr=0.9844
+epoch=5 batch=500/1,558 loss=0.02237 lr=9.55e-04
+epoch=5 batch=1,000/1,558 loss=0.02133 lr=9.48e-04
+epoch=5 batch=1,500/1,558 loss=0.02129 lr=9.41e-04
+Epoch 5: train loss=0.02120; validation loss=0.02216; mean FlyBase AP=0.8680
+    donor    AP=0.9384 F1=0.8857 P=0.9202 R=0.8537 thr=0.2381 pos=6,673/856,417
+    acceptor AP=0.9285 F1=0.8765 P=0.9057 R=0.8491 thr=0.3377 pos=6,785/932,536
+    start    AP=0.7664 F1=0.7151 P=0.7564 R=0.6781 thr=0.2674 pos=2,367/280,522
+    stop     AP=0.8385 F1=0.8088 P=0.9005 R=0.7340 thr=0.3846 pos=2,342/780,975
+    Joint CDS AP=0.9854 F1=0.9465 P=0.9556 R=0.9375 thr=0.9687
+epoch=6 batch=500/1,558 loss=0.01991 lr=9.32e-04
+epoch=6 batch=1,000/1,558 loss=0.02002 lr=9.24e-04
+epoch=6 batch=1,500/1,558 loss=0.02024 lr=9.15e-04
+Epoch 6: train loss=0.02027; validation loss=0.02393; mean FlyBase AP=0.8616
+    donor    AP=0.9406 F1=0.8900 P=0.9243 R=0.8581 thr=0.2322 pos=6,673/856,417
+    acceptor AP=0.9280 F1=0.8794 P=0.9170 R=0.8448 thr=0.2498 pos=6,785/932,536
+    start    AP=0.7853 F1=0.7314 P=0.7821 R=0.6869 thr=0.2635 pos=2,367/280,522
+    stop     AP=0.7925 F1=0.7588 P=0.8316 R=0.6977 thr=0.2254 pos=2,342/780,975
+    Joint CDS AP=0.9835 F1=0.9422 P=0.9509 R=0.9337 thr=0.9648
+epoch=7 batch=500/1,558 loss=0.01911 lr=9.05e-04
+epoch=7 batch=1,000/1,558 loss=0.01931 lr=8.96e-04
+epoch=7 batch=1,500/1,558 loss=0.01935 lr=8.86e-04
+Epoch 7: train loss=0.01937; validation loss=0.02237; mean FlyBase AP=0.8707
+    donor    AP=0.9500 F1=0.9056 P=0.9507 R=0.8645 thr=0.1697 pos=6,673/856,417
+    acceptor AP=0.9388 F1=0.8932 P=0.9205 R=0.8674 thr=0.1453 pos=6,785/932,536
+    start    AP=0.7837 F1=0.7318 P=0.7813 R=0.6882 thr=0.2654 pos=2,367/280,522
+    stop     AP=0.8103 F1=0.7837 P=0.8889 R=0.7007 thr=0.4002 pos=2,342/780,975
+    Joint CDS AP=0.9857 F1=0.9503 P=0.9537 R=0.9470 thr=0.9570
+epoch=8 batch=500/1,558 loss=0.01839 lr=8.74e-04
+epoch=8 batch=1,000/1,558 loss=0.01831 lr=8.64e-04
+epoch=8 batch=1,500/1,558 loss=0.01833 lr=8.53e-04
+Epoch 8: train loss=0.01835; validation loss=0.01819; mean FlyBase AP=0.8947
+    donor    AP=0.9602 F1=0.9174 P=0.9478 R=0.8890 thr=0.4686 pos=6,673/856,417
+    acceptor AP=0.9484 F1=0.9057 P=0.9345 R=0.8787 thr=0.4706 pos=6,785/932,536
+    start    AP=0.8331 F1=0.7760 P=0.8133 R=0.7419 thr=0.4120 pos=2,367/280,522
+    stop     AP=0.8372 F1=0.8084 P=0.8848 R=0.7442 thr=0.4061 pos=2,342/780,975
+    Joint CDS AP=0.9866 F1=0.9552 P=0.9615 R=0.9490 thr=0.9883
+epoch=9 batch=500/1,558 loss=0.01728 lr=8.40e-04
+epoch=9 batch=1,000/1,558 loss=0.01749 lr=8.28e-04
+epoch=9 batch=1,500/1,558 loss=0.01760 lr=8.16e-04
+Epoch 9: train loss=0.01762; validation loss=0.02138; mean FlyBase AP=0.8806
+    donor    AP=0.9519 F1=0.9089 P=0.9410 R=0.8789 thr=0.3065 pos=6,673/856,417
+    acceptor AP=0.9460 F1=0.8981 P=0.9188 R=0.8784 thr=0.4569 pos=6,785/932,536
+    start    AP=0.7900 F1=0.7502 P=0.7923 R=0.7123 thr=0.1609 pos=2,367/280,522
+    stop     AP=0.8346 F1=0.8013 P=0.8592 R=0.7506 thr=0.2752 pos=2,342/780,975
+    Joint CDS AP=0.9872 F1=0.9508 P=0.9552 R=0.9464 thr=0.9297
+epoch=10 batch=500/1,558 loss=0.01739 lr=8.02e-04
+epoch=10 batch=1,000/1,558 loss=0.01715 lr=7.90e-04
+epoch=10 batch=1,500/1,558 loss=0.01714 lr=7.77e-04
+Epoch 10: train loss=0.01709; validation loss=0.01802; mean FlyBase AP=0.8965
+    donor    AP=0.9638 F1=0.9221 P=0.9485 R=0.8972 thr=0.2674 pos=6,673/856,417
+    acceptor AP=0.9501 F1=0.9040 P=0.9310 R=0.8786 thr=0.3065 pos=6,785/932,536
+    start    AP=0.8322 F1=0.7737 P=0.8640 R=0.7005 thr=0.3807 pos=2,367/280,522
+    stop     AP=0.8400 F1=0.8168 P=0.9134 R=0.7387 thr=0.5468 pos=2,342/780,975
+    Joint CDS AP=0.9874 F1=0.9559 P=0.9565 R=0.9553 thr=0.9726
+epoch=11 batch=500/1,558 loss=0.01647 lr=7.62e-04
+epoch=11 batch=1,000/1,558 loss=0.01659 lr=7.49e-04
+epoch=11 batch=1,500/1,558 loss=0.01639 lr=7.35e-04
+Epoch 11: train loss=0.01639; validation loss=0.01673; mean FlyBase AP=0.9074
+    donor    AP=0.9670 F1=0.9265 P=0.9435 R=0.9101 thr=0.3241 pos=6,673/856,417
+    acceptor AP=0.9581 F1=0.9146 P=0.9404 R=0.8902 thr=0.3983 pos=6,785/932,536
+    start    AP=0.8450 F1=0.7921 P=0.8125 R=0.7727 thr=0.3768 pos=2,367/280,522
+    stop     AP=0.8596 F1=0.8422 P=0.9115 R=0.7827 thr=0.3475 pos=2,342/780,975
+    Joint CDS AP=0.9875 F1=0.9554 P=0.9594 R=0.9515 thr=0.9883
+epoch=12 batch=500/1,558 loss=0.01544 lr=7.19e-04
+epoch=12 batch=1,000/1,558 loss=0.01526 lr=7.05e-04
+epoch=12 batch=1,500/1,558 loss=0.01525 lr=6.91e-04
+Epoch 12: train loss=0.01527; validation loss=0.01875; mean FlyBase AP=0.8980
+    donor    AP=0.9631 F1=0.9186 P=0.9390 R=0.8991 thr=0.2850 pos=6,673/856,417
+    acceptor AP=0.9554 F1=0.9088 P=0.9292 R=0.8893 thr=0.3221 pos=6,785/932,536
+    start    AP=0.8239 F1=0.7727 P=0.8432 R=0.7131 thr=0.3573 pos=2,367/280,522
+    stop     AP=0.8495 F1=0.8226 P=0.8963 R=0.7600 thr=0.2430 pos=2,342/780,975
+    Joint CDS AP=0.9903 F1=0.9608 P=0.9649 R=0.9567 thr=0.9414
+epoch=13 batch=500/1,558 loss=0.01437 lr=6.75e-04
+epoch=13 batch=1,000/1,558 loss=0.01467 lr=6.60e-04
+epoch=13 batch=1,500/1,558 loss=0.01465 lr=6.46e-04
+Epoch 13: train loss=0.01466; validation loss=0.01581; mean FlyBase AP=0.9092
+    donor    AP=0.9688 F1=0.9278 P=0.9605 R=0.8972 thr=0.5468 pos=6,673/856,417
+    acceptor AP=0.9575 F1=0.9149 P=0.9349 R=0.8958 thr=0.4999 pos=6,785/932,536
+    start    AP=0.8496 F1=0.7916 P=0.8377 R=0.7503 thr=0.4100 pos=2,367/280,522
+    stop     AP=0.8610 F1=0.8346 P=0.9002 R=0.7780 thr=0.4022 pos=2,342/780,975
+    Joint CDS AP=0.9879 F1=0.9594 P=0.9555 R=0.9633 thr=0.9805
+epoch=14 batch=500/1,558 loss=0.01358 lr=6.29e-04
+epoch=14 batch=1,000/1,558 loss=0.01368 lr=6.14e-04
+epoch=14 batch=1,500/1,558 loss=0.01381 lr=5.99e-04
+Epoch 14: train loss=0.01382; validation loss=0.01625; mean FlyBase AP=0.9105
+    donor    AP=0.9702 F1=0.9306 P=0.9442 R=0.9174 thr=0.3592 pos=6,673/856,417
+    acceptor AP=0.9577 F1=0.9151 P=0.9348 R=0.8962 thr=0.4354 pos=6,785/932,536
+    start    AP=0.8497 F1=0.7983 P=0.8459 R=0.7558 thr=0.3651 pos=2,367/280,522
+    stop     AP=0.8644 F1=0.8398 P=0.9219 R=0.7711 thr=0.4393 pos=2,342/780,975
+    Joint CDS AP=0.9903 F1=0.9619 P=0.9667 R=0.9572 thr=0.9805
+epoch=15 batch=500/1,558 loss=0.01306 lr=5.82e-04
+epoch=15 batch=1,000/1,558 loss=0.01303 lr=5.67e-04
+epoch=15 batch=1,500/1,558 loss=0.01311 lr=5.52e-04
+Epoch 15: train loss=0.01308; validation loss=0.01731; mean FlyBase AP=0.9082
+    donor    AP=0.9707 F1=0.9331 P=0.9554 R=0.9119 thr=0.4315 pos=6,673/856,417
+    acceptor AP=0.9607 F1=0.9194 P=0.9444 R=0.8958 thr=0.3592 pos=6,785/932,536
+    start    AP=0.8441 F1=0.7979 P=0.8205 R=0.7765 thr=0.2850 pos=2,367/280,522
+    stop     AP=0.8574 F1=0.8426 P=0.9171 R=0.7792 thr=0.3026 pos=2,342/780,975
+    Joint CDS AP=0.9906 F1=0.9631 P=0.9670 R=0.9592 thr=0.9570
+epoch=16 batch=500/1,558 loss=0.01192 lr=5.35e-04
+epoch=16 batch=1,000/1,558 loss=0.01233 lr=5.20e-04
+epoch=16 batch=1,500/1,558 loss=0.01252 lr=5.05e-04
+Epoch 16: train loss=0.01251; validation loss=0.01682; mean FlyBase AP=0.9051
+    donor    AP=0.9685 F1=0.9309 P=0.9495 R=0.9129 thr=0.3514 pos=6,673/856,417
+    acceptor AP=0.9616 F1=0.9188 P=0.9304 R=0.9076 thr=0.2908 pos=6,785/932,536
+    start    AP=0.8391 F1=0.7865 P=0.8391 R=0.7402 thr=0.4295 pos=2,367/280,522
+    stop     AP=0.8514 F1=0.8320 P=0.8700 R=0.7972 thr=0.2830 pos=2,342/780,975
+    Joint CDS AP=0.9899 F1=0.9628 P=0.9638 R=0.9619 thr=0.9687
+epoch=17 batch=500/1,558 loss=0.01133 lr=4.88e-04
+epoch=17 batch=1,000/1,558 loss=0.01142 lr=4.73e-04
+epoch=17 batch=1,500/1,558 loss=0.01142 lr=4.58e-04
+Epoch 17: train loss=0.01143; validation loss=0.01786; mean FlyBase AP=0.8973
+    donor    AP=0.9690 F1=0.9301 P=0.9493 R=0.9117 thr=0.3709 pos=6,673/856,417
+    acceptor AP=0.9589 F1=0.9167 P=0.9413 R=0.8933 thr=0.4315 pos=6,785/932,536
+    start    AP=0.8225 F1=0.7869 P=0.8769 R=0.7136 thr=0.4979 pos=2,367/280,522
+    stop     AP=0.8389 F1=0.8323 P=0.8893 R=0.7822 thr=0.3983 pos=2,342/780,975
+    Joint CDS AP=0.9873 F1=0.9625 P=0.9604 R=0.9646 thr=0.9766
+Early stopping at epoch 17: no validation mean-AP improvement > 0.0001 for 3 consecutive epochs; best=0.910494
+finished in 2.56 h
+[2026-11-15T19:07:54-05:00] seed 42 (best): score, AUPRC, site export
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.score_chromosome --checkpoint /home/bchen103/cnn-mamba/runs/coleoptera_w1_seed_sweep_warmup_lr1e3_v1/seed42/chrxtrain/w1/best_model.pt --output-dir /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_warmup_lr1e3_v1/seed42/chrxtrain/w1 --fasta /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa --chrom NC_004354.4 --display-chrom chrX --batch-size 64
+processed=512/47,085
+processed=1,024/47,085
+processed=1,536/47,085
+processed=2,048/47,085
+processed=2,560/47,085
+processed=3,008/47,085
+processed=3,520/47,085
+processed=4,032/47,085
+processed=4,544/47,085
+processed=5,056/47,085
+processed=5,504/47,085
+processed=6,016/47,085
+processed=6,528/47,085
+processed=7,040/47,085
+processed=7,552/47,085
+processed=8,000/47,085
+processed=8,512/47,085
+processed=9,024/47,085
+processed=9,536/47,085
+processed=10,048/47,085
+processed=10,560/47,085
+processed=11,008/47,085
+processed=11,520/47,085
+processed=12,032/47,085
+processed=12,544/47,085
+processed=13,056/47,085
+processed=13,504/47,085
+processed=14,016/47,085
+processed=14,528/47,085
+processed=15,040/47,085
+processed=15,552/47,085
+processed=16,000/47,085
+processed=16,512/47,085
+processed=17,024/47,085
+processed=17,536/47,085
+processed=18,048/47,085
+processed=18,560/47,085
+processed=19,008/47,085
+processed=19,520/47,085
+processed=20,032/47,085
+processed=20,544/47,085
+processed=21,056/47,085
+processed=21,504/47,085
+processed=22,016/47,085
+processed=22,528/47,085
+processed=23,040/47,085
+processed=23,552/47,085
+processed=24,000/47,085
+processed=24,512/47,085
+processed=25,024/47,085
+processed=25,536/47,085
+processed=26,048/47,085
+processed=26,560/47,085
+processed=27,008/47,085
+processed=27,520/47,085
+processed=28,032/47,085
+processed=28,544/47,085
+processed=29,056/47,085
+processed=29,504/47,085
+processed=30,016/47,085
+processed=30,528/47,085
+processed=31,040/47,085
+processed=31,552/47,085
+processed=32,000/47,085
+processed=32,512/47,085
+processed=33,024/47,085
+processed=33,536/47,085
+processed=34,048/47,085
+processed=34,560/47,085
+processed=35,008/47,085
+processed=35,520/47,085
+processed=36,032/47,085
+processed=36,544/47,085
+processed=37,056/47,085
+processed=37,504/47,085
+processed=38,016/47,085
+processed=38,528/47,085
+processed=39,040/47,085
+processed=39,552/47,085
+processed=40,000/47,085
+processed=40,512/47,085
+processed=41,024/47,085
+processed=41,536/47,085
+processed=42,048/47,085
+processed=42,560/47,085
+processed=43,008/47,085
+processed=43,520/47,085
+processed=44,032/47,085
+processed=44,544/47,085
+processed=45,056/47,085
+processed=45,504/47,085
+processed=46,016/47,085
+processed=46,528/47,085
+processed=47,040/47,085
+processed=47,085/47,085
+complete: /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_warmup_lr1e3_v1/seed42/chrxtrain/w1
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.evaluate_candidates --score-dir /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_warmup_lr1e3_v1/seed42/chrxtrain/w1 --reference-gtf /home/bchen103/cnn-mamba/data/raw/dmel_reference.gtf --fasta /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa --chrom NC_004354.4 --output /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_warmup_lr1e3_v1/seed42/chrxtrain/w1/candidate_auprc.tsv
+donor: AUPRC=0.949178 positives=3,403/1,236,362
+acceptor: AUPRC=0.948044 positives=3,438/1,245,749
+start: AUPRC=0.822180 positives=1,281/411,520
+stop: AUPRC=0.864918 positives=1,265/1,060,569
+mean AUPRC=0.896080: /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_warmup_lr1e3_v1/seed42/chrxtrain/w1/candidate_auprc.tsv
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.export_uniann_scores --score-dir /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_warmup_lr1e3_v1/seed42/chrxtrain/w1 --output /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_warmup_lr1e3_v1/seed42/chrxtrain/w1/chrX_plus_scores.tsv --chrom X --fasta /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa --accession NC_004354.4
+motif audit passed: {'donor': {'matches': 1236362, 'total': 1236362, 'fraction': 1.0}, 'acceptor': {'matches': 1245749, 'total': 1245749, 'fraction': 1.0}, 'start': {'matches': 411520, 'total': 411520, 'fraction': 1.0}, 'stop': {'matches': 1060569, 'total': 1060569, 'fraction': 1.0}}
+chrX_plus_scores.tsv: 3,954,200/3,954,200 rows, 226,110 rows/s
+finished in 0.3 min: /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_warmup_lr1e3_v1/seed42/chrxtrain/w1/chrX_plus_scores.tsv
+[2026-11-15T19:10:28-05:00] seed 42 (best): vector scaling (fit on validation split)
+batches=500/521 sampled=1,023,745
+batches=521/521 sampled=1,064,899
+{
+  "temperature": 1.1501731144866931,
+  "diagnostic_group_balanced_temperature": 1.0472578232514012,
+  "before": {
+    "nll": 0.1422031968832016,
+    "brier": 0.07612879574298859,
+    "ece": 0.014258179813623428,
+    "mean_max_probability": 0.965855598449707,
+    "fraction_max_ge_0.99": 0.6940845847129822
+  },
+  "after": {
+    "nll": 0.1395098716020584,
+    "brier": 0.07537365704774857,
+    "ece": 0.006990993395447731,
+    "mean_max_probability": 0.9565686583518982,
+    "fraction_max_ge_0.99": 0.5717236995697021
+  },
+  "argmax_changes": 0,
+  "output": "results/coleoptera_w1_seed_sweep_warmup_lr1e3_v1/seed42/chrxtrain/w1/calibration/temperature.json"
+}
+results/coleoptera_w1_seed_sweep_warmup_lr1e3_v1/seed42/chrxtrain/w1/vector_scaling/vector_scaling.json
+processed=512/47,085
+processed=1,024/47,085
+processed=1,536/47,085
+processed=2,048/47,085
+processed=2,560/47,085
+processed=3,008/47,085
+processed=3,520/47,085
+processed=4,032/47,085
+processed=4,544/47,085
+processed=5,056/47,085
+processed=5,504/47,085
+processed=6,016/47,085
+processed=6,528/47,085
+processed=7,040/47,085
+processed=7,552/47,085
+processed=8,000/47,085
+processed=8,512/47,085
+processed=9,024/47,085
+processed=9,536/47,085
+processed=10,048/47,085
+processed=10,560/47,085
+processed=11,008/47,085
+processed=11,520/47,085
+processed=12,032/47,085
+processed=12,544/47,085
+processed=13,056/47,085
+processed=13,504/47,085
+processed=14,016/47,085
+processed=14,528/47,085
+processed=15,040/47,085
+processed=15,552/47,085
+processed=16,000/47,085
+processed=16,512/47,085
+processed=17,024/47,085
+processed=17,536/47,085
+processed=18,048/47,085
+processed=18,560/47,085
+processed=19,008/47,085
+processed=19,520/47,085
+processed=20,032/47,085
+processed=20,544/47,085
+processed=21,056/47,085
+processed=21,504/47,085
+processed=22,016/47,085
+processed=22,528/47,085
+processed=23,040/47,085
+processed=23,552/47,085
+processed=24,000/47,085
+processed=24,512/47,085
+processed=25,024/47,085
+processed=25,536/47,085
+processed=26,048/47,085
+processed=26,560/47,085
+processed=27,008/47,085
+processed=27,520/47,085
+processed=28,032/47,085
+processed=28,544/47,085
+processed=29,056/47,085
+processed=29,504/47,085
+processed=30,016/47,085
+processed=30,528/47,085
+processed=31,040/47,085
+processed=31,552/47,085
+processed=32,000/47,085
+processed=32,512/47,085
+processed=33,024/47,085
+processed=33,536/47,085
+processed=34,048/47,085
+processed=34,560/47,085
+processed=35,008/47,085
+processed=35,520/47,085
+processed=36,032/47,085
+processed=36,544/47,085
+processed=37,056/47,085
+processed=37,504/47,085
+processed=38,016/47,085
+processed=38,528/47,085
+processed=39,040/47,085
+processed=39,552/47,085
+processed=40,000/47,085
+processed=40,512/47,085
+processed=41,024/47,085
+processed=41,536/47,085
+processed=42,048/47,085
+processed=42,560/47,085
+processed=43,008/47,085
+processed=43,520/47,085
+processed=44,032/47,085
+processed=44,544/47,085
+processed=45,056/47,085
+processed=45,504/47,085
+processed=46,016/47,085
+processed=46,528/47,085
+processed=47,040/47,085
+processed=47,085/47,085
+complete: artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_warmup_lr1e3_v1/seed42/chrxtrain/w1/chrX_plus_vector_scaled
+written=2,500,000/23,542,271
+written=5,000,000/23,542,271
+written=7,500,000/23,542,271
+written=10,000,000/23,542,271
+written=12,500,000/23,542,271
+written=15,000,000/23,542,271
+written=17,500,000/23,542,271
+written=20,000,000/23,542,271
+written=22,500,000/23,542,271
+written=23,542,271/23,542,271
+complete: artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_warmup_lr1e3_v1/seed42/chrxtrain/w1/chrX_plus_vector_scaled/chrX_plus_joint_frame_probabilities_vector.tsv
+[2026-11-15T19:17:25-05:00] UniAnn: /home/bchen103/UniAnn-latest @ 08eaf15 (fixed usage)
+[2026-11-15T19:17:25-05:00] seed 42 (best): UniAnn (built-in coding-frame scaling) + strict gffcompare
++ /home/bchen103/UniAnn-latest/bin/uniann.sh -f genome.fa -c coding.txt -s scores.txt -n

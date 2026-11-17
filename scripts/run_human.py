@@ -102,6 +102,10 @@ def main():
             command.extend(("--start-stop-weight-root", args.start_stop_weight_root))
         if args.gradient_checkpointing:
             command.append("--gradient-checkpointing")
+        if config.get("amp"):
+            command.extend(("--amp", "--amp-dtype", config.get("amp_dtype", "bf16")))
+        if config.get("dropout") is not None:
+            command.extend(("--dropout", str(config["dropout"])))
         if args.regime == "chr1train":
             command.append("--include-test-in-train")
         if (run_dir / "last_model.pt").is_file():

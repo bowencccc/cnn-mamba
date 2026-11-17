@@ -61,6 +61,12 @@ def main():
     parser.add_argument("--backbone-lr-multiplier", type=float, default=1.0)
     parser.add_argument("--freeze-pretrained-layers", type=int, default=0)
     parser.add_argument("--freeze-pretrained-epochs", type=int, default=0)
+    parser.add_argument(
+        "--eval-checkpoint", choices=("best", "last"), default="best",
+        help="checkpoint scored by score/auprc/export: best validation epoch "
+             "(best_model.pt) or the final epoch (last_model.pt; scores go to "
+             "<score dir>/last)",
+    )
     args = parser.parse_args()
     config_path = args.config if args.config.is_absolute() else root / args.config
     config = json.loads(config_path.read_text())
@@ -86,8 +92,10 @@ def main():
         score_root /= args.experiment_tag
         uniann_work_root /= args.experiment_tag
     run_dir = run_root / args.regime / args.cell
-    checkpoint = run_dir / "best_model.pt"
+    checkpoint = run_dir / f"{args.eval_checkpoint}_model.pt"
     score_dir = score_root / args.regime / args.cell
+    if args.eval_checkpoint == "last":
+        score_dir /= "last"
     raw = data / "raw"
 
     if "train" in stages:
@@ -132,6 +140,13 @@ def main():
                 "--early-stopping-patience", str(early_stopping["patience"]),
                 "--early-stopping-min-delta", str(early_stopping.get("min_delta", 0.0)),
             ])
+        if config.get("lr") is not None:
+            command.extend(["--lr", str(config["lr"])])
+        if config.get("warmup_epoch_fraction") is not None:
+            command.extend(["--warmup-epoch-fraction",
+                            str(config["warmup_epoch_fraction"])])
+        if config.get("scheduler_epochs") is not None:
+            command.extend(["--scheduler-epochs", str(config["scheduler_epochs"])])
         if args.regime == "chrxtrain":
             command.append("--include-test-in-train")
         if args.amp or cell.get("amp"):
@@ -149,6 +164,8 @@ def main():
                 str(args.init_backbone_checkpoint),
             ])
         call(command)
+    elif not checkpoint.is_file() and args.eval_checkpoint == "last":
+        parser.error(f"checkpoint not found: {checkpoint}")
     elif not checkpoint.is_file():
         external = root / "artifacts/checkpoints" / args.regime / args.cell / "best_model.pt"
         if external.is_file():

@@ -24,7 +24,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SITES = ("donor", "acceptor", "start", "stop")
 
 
-def collect(sweep: str, cell: str) -> pd.DataFrame:
+def collect(sweep: str, cell: str, checkpoint: str = "best") -> pd.DataFrame:
+    sub = "last" if checkpoint == "last" else ""
     rows = []
     for seed_dir in sorted((ROOT / "runs" / sweep).glob("seed*")):
         seed = int(re.sub(r"\D", "", seed_dir.name))
@@ -41,13 +42,13 @@ def collect(sweep: str, cell: str) -> pd.DataFrame:
                 "train_hours": round(r.get("elapsed_seconds", 0) / 3600, 2),
                 "val_mean_AP": r.get("best_validation_mean_AP"),
             })
-        auprc = ROOT / "artifacts/scores" / tag / "chrxtrain" / cell / "candidate_auprc.tsv"
+        auprc = ROOT / "artifacts/scores" / tag / "chrxtrain" / cell / sub / "candidate_auprc.tsv"
         if auprc.is_file():
             a = pd.read_csv(auprc, sep="\t").set_index("task")["AUPRC"]
             for site in SITES:
                 row[f"chrX_AUPRC_{site}"] = a.get(site)
             row["chrX_AUPRC_mean"] = float(a.reindex(SITES).mean())
-        uniann_dir = ROOT / "work/uniann" / tag / "chrxtrain" / cell / "vector_uniann_builtin_header"
+        uniann_dir = ROOT / "work/uniann" / tag / "chrxtrain" / cell / sub / "vector_uniann_builtin_header"
         locus = uniann_dir / "locus_metrics.tsv"
         commit = uniann_dir / "uniann_commit.txt"
         if commit.is_file():
@@ -66,10 +67,12 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--sweep", required=True)
     parser.add_argument("--cell", default="w1")
+    parser.add_argument("--checkpoint", choices=("best", "last"), default="best",
+                        help="which evaluated checkpoint to summarise")
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
 
-    per_seed = collect(args.sweep, args.cell)
+    per_seed = collect(args.sweep, args.cell, args.checkpoint)
     out = args.output_dir if args.output_dir.is_absolute() else ROOT / args.output_dir
     out.mkdir(parents=True, exist_ok=True)
     per_seed.to_csv(out / "per_seed.tsv", sep="\t", index=False, float_format="%.6g")
@@ -87,6 +90,7 @@ def main() -> None:
     stats.to_csv(out / "seed_stats.tsv", sep="\t", float_format="%.6g")
     (out / "provenance.json").write_text(json.dumps({
         "sweep": args.sweep, "cell": args.cell, "regime": "chrxtrain",
+        "checkpoint": args.checkpoint,
         "seeds": per_seed["seed"].tolist(),
         "uniann_commits": sorted(set(per_seed.get("uniann_commit", pd.Series(dtype=str)).dropna())),
         "uniann_policy": "latest origin/main pulled before every seed's UniAnn step",

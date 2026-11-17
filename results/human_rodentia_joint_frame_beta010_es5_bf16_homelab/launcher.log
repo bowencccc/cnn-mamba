@@ -1,0 +1,1107 @@
+Parsing annotations...
+Extracting canonical CDS sites...
+Parsing EviAnn and RefSeq CDS phase records...
+[train] chr3: 18,922 windows
+[train] chr4: 14,183 windows
+[train] chr6: 15,030 windows
+[train] chr7: 15,353 windows
+[train] chr8: 11,813 windows
+[train] chr11: 13,630 windows
+[train] chr12: 13,199 windows
+[train] chr13: 6,681 windows
+[train] chr14: 8,410 windows
+[train] chr15: 8,492 windows
+[train] chr16: 8,068 windows
+[train] chr17: 10,329 windows
+[train] chr18: 5,635 windows
+[train] chr19: 7,716 windows
+[train] chr20: 6,281 windows
+[train] chr21: 2,746 windows
+[train] chrX: 10,027 windows
+[train] chrY: 644 windows
+[val] chr2: 20,839 windows
+[val] chr5: 13,776 windows
+[val] chr9: 10,571 windows
+[val] chr10: 13,473 windows
+[val] chr22: 4,604 windows
+[test] chr1: 24,338 windows
+{
+  "train": {
+    "windows": 177159,
+    "eviann_positive_positions": {
+      "donor": 225866,
+      "acceptor": 229271,
+      "start": 42185,
+      "stop": 37171
+    },
+    "reference_positive_positions": {
+      "donor": 235468,
+      "acceptor": 241485,
+      "start": 45984,
+      "stop": 42174
+    },
+    "masked_excluded_eviann_positions": {
+      "donor": 0,
+      "acceptor": 0,
+      "start": 0,
+      "stop": 0
+    },
+    "medium_weight_start_stop_positions": {
+      "start": 0,
+      "stop": 0
+    },
+    "joint_frame_masked_bases": 0,
+    "by_chrom": {
+      "chr3": 18922,
+      "chr4": 14183,
+      "chr6": 15030,
+      "chr7": 15353,
+      "chr8": 11813,
+      "chr11": 13630,
+      "chr12": 13199,
+      "chr13": 6681,
+      "chr14": 8410,
+      "chr15": 8492,
+      "chr16": 8068,
+      "chr17": 10329,
+      "chr18": 5635,
+      "chr19": 7716,
+      "chr20": 6281,
+      "chr21": 2746,
+      "chrX": 10027,
+      "chrY": 644
+    }
+  },
+  "val": {
+    "windows": 63263,
+    "eviann_positive_positions": {
+      "donor": 75365,
+      "acceptor": 76497,
+      "start": 13270,
+      "stop": 11905
+    },
+    "reference_positive_positions": {
+      "donor": 79155,
+      "acceptor": 81163,
+      "start": 15013,
+      "stop": 13729
+    },
+    "masked_excluded_eviann_positions": {
+      "donor": 0,
+      "acceptor": 0,
+      "start": 0,
+      "stop": 0
+    },
+    "medium_weight_start_stop_positions": {
+      "start": 0,
+      "stop": 0
+    },
+    "joint_frame_masked_bases": 0,
+    "by_chrom": {
+      "chr2": 20839,
+      "chr5": 13776,
+      "chr9": 10571,
+      "chr10": 13473,
+      "chr22": 4604
+    }
+  },
+  "test": {
+    "windows": 24338,
+    "eviann_positive_positions": {
+      "donor": 34398,
+      "acceptor": 35037,
+      "start": 6467,
+      "stop": 5635
+    },
+    "reference_positive_positions": {
+      "donor": 35810,
+      "acceptor": 36738,
+      "start": 7038,
+      "stop": 6381
+    },
+    "masked_excluded_eviann_positions": {
+      "donor": 0,
+      "acceptor": 0,
+      "start": 0,
+      "stop": 0
+    },
+    "medium_weight_start_stop_positions": {
+      "start": 0,
+      "stop": 0
+    },
+    "joint_frame_masked_bases": 0,
+    "by_chrom": {
+      "chr1": 24338
+    }
+  }
+}
+Finished in 22.8 min: /zfs/bchen103/processed/human_rodentia_joint_frame_w10_refseq_chr1held
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.train --data-root /home/bchen103/cnn-mamba/data/processed/human_rodentia_joint_frame_w10_refseq_chr1held --mode baseline --output-dir /home/bchen103/cnn-mamba/runs/human/human_rodentia_joint_frame_beta010_es5_bf16_homelab/chr1train --epochs 30 --batch-size 4 --grad-accum 2 --workers 4 --architecture cnn_mamba --cnn-kernel-size 7 --window-size 10000 --stride 5000 --reference-name RefSeq --test-name chr1 --frame-dilation 3 --joint-frame-aux-weight 0.1 --joint-noncoding-weight 0.1 --early-stopping-patience 3 --early-stopping-min-delta 0.0001 --scheduler-epochs 5 --record-gradient-norms --amp --amp-dtype bf16 --dropout 0.1 --include-test-in-train
+mode=baseline device=NVIDIA RTX A4500 train=201,497 val=63,263 test=0 epochs=30 scheduler_epochs=5 scheduler_steps=125935 start_epoch=1 early_stopping_patience=3 early_stopping_min_delta=0.0001 candidate_negative_weight=1 candidate_propensity_root=None candidate_propensity_negative_weight=1 use_start_stop_weights=False frame_dilation=3 phase_aux_weight=0 cds_aux_weight=0 cds_boundary_radius=0 cds_far_loss_weight=0.1 joint_frame_aux_weight=0.1 joint_noncoding_weight=0.1 backbone_lr_multiplier=1 freeze_pretrained_layers=0 freeze_pretrained_epochs=0 frozen_parameter_count=0 record_gradient_norms=True shared_backbone_parameters=4,404,416 gradient_probe=/home/bchen103/cnn-mamba/data/processed/human_rodentia_joint_frame_w10_refseq_chr1held/train/11_minus_10000000.npz
+epoch=1 shared-backbone gradient norms (weighted): splice=4.88723 start_stop=17.0642 phase=0 cds=0 joint_frame=8.68065
+epoch=1 batch=500/50,374 loss=0.37225 lr=3.00e-04
+epoch=1 batch=1,000/50,374 loss=0.23913 lr=3.00e-04
+epoch=1 batch=1,500/50,374 loss=0.19223 lr=3.00e-04
+epoch=1 batch=2,000/50,374 loss=0.16590 lr=3.00e-04
+epoch=1 batch=2,500/50,374 loss=0.14970 lr=3.00e-04
+epoch=1 batch=3,000/50,374 loss=0.13840 lr=3.00e-04
+epoch=1 batch=3,500/50,374 loss=0.13031 lr=3.00e-04
+epoch=1 batch=4,000/50,374 loss=0.12371 lr=3.00e-04
+epoch=1 batch=4,500/50,374 loss=0.11854 lr=3.00e-04
+epoch=1 batch=5,000/50,374 loss=0.11431 lr=3.00e-04
+epoch=1 batch=5,500/50,374 loss=0.11068 lr=3.00e-04
+epoch=1 batch=6,000/50,374 loss=0.10722 lr=3.00e-04
+epoch=1 batch=6,500/50,374 loss=0.10429 lr=3.00e-04
+epoch=1 batch=7,000/50,374 loss=0.10179 lr=3.00e-04
+epoch=1 batch=7,500/50,374 loss=0.09922 lr=2.99e-04
+epoch=1 batch=8,000/50,374 loss=0.09688 lr=2.99e-04
+epoch=1 batch=8,500/50,374 loss=0.09480 lr=2.99e-04
+epoch=1 batch=9,000/50,374 loss=0.09268 lr=2.99e-04
+epoch=1 batch=9,500/50,374 loss=0.09069 lr=2.99e-04
+epoch=1 batch=10,000/50,374 loss=0.08872 lr=2.99e-04
+epoch=1 batch=10,500/50,374 loss=0.08705 lr=2.99e-04
+epoch=1 batch=11,000/50,374 loss=0.08535 lr=2.99e-04
+epoch=1 batch=11,500/50,374 loss=0.08386 lr=2.99e-04
+epoch=1 batch=12,000/50,374 loss=0.08248 lr=2.99e-04
+epoch=1 batch=12,500/50,374 loss=0.08099 lr=2.98e-04
+epoch=1 batch=13,000/50,374 loss=0.07970 lr=2.98e-04
+epoch=1 batch=13,500/50,374 loss=0.07841 lr=2.98e-04
+epoch=1 batch=14,000/50,374 loss=0.07717 lr=2.98e-04
+epoch=1 batch=14,500/50,374 loss=0.07614 lr=2.98e-04
+epoch=1 batch=15,000/50,374 loss=0.07510 lr=2.98e-04
+epoch=1 batch=15,500/50,374 loss=0.07406 lr=2.98e-04
+epoch=1 batch=16,000/50,374 loss=0.07316 lr=2.97e-04
+epoch=1 batch=16,500/50,374 loss=0.07210 lr=2.97e-04
+epoch=1 batch=17,000/50,374 loss=0.07121 lr=2.97e-04
+epoch=1 batch=17,500/50,374 loss=0.07039 lr=2.97e-04
+epoch=1 batch=18,000/50,374 loss=0.06947 lr=2.97e-04
+epoch=1 batch=18,500/50,374 loss=0.06880 lr=2.97e-04
+epoch=1 batch=19,000/50,374 loss=0.06802 lr=2.96e-04
+epoch=1 batch=19,500/50,374 loss=0.06729 lr=2.96e-04
+epoch=1 batch=20,000/50,374 loss=0.06655 lr=2.96e-04
+epoch=1 batch=20,500/50,374 loss=0.06587 lr=2.96e-04
+epoch=1 batch=21,000/50,374 loss=0.06520 lr=2.96e-04
+epoch=1 batch=21,500/50,374 loss=0.06455 lr=2.95e-04
+epoch=1 batch=22,000/50,374 loss=0.06391 lr=2.95e-04
+epoch=1 batch=22,500/50,374 loss=0.06324 lr=2.95e-04
+epoch=1 batch=23,000/50,374 loss=0.06265 lr=2.95e-04
+epoch=1 batch=23,500/50,374 loss=0.06214 lr=2.94e-04
+epoch=1 batch=24,000/50,374 loss=0.06158 lr=2.94e-04
+epoch=1 batch=24,500/50,374 loss=0.06104 lr=2.94e-04
+epoch=1 batch=25,000/50,374 loss=0.06052 lr=2.94e-04
+epoch=1 batch=25,500/50,374 loss=0.06004 lr=2.93e-04
+epoch=1 batch=26,000/50,374 loss=0.05948 lr=2.93e-04
+epoch=1 batch=26,500/50,374 loss=0.05895 lr=2.93e-04
+epoch=1 batch=27,000/50,374 loss=0.05846 lr=2.93e-04
+epoch=1 batch=27,500/50,374 loss=0.05807 lr=2.92e-04
+epoch=1 batch=28,000/50,374 loss=0.05761 lr=2.92e-04
+epoch=1 batch=28,500/50,374 loss=0.05715 lr=2.92e-04
+epoch=1 batch=29,000/50,374 loss=0.05674 lr=2.91e-04
+epoch=1 batch=29,500/50,374 loss=0.05630 lr=2.91e-04
+epoch=1 batch=30,000/50,374 loss=0.05598 lr=2.91e-04
+epoch=1 batch=30,500/50,374 loss=0.05558 lr=2.91e-04
+epoch=1 batch=31,000/50,374 loss=0.05522 lr=2.90e-04
+epoch=1 batch=31,500/50,374 loss=0.05491 lr=2.90e-04
+epoch=1 batch=32,000/50,374 loss=0.05458 lr=2.90e-04
+epoch=1 batch=32,500/50,374 loss=0.05422 lr=2.89e-04
+epoch=1 batch=33,000/50,374 loss=0.05394 lr=2.89e-04
+epoch=1 batch=33,500/50,374 loss=0.05362 lr=2.89e-04
+epoch=1 batch=34,000/50,374 loss=0.05330 lr=2.88e-04
+epoch=1 batch=34,500/50,374 loss=0.05295 lr=2.88e-04
+epoch=1 batch=35,000/50,374 loss=0.05265 lr=2.88e-04
+epoch=1 batch=35,500/50,374 loss=0.05232 lr=2.87e-04
+epoch=1 batch=36,000/50,374 loss=0.05207 lr=2.87e-04
+epoch=1 batch=36,500/50,374 loss=0.05175 lr=2.87e-04
+epoch=1 batch=37,000/50,374 loss=0.05145 lr=2.86e-04
+epoch=1 batch=37,500/50,374 loss=0.05119 lr=2.86e-04
+epoch=1 batch=38,000/50,374 loss=0.05091 lr=2.85e-04
+epoch=1 batch=38,500/50,374 loss=0.05059 lr=2.85e-04
+epoch=1 batch=39,000/50,374 loss=0.05031 lr=2.85e-04
+epoch=1 batch=39,500/50,374 loss=0.05012 lr=2.84e-04
+epoch=1 batch=40,000/50,374 loss=0.04993 lr=2.84e-04
+epoch=1 batch=40,500/50,374 loss=0.04970 lr=2.83e-04
+epoch=1 batch=41,000/50,374 loss=0.04947 lr=2.83e-04
+epoch=1 batch=41,500/50,374 loss=0.04923 lr=2.83e-04
+epoch=1 batch=42,000/50,374 loss=0.04899 lr=2.82e-04
+epoch=1 batch=42,500/50,374 loss=0.04877 lr=2.82e-04
+epoch=1 batch=43,000/50,374 loss=0.04857 lr=2.81e-04
+epoch=1 batch=43,500/50,374 loss=0.04835 lr=2.81e-04
+epoch=1 batch=44,000/50,374 loss=0.04810 lr=2.80e-04
+epoch=1 batch=44,500/50,374 loss=0.04788 lr=2.80e-04
+epoch=1 batch=45,000/50,374 loss=0.04769 lr=2.80e-04
+epoch=1 batch=45,500/50,374 loss=0.04748 lr=2.79e-04
+epoch=1 batch=46,000/50,374 loss=0.04727 lr=2.79e-04
+epoch=1 batch=46,500/50,374 loss=0.04709 lr=2.78e-04
+epoch=1 batch=47,000/50,374 loss=0.04689 lr=2.78e-04
+epoch=1 batch=47,500/50,374 loss=0.04672 lr=2.77e-04
+epoch=1 batch=48,000/50,374 loss=0.04656 lr=2.77e-04
+epoch=1 batch=48,500/50,374 loss=0.04643 lr=2.76e-04
+epoch=1 batch=49,000/50,374 loss=0.04626 lr=2.76e-04
+epoch=1 batch=49,500/50,374 loss=0.04608 lr=2.75e-04
+epoch=1 batch=50,000/50,374 loss=0.04592 lr=2.75e-04
+Epoch 1: train loss=0.04578; validation loss=0.03318; mean RefSeq AP=0.5484
+    donor    AP=0.8523 F1=0.7950 P=0.8290 R=0.7637 thr=0.7499 pos=39,588/17,166,339
+    acceptor AP=0.7892 F1=0.7449 P=0.7647 R=0.7260 thr=0.7382 pos=40,592/22,262,891
+    start    AP=0.3145 F1=0.3522 P=0.4234 R=0.3015 thr=0.1531 pos=7,512/5,597,802
+    stop     AP=0.2375 F1=0.3028 P=0.4071 R=0.2410 thr=0.2928 pos=6,870/16,453,028
+    Joint CDS AP=0.6386 F1=0.7565 P=0.6909 R=0.8358 thr=1.0000
+epoch=2 shared-backbone gradient norms (weighted): splice=0.0199287 start_stop=0.0351638 phase=0 cds=0 joint_frame=0.711865
+epoch=2 batch=500/50,374 loss=0.02895 lr=2.74e-04
+epoch=2 batch=1,000/50,374 loss=0.02892 lr=2.74e-04
+epoch=2 batch=1,500/50,374 loss=0.02946 lr=2.73e-04
+epoch=2 batch=2,000/50,374 loss=0.02945 lr=2.73e-04
+epoch=2 batch=2,500/50,374 loss=0.02941 lr=2.72e-04
+epoch=2 batch=3,000/50,374 loss=0.02932 lr=2.72e-04
+epoch=2 batch=3,500/50,374 loss=0.02906 lr=2.71e-04
+epoch=2 batch=4,000/50,374 loss=0.02917 lr=2.70e-04
+epoch=2 batch=4,500/50,374 loss=0.02866 lr=2.70e-04
+epoch=2 batch=5,000/50,374 loss=0.02866 lr=2.69e-04
+epoch=2 batch=5,500/50,374 loss=0.02841 lr=2.69e-04
+epoch=2 batch=6,000/50,374 loss=0.02826 lr=2.68e-04
+epoch=2 batch=6,500/50,374 loss=0.02838 lr=2.68e-04
+epoch=2 batch=7,000/50,374 loss=0.02830 lr=2.67e-04
+epoch=2 batch=7,500/50,374 loss=0.02812 lr=2.67e-04
+epoch=2 batch=8,000/50,374 loss=0.02808 lr=2.66e-04
+epoch=2 batch=8,500/50,374 loss=0.02825 lr=2.66e-04
+epoch=2 batch=9,000/50,374 loss=0.02824 lr=2.65e-04
+epoch=2 batch=9,500/50,374 loss=0.02827 lr=2.64e-04
+epoch=2 batch=10,000/50,374 loss=0.02829 lr=2.64e-04
+epoch=2 batch=10,500/50,374 loss=0.02824 lr=2.63e-04
+epoch=2 batch=11,000/50,374 loss=0.02827 lr=2.63e-04
+epoch=2 batch=11,500/50,374 loss=0.02824 lr=2.62e-04
+epoch=2 batch=12,000/50,374 loss=0.02839 lr=2.62e-04
+epoch=2 batch=12,500/50,374 loss=0.02830 lr=2.61e-04
+epoch=2 batch=13,000/50,374 loss=0.02827 lr=2.60e-04
+epoch=2 batch=13,500/50,374 loss=0.02829 lr=2.60e-04
+epoch=2 batch=14,000/50,374 loss=0.02832 lr=2.59e-04
+epoch=2 batch=14,500/50,374 loss=0.02827 lr=2.59e-04
+epoch=2 batch=15,000/50,374 loss=0.02817 lr=2.58e-04
+epoch=2 batch=15,500/50,374 loss=0.02817 lr=2.57e-04
+epoch=2 batch=16,000/50,374 loss=0.02814 lr=2.57e-04
+epoch=2 batch=16,500/50,374 loss=0.02805 lr=2.56e-04
+epoch=2 batch=17,000/50,374 loss=0.02799 lr=2.55e-04
+epoch=2 batch=17,500/50,374 loss=0.02790 lr=2.55e-04
+epoch=2 batch=18,000/50,374 loss=0.02788 lr=2.54e-04
+epoch=2 batch=18,500/50,374 loss=0.02782 lr=2.54e-04
+epoch=2 batch=19,000/50,374 loss=0.02763 lr=2.53e-04
+epoch=2 batch=19,500/50,374 loss=0.02763 lr=2.52e-04
+epoch=2 batch=20,000/50,374 loss=0.02761 lr=2.52e-04
+epoch=2 batch=20,500/50,374 loss=0.02749 lr=2.51e-04
+epoch=2 batch=21,000/50,374 loss=0.02752 lr=2.50e-04
+epoch=2 batch=21,500/50,374 loss=0.02746 lr=2.50e-04
+epoch=2 batch=22,000/50,374 loss=0.02736 lr=2.49e-04
+epoch=2 batch=22,500/50,374 loss=0.02734 lr=2.48e-04
+epoch=2 batch=23,000/50,374 loss=0.02727 lr=2.48e-04
+epoch=2 batch=23,500/50,374 loss=0.02734 lr=2.47e-04
+epoch=2 batch=24,000/50,374 loss=0.02738 lr=2.46e-04
+epoch=2 batch=24,500/50,374 loss=0.02737 lr=2.46e-04
+epoch=2 batch=25,000/50,374 loss=0.02736 lr=2.45e-04
+epoch=2 batch=25,500/50,374 loss=0.02734 lr=2.44e-04
+epoch=2 batch=26,000/50,374 loss=0.02737 lr=2.44e-04
+epoch=2 batch=26,500/50,374 loss=0.02731 lr=2.43e-04
+epoch=2 batch=27,000/50,374 loss=0.02727 lr=2.42e-04
+epoch=2 batch=27,500/50,374 loss=0.02729 lr=2.42e-04
+epoch=2 batch=28,000/50,374 loss=0.02726 lr=2.41e-04
+epoch=2 batch=28,500/50,374 loss=0.02722 lr=2.40e-04
+epoch=2 batch=29,000/50,374 loss=0.02721 lr=2.39e-04
+epoch=2 batch=29,500/50,374 loss=0.02719 lr=2.39e-04
+epoch=2 batch=30,000/50,374 loss=0.02718 lr=2.38e-04
+epoch=2 batch=30,500/50,374 loss=0.02725 lr=2.37e-04
+epoch=2 batch=31,000/50,374 loss=0.02725 lr=2.37e-04
+epoch=2 batch=31,500/50,374 loss=0.02720 lr=2.36e-04
+epoch=2 batch=32,000/50,374 loss=0.02719 lr=2.35e-04
+epoch=2 batch=32,500/50,374 loss=0.02722 lr=2.34e-04
+epoch=2 batch=33,000/50,374 loss=0.02716 lr=2.34e-04
+epoch=2 batch=33,500/50,374 loss=0.02716 lr=2.33e-04
+epoch=2 batch=34,000/50,374 loss=0.02715 lr=2.32e-04
+epoch=2 batch=34,500/50,374 loss=0.02713 lr=2.32e-04
+epoch=2 batch=35,000/50,374 loss=0.02710 lr=2.31e-04
+epoch=2 batch=35,500/50,374 loss=0.02707 lr=2.30e-04
+epoch=2 batch=36,000/50,374 loss=0.02705 lr=2.29e-04
+epoch=2 batch=36,500/50,374 loss=0.02704 lr=2.29e-04
+epoch=2 batch=37,000/50,374 loss=0.02703 lr=2.28e-04
+epoch=2 batch=37,500/50,374 loss=0.02700 lr=2.27e-04
+epoch=2 batch=38,000/50,374 loss=0.02699 lr=2.26e-04
+epoch=2 batch=38,500/50,374 loss=0.02699 lr=2.26e-04
+epoch=2 batch=39,000/50,374 loss=0.02698 lr=2.25e-04
+epoch=2 batch=39,500/50,374 loss=0.02698 lr=2.24e-04
+epoch=2 batch=40,000/50,374 loss=0.02697 lr=2.23e-04
+epoch=2 batch=40,500/50,374 loss=0.02692 lr=2.23e-04
+epoch=2 batch=41,000/50,374 loss=0.02691 lr=2.22e-04
+epoch=2 batch=41,500/50,374 loss=0.02687 lr=2.21e-04
+epoch=2 batch=42,000/50,374 loss=0.02682 lr=2.20e-04
+epoch=2 batch=42,500/50,374 loss=0.02680 lr=2.19e-04
+epoch=2 batch=43,000/50,374 loss=0.02675 lr=2.19e-04
+epoch=2 batch=43,500/50,374 loss=0.02673 lr=2.18e-04
+epoch=2 batch=44,000/50,374 loss=0.02673 lr=2.17e-04
+epoch=2 batch=44,500/50,374 loss=0.02674 lr=2.16e-04
+epoch=2 batch=45,000/50,374 loss=0.02672 lr=2.16e-04
+epoch=2 batch=45,500/50,374 loss=0.02669 lr=2.15e-04
+epoch=2 batch=46,000/50,374 loss=0.02667 lr=2.14e-04
+epoch=2 batch=46,500/50,374 loss=0.02663 lr=2.13e-04
+epoch=2 batch=47,000/50,374 loss=0.02657 lr=2.12e-04
+epoch=2 batch=47,500/50,374 loss=0.02657 lr=2.12e-04
+epoch=2 batch=48,000/50,374 loss=0.02653 lr=2.11e-04
+epoch=2 batch=48,500/50,374 loss=0.02648 lr=2.10e-04
+epoch=2 batch=49,000/50,374 loss=0.02646 lr=2.09e-04
+epoch=2 batch=49,500/50,374 loss=0.02645 lr=2.09e-04
+epoch=2 batch=50,000/50,374 loss=0.02644 lr=2.08e-04
+Epoch 2: train loss=0.02643; validation loss=0.02615; mean RefSeq AP=0.6249
+    donor    AP=0.8814 F1=0.8240 P=0.8503 R=0.7993 thr=0.2674 pos=39,588/17,166,339
+    acceptor AP=0.8344 F1=0.7888 P=0.8298 R=0.7516 thr=0.2440 pos=40,592/22,262,891
+    start    AP=0.4233 F1=0.4397 P=0.5400 R=0.3709 thr=0.2127 pos=7,512/5,597,802
+    stop     AP=0.3607 F1=0.4223 P=0.5658 R=0.3368 thr=0.1238 pos=6,870/16,453,028
+    Joint CDS AP=0.8564 F1=0.8459 P=0.8540 R=0.8378 thr=0.9961
+epoch=3 shared-backbone gradient norms (weighted): splice=0.0139233 start_stop=0.0835833 phase=0 cds=0 joint_frame=0.399275
+epoch=3 batch=500/50,374 loss=0.02469 lr=2.06e-04
+epoch=3 batch=1,000/50,374 loss=0.02389 lr=2.05e-04
+epoch=3 batch=1,500/50,374 loss=0.02425 lr=2.05e-04
+epoch=3 batch=2,000/50,374 loss=0.02416 lr=2.04e-04
+epoch=3 batch=2,500/50,374 loss=0.02372 lr=2.03e-04
+epoch=3 batch=3,000/50,374 loss=0.02340 lr=2.02e-04
+epoch=3 batch=3,500/50,374 loss=0.02380 lr=2.01e-04
+epoch=3 batch=4,000/50,374 loss=0.02383 lr=2.01e-04
+epoch=3 batch=4,500/50,374 loss=0.02381 lr=2.00e-04
+epoch=3 batch=5,000/50,374 loss=0.02379 lr=1.99e-04
+epoch=3 batch=5,500/50,374 loss=0.02366 lr=1.98e-04
+epoch=3 batch=6,000/50,374 loss=0.02336 lr=1.97e-04
+epoch=3 batch=6,500/50,374 loss=0.02358 lr=1.97e-04
+epoch=3 batch=7,000/50,374 loss=0.02327 lr=1.96e-04
+epoch=3 batch=7,500/50,374 loss=0.02341 lr=1.95e-04
+epoch=3 batch=8,000/50,374 loss=0.02348 lr=1.94e-04
+epoch=3 batch=8,500/50,374 loss=0.02340 lr=1.93e-04
+epoch=3 batch=9,000/50,374 loss=0.02327 lr=1.92e-04
+epoch=3 batch=9,500/50,374 loss=0.02324 lr=1.92e-04
+epoch=3 batch=10,000/50,374 loss=0.02329 lr=1.91e-04
+epoch=3 batch=10,500/50,374 loss=0.02325 lr=1.90e-04
+epoch=3 batch=11,000/50,374 loss=0.02329 lr=1.89e-04
+epoch=3 batch=11,500/50,374 loss=0.02335 lr=1.88e-04
+epoch=3 batch=12,000/50,374 loss=0.02336 lr=1.87e-04
+epoch=3 batch=12,500/50,374 loss=0.02332 lr=1.87e-04
+epoch=3 batch=13,000/50,374 loss=0.02334 lr=1.86e-04
+epoch=3 batch=13,500/50,374 loss=0.02339 lr=1.85e-04
+epoch=3 batch=14,000/50,374 loss=0.02340 lr=1.84e-04
+epoch=3 batch=14,500/50,374 loss=0.02353 lr=1.83e-04
+epoch=3 batch=15,000/50,374 loss=0.02348 lr=1.82e-04
+epoch=3 batch=15,500/50,374 loss=0.02344 lr=1.82e-04
+epoch=3 batch=16,000/50,374 loss=0.02343 lr=1.81e-04
+epoch=3 batch=16,500/50,374 loss=0.02349 lr=1.80e-04
+epoch=3 batch=17,000/50,374 loss=0.02348 lr=1.79e-04
+epoch=3 batch=17,500/50,374 loss=0.02354 lr=1.78e-04
+epoch=3 batch=18,000/50,374 loss=0.02355 lr=1.77e-04
+epoch=3 batch=18,500/50,374 loss=0.02358 lr=1.77e-04
+epoch=3 batch=19,000/50,374 loss=0.02356 lr=1.76e-04
+epoch=3 batch=19,500/50,374 loss=0.02349 lr=1.75e-04
+epoch=3 batch=20,000/50,374 loss=0.02349 lr=1.74e-04
+epoch=3 batch=20,500/50,374 loss=0.02348 lr=1.73e-04
+epoch=3 batch=21,000/50,374 loss=0.02340 lr=1.72e-04
+epoch=3 batch=21,500/50,374 loss=0.02342 lr=1.72e-04
+epoch=3 batch=22,000/50,374 loss=0.02342 lr=1.71e-04
+epoch=3 batch=22,500/50,374 loss=0.02341 lr=1.70e-04
+epoch=3 batch=23,000/50,374 loss=0.02340 lr=1.69e-04
+epoch=3 batch=23,500/50,374 loss=0.02341 lr=1.68e-04
+epoch=3 batch=24,000/50,374 loss=0.02341 lr=1.67e-04
+epoch=3 batch=24,500/50,374 loss=0.02334 lr=1.66e-04
+epoch=3 batch=25,000/50,374 loss=0.02330 lr=1.66e-04
+epoch=3 batch=25,500/50,374 loss=0.02340 lr=1.65e-04
+epoch=3 batch=26,000/50,374 loss=0.02334 lr=1.64e-04
+epoch=3 batch=26,500/50,374 loss=0.02330 lr=1.63e-04
+epoch=3 batch=27,000/50,374 loss=0.02324 lr=1.62e-04
+epoch=3 batch=27,500/50,374 loss=0.02322 lr=1.61e-04
+epoch=3 batch=28,000/50,374 loss=0.02318 lr=1.61e-04
+epoch=3 batch=28,500/50,374 loss=0.02319 lr=1.60e-04
+epoch=3 batch=29,000/50,374 loss=0.02316 lr=1.59e-04
+epoch=3 batch=29,500/50,374 loss=0.02313 lr=1.58e-04
+epoch=3 batch=30,000/50,374 loss=0.02309 lr=1.57e-04
+epoch=3 batch=30,500/50,374 loss=0.02305 lr=1.56e-04
+epoch=3 batch=31,000/50,374 loss=0.02301 lr=1.56e-04
+epoch=3 batch=31,500/50,374 loss=0.02308 lr=1.55e-04
+epoch=3 batch=32,000/50,374 loss=0.02305 lr=1.54e-04
+epoch=3 batch=32,500/50,374 loss=0.02305 lr=1.53e-04
+epoch=3 batch=33,000/50,374 loss=0.02311 lr=1.52e-04
+epoch=3 batch=33,500/50,374 loss=0.02312 lr=1.51e-04
+epoch=3 batch=34,000/50,374 loss=0.02313 lr=1.51e-04
+epoch=3 batch=34,500/50,374 loss=0.02316 lr=1.50e-04
+epoch=3 batch=35,000/50,374 loss=0.02323 lr=1.49e-04
+epoch=3 batch=35,500/50,374 loss=0.02322 lr=1.48e-04
+epoch=3 batch=36,000/50,374 loss=0.02319 lr=1.47e-04
+epoch=3 batch=36,500/50,374 loss=0.02318 lr=1.46e-04
+epoch=3 batch=37,000/50,374 loss=0.02311 lr=1.45e-04
+epoch=3 batch=37,500/50,374 loss=0.02315 lr=1.45e-04
+epoch=3 batch=38,000/50,374 loss=0.02312 lr=1.44e-04
+epoch=3 batch=38,500/50,374 loss=0.02311 lr=1.43e-04
+epoch=3 batch=39,000/50,374 loss=0.02310 lr=1.42e-04
+epoch=3 batch=39,500/50,374 loss=0.02305 lr=1.41e-04
+epoch=3 batch=40,000/50,374 loss=0.02301 lr=1.40e-04
+epoch=3 batch=40,500/50,374 loss=0.02300 lr=1.40e-04
+epoch=3 batch=41,000/50,374 loss=0.02296 lr=1.39e-04
+epoch=3 batch=41,500/50,374 loss=0.02295 lr=1.38e-04
+epoch=3 batch=42,000/50,374 loss=0.02294 lr=1.37e-04
+epoch=3 batch=42,500/50,374 loss=0.02293 lr=1.36e-04
+epoch=3 batch=43,000/50,374 loss=0.02296 lr=1.36e-04
+epoch=3 batch=43,500/50,374 loss=0.02296 lr=1.35e-04
+epoch=3 batch=44,000/50,374 loss=0.02290 lr=1.34e-04
+epoch=3 batch=44,500/50,374 loss=0.02286 lr=1.33e-04
+epoch=3 batch=45,000/50,374 loss=0.02284 lr=1.32e-04
+epoch=3 batch=45,500/50,374 loss=0.02284 lr=1.31e-04
+epoch=3 batch=46,000/50,374 loss=0.02280 lr=1.31e-04
+epoch=3 batch=46,500/50,374 loss=0.02279 lr=1.30e-04
+epoch=3 batch=47,000/50,374 loss=0.02279 lr=1.29e-04
+epoch=3 batch=47,500/50,374 loss=0.02276 lr=1.28e-04
+epoch=3 batch=48,000/50,374 loss=0.02274 lr=1.27e-04
+epoch=3 batch=48,500/50,374 loss=0.02271 lr=1.27e-04
+epoch=3 batch=49,000/50,374 loss=0.02267 lr=1.26e-04
+epoch=3 batch=49,500/50,374 loss=0.02264 lr=1.25e-04
+epoch=3 batch=50,000/50,374 loss=0.02263 lr=1.24e-04
+Epoch 3: train loss=0.02261; validation loss=0.02671; mean RefSeq AP=0.6107
+    donor    AP=0.8772 F1=0.8209 P=0.8476 R=0.7957 thr=0.6132 pos=39,588/17,166,339
+    acceptor AP=0.8349 F1=0.7885 P=0.8234 R=0.7564 thr=0.6171 pos=40,592/22,262,891
+    start    AP=0.3881 F1=0.4129 P=0.4612 R=0.3738 thr=0.1932 pos=7,512/5,597,802
+    stop     AP=0.3427 F1=0.4042 P=0.5565 R=0.3173 thr=0.2596 pos=6,870/16,453,028
+    Joint CDS AP=0.7763 F1=0.8159 P=0.8423 R=0.7910 thr=1.0000
+epoch=4 shared-backbone gradient norms (weighted): splice=0.0208218 start_stop=0.0545905 phase=0 cds=0 joint_frame=0.123119
+epoch=4 batch=500/50,374 loss=0.02161 lr=1.23e-04
+epoch=4 batch=1,000/50,374 loss=0.02153 lr=1.22e-04
+epoch=4 batch=1,500/50,374 loss=0.02098 lr=1.21e-04
+epoch=4 batch=2,000/50,374 loss=0.02080 lr=1.20e-04
+epoch=4 batch=2,500/50,374 loss=0.02055 lr=1.20e-04
+epoch=4 batch=3,000/50,374 loss=0.02045 lr=1.19e-04
+epoch=4 batch=3,500/50,374 loss=0.01987 lr=1.18e-04
+epoch=4 batch=4,000/50,374 loss=0.01972 lr=1.17e-04
+epoch=4 batch=4,500/50,374 loss=0.01958 lr=1.16e-04
+epoch=4 batch=5,000/50,374 loss=0.01951 lr=1.16e-04
+epoch=4 batch=5,500/50,374 loss=0.01946 lr=1.15e-04
+epoch=4 batch=6,000/50,374 loss=0.01932 lr=1.14e-04
+epoch=4 batch=6,500/50,374 loss=0.01949 lr=1.13e-04
+epoch=4 batch=7,000/50,374 loss=0.01954 lr=1.12e-04
+epoch=4 batch=7,500/50,374 loss=0.01974 lr=1.12e-04
+epoch=4 batch=8,000/50,374 loss=0.01978 lr=1.11e-04
+epoch=4 batch=8,500/50,374 loss=0.01977 lr=1.10e-04
+epoch=4 batch=9,000/50,374 loss=0.01989 lr=1.09e-04
+epoch=4 batch=9,500/50,374 loss=0.01985 lr=1.09e-04
+epoch=4 batch=10,000/50,374 loss=0.01988 lr=1.08e-04
+epoch=4 batch=10,500/50,374 loss=0.01985 lr=1.07e-04
+epoch=4 batch=11,000/50,374 loss=0.01993 lr=1.06e-04
+epoch=4 batch=11,500/50,374 loss=0.01983 lr=1.06e-04
+epoch=4 batch=12,000/50,374 loss=0.01983 lr=1.05e-04
+epoch=4 batch=12,500/50,374 loss=0.01978 lr=1.04e-04
+epoch=4 batch=13,000/50,374 loss=0.01974 lr=1.03e-04
+epoch=4 batch=13,500/50,374 loss=0.01979 lr=1.03e-04
+epoch=4 batch=14,000/50,374 loss=0.01980 lr=1.02e-04
+epoch=4 batch=14,500/50,374 loss=0.01989 lr=1.01e-04
+epoch=4 batch=15,000/50,374 loss=0.01990 lr=1.00e-04
+epoch=4 batch=15,500/50,374 loss=0.01989 lr=9.96e-05
+epoch=4 batch=16,000/50,374 loss=0.01987 lr=9.89e-05
+epoch=4 batch=16,500/50,374 loss=0.01983 lr=9.81e-05
+epoch=4 batch=17,000/50,374 loss=0.01981 lr=9.74e-05
+epoch=4 batch=17,500/50,374 loss=0.01978 lr=9.67e-05
+epoch=4 batch=18,000/50,374 loss=0.01979 lr=9.59e-05
+epoch=4 batch=18,500/50,374 loss=0.01980 lr=9.52e-05
+epoch=4 batch=19,000/50,374 loss=0.01984 lr=9.45e-05
+epoch=4 batch=19,500/50,374 loss=0.01985 lr=9.38e-05
+epoch=4 batch=20,000/50,374 loss=0.01984 lr=9.31e-05
+epoch=4 batch=20,500/50,374 loss=0.01981 lr=9.23e-05
+epoch=4 batch=21,000/50,374 loss=0.01978 lr=9.16e-05
+epoch=4 batch=21,500/50,374 loss=0.01981 lr=9.09e-05
+epoch=4 batch=22,000/50,374 loss=0.01978 lr=9.02e-05
+epoch=4 batch=22,500/50,374 loss=0.01975 lr=8.95e-05
+epoch=4 batch=23,000/50,374 loss=0.01976 lr=8.88e-05
+epoch=4 batch=23,500/50,374 loss=0.01971 lr=8.81e-05
+epoch=4 batch=24,000/50,374 loss=0.01972 lr=8.74e-05
+epoch=4 batch=24,500/50,374 loss=0.01972 lr=8.68e-05
+epoch=4 batch=25,000/50,374 loss=0.01971 lr=8.61e-05
+epoch=4 batch=25,500/50,374 loss=0.01974 lr=8.54e-05
+epoch=4 batch=26,000/50,374 loss=0.01970 lr=8.47e-05
+epoch=4 batch=26,500/50,374 loss=0.01965 lr=8.40e-05
+epoch=4 batch=27,000/50,374 loss=0.01965 lr=8.34e-05
+epoch=4 batch=27,500/50,374 loss=0.01961 lr=8.27e-05
+epoch=4 batch=28,000/50,374 loss=0.01964 lr=8.20e-05
+epoch=4 batch=28,500/50,374 loss=0.01965 lr=8.14e-05
+epoch=4 batch=29,000/50,374 loss=0.01962 lr=8.07e-05
+epoch=4 batch=29,500/50,374 loss=0.01965 lr=8.00e-05
+epoch=4 batch=30,000/50,374 loss=0.01966 lr=7.94e-05
+epoch=4 batch=30,500/50,374 loss=0.01967 lr=7.87e-05
+epoch=4 batch=31,000/50,374 loss=0.01968 lr=7.81e-05
+epoch=4 batch=31,500/50,374 loss=0.01967 lr=7.74e-05
+epoch=4 batch=32,000/50,374 loss=0.01967 lr=7.68e-05
+epoch=4 batch=32,500/50,374 loss=0.01966 lr=7.62e-05
+epoch=4 batch=33,000/50,374 loss=0.01963 lr=7.55e-05
+epoch=4 batch=33,500/50,374 loss=0.01965 lr=7.49e-05
+epoch=4 batch=34,000/50,374 loss=0.01964 lr=7.43e-05
+epoch=4 batch=34,500/50,374 loss=0.01962 lr=7.37e-05
+epoch=4 batch=35,000/50,374 loss=0.01962 lr=7.30e-05
+epoch=4 batch=35,500/50,374 loss=0.01958 lr=7.24e-05
+epoch=4 batch=36,000/50,374 loss=0.01960 lr=7.18e-05
+epoch=4 batch=36,500/50,374 loss=0.01957 lr=7.12e-05
+epoch=4 batch=37,000/50,374 loss=0.01954 lr=7.06e-05
+epoch=4 batch=37,500/50,374 loss=0.01952 lr=7.00e-05
+epoch=4 batch=38,000/50,374 loss=0.01952 lr=6.94e-05
+epoch=4 batch=38,500/50,374 loss=0.01954 lr=6.88e-05
+epoch=4 batch=39,000/50,374 loss=0.01950 lr=6.82e-05
+epoch=4 batch=39,500/50,374 loss=0.01948 lr=6.76e-05
+epoch=4 batch=40,000/50,374 loss=0.01949 lr=6.70e-05
+epoch=4 batch=40,500/50,374 loss=0.01946 lr=6.65e-05
+epoch=4 batch=41,000/50,374 loss=0.01944 lr=6.59e-05
+epoch=4 batch=41,500/50,374 loss=0.01946 lr=6.53e-05
+epoch=4 batch=42,000/50,374 loss=0.01945 lr=6.48e-05
+epoch=4 batch=42,500/50,374 loss=0.01945 lr=6.42e-05
+epoch=4 batch=43,000/50,374 loss=0.01945 lr=6.36e-05
+epoch=4 batch=43,500/50,374 loss=0.01947 lr=6.31e-05
+epoch=4 batch=44,000/50,374 loss=0.01945 lr=6.25e-05
+epoch=4 batch=44,500/50,374 loss=0.01946 lr=6.20e-05
+epoch=4 batch=45,000/50,374 loss=0.01943 lr=6.14e-05
+epoch=4 batch=45,500/50,374 loss=0.01943 lr=6.09e-05
+epoch=4 batch=46,000/50,374 loss=0.01944 lr=6.04e-05
+epoch=4 batch=46,500/50,374 loss=0.01944 lr=5.98e-05
+epoch=4 batch=47,000/50,374 loss=0.01944 lr=5.93e-05
+epoch=4 batch=47,500/50,374 loss=0.01941 lr=5.88e-05
+epoch=4 batch=48,000/50,374 loss=0.01941 lr=5.83e-05
+epoch=4 batch=48,500/50,374 loss=0.01940 lr=5.78e-05
+epoch=4 batch=49,000/50,374 loss=0.01939 lr=5.72e-05
+epoch=4 batch=49,500/50,374 loss=0.01937 lr=5.67e-05
+epoch=4 batch=50,000/50,374 loss=0.01935 lr=5.62e-05
+Epoch 4: train loss=0.01936; validation loss=0.02179; mean RefSeq AP=0.6658
+    donor    AP=0.9125 F1=0.8621 P=0.8873 R=0.8382 thr=0.7148 pos=39,588/17,166,339
+    acceptor AP=0.8756 F1=0.8280 P=0.8513 R=0.8058 thr=0.6796 pos=40,592/22,262,891
+    start    AP=0.4657 F1=0.4748 P=0.5863 R=0.3990 thr=0.2674 pos=7,512/5,597,802
+    stop     AP=0.4096 F1=0.4652 P=0.6051 R=0.3779 thr=0.2947 pos=6,870/16,453,028
+    Joint CDS AP=0.8297 F1=0.8744 P=0.8659 R=0.8830 thr=1.0000
+epoch=5 shared-backbone gradient norms (weighted): splice=0.0161859 start_stop=0.0684535 phase=0 cds=0 joint_frame=0.123735
+epoch=5 batch=500/50,374 loss=0.01889 lr=5.54e-05
+epoch=5 batch=1,000/50,374 loss=0.01818 lr=5.49e-05
+epoch=5 batch=1,500/50,374 loss=0.01820 lr=5.44e-05
+epoch=5 batch=2,000/50,374 loss=0.01799 lr=5.39e-05
+epoch=5 batch=2,500/50,374 loss=0.01758 lr=5.34e-05
+epoch=5 batch=3,000/50,374 loss=0.01766 lr=5.30e-05
+epoch=5 batch=3,500/50,374 loss=0.01759 lr=5.25e-05
+epoch=5 batch=4,000/50,374 loss=0.01776 lr=5.20e-05
+epoch=5 batch=4,500/50,374 loss=0.01785 lr=5.16e-05
+epoch=5 batch=5,000/50,374 loss=0.01770 lr=5.11e-05
+epoch=5 batch=5,500/50,374 loss=0.01766 lr=5.07e-05
+epoch=5 batch=6,000/50,374 loss=0.01748 lr=5.02e-05
+epoch=5 batch=6,500/50,374 loss=0.01758 lr=4.98e-05
+epoch=5 batch=7,000/50,374 loss=0.01757 lr=4.93e-05
+epoch=5 batch=7,500/50,374 loss=0.01766 lr=4.89e-05
+epoch=5 batch=8,000/50,374 loss=0.01771 lr=4.85e-05
+epoch=5 batch=8,500/50,374 loss=0.01772 lr=4.81e-05
+epoch=5 batch=9,000/50,374 loss=0.01762 lr=4.76e-05
+epoch=5 batch=9,500/50,374 loss=0.01766 lr=4.72e-05
+epoch=5 batch=10,000/50,374 loss=0.01754 lr=4.68e-05
+epoch=5 batch=10,500/50,374 loss=0.01759 lr=4.64e-05
+epoch=5 batch=11,000/50,374 loss=0.01750 lr=4.60e-05
+epoch=5 batch=11,500/50,374 loss=0.01757 lr=4.56e-05
+epoch=5 batch=12,000/50,374 loss=0.01766 lr=4.52e-05
+epoch=5 batch=12,500/50,374 loss=0.01769 lr=4.48e-05
+epoch=5 batch=13,000/50,374 loss=0.01760 lr=4.45e-05
+epoch=5 batch=13,500/50,374 loss=0.01763 lr=4.41e-05
+epoch=5 batch=14,000/50,374 loss=0.01762 lr=4.37e-05
+epoch=5 batch=14,500/50,374 loss=0.01767 lr=4.33e-05
+epoch=5 batch=15,000/50,374 loss=0.01771 lr=4.30e-05
+epoch=5 batch=15,500/50,374 loss=0.01776 lr=4.26e-05
+epoch=5 batch=16,000/50,374 loss=0.01771 lr=4.23e-05
+epoch=5 batch=16,500/50,374 loss=0.01772 lr=4.19e-05
+epoch=5 batch=17,000/50,374 loss=0.01773 lr=4.16e-05
+epoch=5 batch=17,500/50,374 loss=0.01770 lr=4.12e-05
+epoch=5 batch=18,000/50,374 loss=0.01766 lr=4.09e-05
+epoch=5 batch=18,500/50,374 loss=0.01761 lr=4.06e-05
+epoch=5 batch=19,000/50,374 loss=0.01761 lr=4.02e-05
+epoch=5 batch=19,500/50,374 loss=0.01763 lr=3.99e-05
+epoch=5 batch=20,000/50,374 loss=0.01764 lr=3.96e-05
+epoch=5 batch=20,500/50,374 loss=0.01763 lr=3.93e-05
+epoch=5 batch=21,000/50,374 loss=0.01764 lr=3.90e-05
+epoch=5 batch=21,500/50,374 loss=0.01761 lr=3.87e-05
+epoch=5 batch=22,000/50,374 loss=0.01753 lr=3.84e-05
+epoch=5 batch=22,500/50,374 loss=0.01746 lr=3.81e-05
+epoch=5 batch=23,000/50,374 loss=0.01749 lr=3.78e-05
+epoch=5 batch=23,500/50,374 loss=0.01750 lr=3.75e-05
+epoch=5 batch=24,000/50,374 loss=0.01748 lr=3.73e-05
+epoch=5 batch=24,500/50,374 loss=0.01745 lr=3.70e-05
+epoch=5 batch=25,000/50,374 loss=0.01747 lr=3.67e-05
+epoch=5 batch=25,500/50,374 loss=0.01747 lr=3.65e-05
+epoch=5 batch=26,000/50,374 loss=0.01749 lr=3.62e-05
+epoch=5 batch=26,500/50,374 loss=0.01749 lr=3.60e-05
+epoch=5 batch=27,000/50,374 loss=0.01753 lr=3.57e-05
+epoch=5 batch=27,500/50,374 loss=0.01751 lr=3.55e-05
+epoch=5 batch=28,000/50,374 loss=0.01748 lr=3.52e-05
+epoch=5 batch=28,500/50,374 loss=0.01747 lr=3.50e-05
+epoch=5 batch=29,000/50,374 loss=0.01748 lr=3.48e-05
+epoch=5 batch=29,500/50,374 loss=0.01750 lr=3.46e-05
+epoch=5 batch=30,000/50,374 loss=0.01745 lr=3.44e-05
+epoch=5 batch=30,500/50,374 loss=0.01747 lr=3.41e-05
+epoch=5 batch=31,000/50,374 loss=0.01747 lr=3.39e-05
+epoch=5 batch=31,500/50,374 loss=0.01746 lr=3.37e-05
+epoch=5 batch=32,000/50,374 loss=0.01747 lr=3.35e-05
+epoch=5 batch=32,500/50,374 loss=0.01745 lr=3.34e-05
+epoch=5 batch=33,000/50,374 loss=0.01746 lr=3.32e-05
+epoch=5 batch=33,500/50,374 loss=0.01743 lr=3.30e-05
+epoch=5 batch=34,000/50,374 loss=0.01744 lr=3.28e-05
+epoch=5 batch=34,500/50,374 loss=0.01741 lr=3.26e-05
+epoch=5 batch=35,000/50,374 loss=0.01742 lr=3.25e-05
+epoch=5 batch=35,500/50,374 loss=0.01742 lr=3.23e-05
+epoch=5 batch=36,000/50,374 loss=0.01739 lr=3.22e-05
+epoch=5 batch=36,500/50,374 loss=0.01740 lr=3.20e-05
+epoch=5 batch=37,000/50,374 loss=0.01743 lr=3.19e-05
+epoch=5 batch=37,500/50,374 loss=0.01741 lr=3.17e-05
+epoch=5 batch=38,000/50,374 loss=0.01738 lr=3.16e-05
+epoch=5 batch=38,500/50,374 loss=0.01740 lr=3.15e-05
+epoch=5 batch=39,000/50,374 loss=0.01741 lr=3.14e-05
+epoch=5 batch=39,500/50,374 loss=0.01741 lr=3.12e-05
+epoch=5 batch=40,000/50,374 loss=0.01741 lr=3.11e-05
+epoch=5 batch=40,500/50,374 loss=0.01741 lr=3.10e-05
+epoch=5 batch=41,000/50,374 loss=0.01738 lr=3.09e-05
+epoch=5 batch=41,500/50,374 loss=0.01735 lr=3.08e-05
+epoch=5 batch=42,000/50,374 loss=0.01733 lr=3.07e-05
+epoch=5 batch=42,500/50,374 loss=0.01734 lr=3.07e-05
+epoch=5 batch=43,000/50,374 loss=0.01734 lr=3.06e-05
+epoch=5 batch=43,500/50,374 loss=0.01733 lr=3.05e-05
+epoch=5 batch=44,000/50,374 loss=0.01732 lr=3.04e-05
+epoch=5 batch=44,500/50,374 loss=0.01730 lr=3.04e-05
+epoch=5 batch=45,000/50,374 loss=0.01732 lr=3.03e-05
+epoch=5 batch=45,500/50,374 loss=0.01736 lr=3.03e-05
+epoch=5 batch=46,000/50,374 loss=0.01735 lr=3.02e-05
+epoch=5 batch=46,500/50,374 loss=0.01735 lr=3.02e-05
+epoch=5 batch=47,000/50,374 loss=0.01735 lr=3.01e-05
+epoch=5 batch=47,500/50,374 loss=0.01736 lr=3.01e-05
+epoch=5 batch=48,000/50,374 loss=0.01739 lr=3.01e-05
+epoch=5 batch=48,500/50,374 loss=0.01738 lr=3.00e-05
+epoch=5 batch=49,000/50,374 loss=0.01737 lr=3.00e-05
+epoch=5 batch=49,500/50,374 loss=0.01740 lr=3.00e-05
+epoch=5 batch=50,000/50,374 loss=0.01741 lr=3.00e-05
+Epoch 5: train loss=0.01742; validation loss=0.02156; mean RefSeq AP=0.6851
+    donor    AP=0.9225 F1=0.8767 P=0.9021 R=0.8527 thr=0.6210 pos=39,588/17,166,339
+    acceptor AP=0.8900 F1=0.8487 P=0.8815 R=0.8183 thr=0.6249 pos=40,592/22,262,891
+    start    AP=0.4823 F1=0.4897 P=0.6279 R=0.4014 thr=0.3006 pos=7,512/5,597,802
+    stop     AP=0.4454 F1=0.5004 P=0.6677 R=0.4001 thr=0.3241 pos=6,870/16,453,028
+    Joint CDS AP=0.8556 F1=0.8880 P=0.8905 R=0.8855 thr=1.0000
+epoch=6 shared-backbone gradient norms (weighted): splice=0.00618978 start_stop=0.0233252 phase=0 cds=0 joint_frame=0.0330913
+epoch=6 batch=500/50,374 loss=0.01525 lr=3.00e-05
+epoch=6 batch=1,000/50,374 loss=0.01640 lr=3.00e-05
+epoch=6 batch=1,500/50,374 loss=0.01655 lr=3.00e-05
+epoch=6 batch=2,000/50,374 loss=0.01696 lr=3.00e-05
+epoch=6 batch=2,500/50,374 loss=0.01700 lr=3.00e-05
+epoch=6 batch=3,000/50,374 loss=0.01685 lr=3.00e-05
+epoch=6 batch=3,500/50,374 loss=0.01713 lr=3.00e-05
+epoch=6 batch=4,000/50,374 loss=0.01712 lr=3.00e-05
+epoch=6 batch=4,500/50,374 loss=0.01712 lr=3.00e-05
+epoch=6 batch=5,000/50,374 loss=0.01725 lr=3.00e-05
+epoch=6 batch=5,500/50,374 loss=0.01727 lr=3.00e-05
+epoch=6 batch=6,000/50,374 loss=0.01720 lr=3.00e-05
+epoch=6 batch=6,500/50,374 loss=0.01713 lr=3.00e-05
+epoch=6 batch=7,000/50,374 loss=0.01707 lr=3.00e-05
+epoch=6 batch=7,500/50,374 loss=0.01704 lr=3.00e-05
+epoch=6 batch=8,000/50,374 loss=0.01691 lr=3.00e-05
+epoch=6 batch=8,500/50,374 loss=0.01688 lr=3.00e-05
+epoch=6 batch=9,000/50,374 loss=0.01695 lr=3.00e-05
+epoch=6 batch=9,500/50,374 loss=0.01698 lr=3.00e-05
+epoch=6 batch=10,000/50,374 loss=0.01695 lr=3.00e-05
+epoch=6 batch=10,500/50,374 loss=0.01688 lr=3.00e-05
+epoch=6 batch=11,000/50,374 loss=0.01687 lr=3.00e-05
+epoch=6 batch=11,500/50,374 loss=0.01690 lr=3.00e-05
+epoch=6 batch=12,000/50,374 loss=0.01699 lr=3.00e-05
+epoch=6 batch=12,500/50,374 loss=0.01698 lr=3.00e-05
+epoch=6 batch=13,000/50,374 loss=0.01695 lr=3.00e-05
+epoch=6 batch=13,500/50,374 loss=0.01691 lr=3.00e-05
+epoch=6 batch=14,000/50,374 loss=0.01690 lr=3.00e-05
+epoch=6 batch=14,500/50,374 loss=0.01686 lr=3.00e-05
+epoch=6 batch=15,000/50,374 loss=0.01678 lr=3.00e-05
+epoch=6 batch=15,500/50,374 loss=0.01677 lr=3.00e-05
+epoch=6 batch=16,000/50,374 loss=0.01675 lr=3.00e-05
+epoch=6 batch=16,500/50,374 loss=0.01673 lr=3.00e-05
+epoch=6 batch=17,000/50,374 loss=0.01672 lr=3.00e-05
+epoch=6 batch=17,500/50,374 loss=0.01669 lr=3.00e-05
+epoch=6 batch=18,000/50,374 loss=0.01665 lr=3.00e-05
+epoch=6 batch=18,500/50,374 loss=0.01663 lr=3.00e-05
+epoch=6 batch=19,000/50,374 loss=0.01660 lr=3.00e-05
+epoch=6 batch=19,500/50,374 loss=0.01660 lr=3.00e-05
+epoch=6 batch=20,000/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=20,500/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=21,000/50,374 loss=0.01661 lr=3.00e-05
+epoch=6 batch=21,500/50,374 loss=0.01656 lr=3.00e-05
+epoch=6 batch=22,000/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=22,500/50,374 loss=0.01661 lr=3.00e-05
+epoch=6 batch=23,000/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=23,500/50,374 loss=0.01656 lr=3.00e-05
+epoch=6 batch=24,000/50,374 loss=0.01656 lr=3.00e-05
+epoch=6 batch=24,500/50,374 loss=0.01663 lr=3.00e-05
+epoch=6 batch=25,000/50,374 loss=0.01660 lr=3.00e-05
+epoch=6 batch=25,500/50,374 loss=0.01661 lr=3.00e-05
+epoch=6 batch=26,000/50,374 loss=0.01660 lr=3.00e-05
+epoch=6 batch=26,500/50,374 loss=0.01659 lr=3.00e-05
+epoch=6 batch=27,000/50,374 loss=0.01659 lr=3.00e-05
+epoch=6 batch=27,500/50,374 loss=0.01662 lr=3.00e-05
+epoch=6 batch=28,000/50,374 loss=0.01659 lr=3.00e-05
+epoch=6 batch=28,500/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=29,000/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=29,500/50,374 loss=0.01656 lr=3.00e-05
+epoch=6 batch=30,000/50,374 loss=0.01654 lr=3.00e-05
+epoch=6 batch=30,500/50,374 loss=0.01656 lr=3.00e-05
+epoch=6 batch=31,000/50,374 loss=0.01653 lr=3.00e-05
+epoch=6 batch=31,500/50,374 loss=0.01652 lr=3.00e-05
+epoch=6 batch=32,000/50,374 loss=0.01651 lr=3.00e-05
+epoch=6 batch=32,500/50,374 loss=0.01655 lr=3.00e-05
+epoch=6 batch=33,000/50,374 loss=0.01656 lr=3.00e-05
+epoch=6 batch=33,500/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=34,000/50,374 loss=0.01656 lr=3.00e-05
+epoch=6 batch=34,500/50,374 loss=0.01658 lr=3.00e-05
+epoch=6 batch=35,000/50,374 loss=0.01660 lr=3.00e-05
+epoch=6 batch=35,500/50,374 loss=0.01661 lr=3.00e-05
+epoch=6 batch=36,000/50,374 loss=0.01664 lr=3.00e-05
+epoch=6 batch=36,500/50,374 loss=0.01661 lr=3.00e-05
+epoch=6 batch=37,000/50,374 loss=0.01661 lr=3.00e-05
+epoch=6 batch=37,500/50,374 loss=0.01661 lr=3.00e-05
+epoch=6 batch=38,000/50,374 loss=0.01662 lr=3.00e-05
+epoch=6 batch=38,500/50,374 loss=0.01663 lr=3.00e-05
+epoch=6 batch=39,000/50,374 loss=0.01659 lr=3.00e-05
+epoch=6 batch=39,500/50,374 loss=0.01656 lr=3.00e-05
+epoch=6 batch=40,000/50,374 loss=0.01656 lr=3.00e-05
+epoch=6 batch=40,500/50,374 loss=0.01658 lr=3.00e-05
+epoch=6 batch=41,000/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=41,500/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=42,000/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=42,500/50,374 loss=0.01658 lr=3.00e-05
+epoch=6 batch=43,000/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=43,500/50,374 loss=0.01658 lr=3.00e-05
+epoch=6 batch=44,000/50,374 loss=0.01656 lr=3.00e-05
+epoch=6 batch=44,500/50,374 loss=0.01658 lr=3.00e-05
+epoch=6 batch=45,000/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=45,500/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=46,000/50,374 loss=0.01656 lr=3.00e-05
+epoch=6 batch=46,500/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=47,000/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=47,500/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=48,000/50,374 loss=0.01657 lr=3.00e-05
+epoch=6 batch=48,500/50,374 loss=0.01656 lr=3.00e-05
+epoch=6 batch=49,000/50,374 loss=0.01658 lr=3.00e-05
+epoch=6 batch=49,500/50,374 loss=0.01660 lr=3.00e-05
+epoch=6 batch=50,000/50,374 loss=0.01663 lr=3.00e-05
+Epoch 6: train loss=0.01663; validation loss=0.02191; mean RefSeq AP=0.6805
+    donor    AP=0.9207 F1=0.8735 P=0.9038 R=0.8451 thr=0.7499 pos=39,588/17,166,339
+    acceptor AP=0.8852 F1=0.8417 P=0.8682 R=0.8167 thr=0.7148 pos=40,592/22,262,891
+    start    AP=0.4766 F1=0.4871 P=0.5817 R=0.4189 thr=0.2987 pos=7,512/5,597,802
+    stop     AP=0.4397 F1=0.4961 P=0.6571 R=0.3985 thr=0.2176 pos=6,870/16,453,028
+    Joint CDS AP=0.8287 F1=0.8776 P=0.8615 R=0.8944 thr=1.0000
+epoch=7 shared-backbone gradient norms (weighted): splice=0.0176341 start_stop=0.0327331 phase=0 cds=0 joint_frame=0.0477908
+epoch=7 batch=500/50,374 loss=0.01620 lr=3.00e-05
+epoch=7 batch=1,000/50,374 loss=0.01590 lr=3.00e-05
+epoch=7 batch=1,500/50,374 loss=0.01541 lr=3.00e-05
+epoch=7 batch=2,000/50,374 loss=0.01573 lr=3.00e-05
+epoch=7 batch=2,500/50,374 loss=0.01597 lr=3.00e-05
+epoch=7 batch=3,000/50,374 loss=0.01599 lr=3.00e-05
+epoch=7 batch=3,500/50,374 loss=0.01628 lr=3.00e-05
+epoch=7 batch=4,000/50,374 loss=0.01624 lr=3.00e-05
+epoch=7 batch=4,500/50,374 loss=0.01627 lr=3.00e-05
+epoch=7 batch=5,000/50,374 loss=0.01640 lr=3.00e-05
+epoch=7 batch=5,500/50,374 loss=0.01644 lr=3.00e-05
+epoch=7 batch=6,000/50,374 loss=0.01641 lr=3.00e-05
+epoch=7 batch=6,500/50,374 loss=0.01647 lr=3.00e-05
+epoch=7 batch=7,000/50,374 loss=0.01650 lr=3.00e-05
+epoch=7 batch=7,500/50,374 loss=0.01653 lr=3.00e-05
+epoch=7 batch=8,000/50,374 loss=0.01655 lr=3.00e-05
+epoch=7 batch=8,500/50,374 loss=0.01656 lr=3.00e-05
+epoch=7 batch=9,000/50,374 loss=0.01657 lr=3.00e-05
+epoch=7 batch=9,500/50,374 loss=0.01647 lr=3.00e-05
+epoch=7 batch=10,000/50,374 loss=0.01634 lr=3.00e-05
+epoch=7 batch=10,500/50,374 loss=0.01632 lr=3.00e-05
+epoch=7 batch=11,000/50,374 loss=0.01633 lr=3.00e-05
+epoch=7 batch=11,500/50,374 loss=0.01635 lr=3.00e-05
+epoch=7 batch=12,000/50,374 loss=0.01635 lr=3.00e-05
+epoch=7 batch=12,500/50,374 loss=0.01642 lr=3.00e-05
+epoch=7 batch=13,000/50,374 loss=0.01644 lr=3.00e-05
+epoch=7 batch=13,500/50,374 loss=0.01647 lr=3.00e-05
+epoch=7 batch=14,000/50,374 loss=0.01650 lr=3.00e-05
+epoch=7 batch=14,500/50,374 loss=0.01657 lr=3.00e-05
+epoch=7 batch=15,000/50,374 loss=0.01660 lr=3.00e-05
+epoch=7 batch=15,500/50,374 loss=0.01664 lr=3.00e-05
+epoch=7 batch=16,000/50,374 loss=0.01665 lr=3.00e-05
+epoch=7 batch=16,500/50,374 loss=0.01674 lr=3.00e-05
+epoch=7 batch=17,000/50,374 loss=0.01669 lr=3.00e-05
+epoch=7 batch=17,500/50,374 loss=0.01672 lr=3.00e-05
+epoch=7 batch=18,000/50,374 loss=0.01681 lr=3.00e-05
+epoch=7 batch=18,500/50,374 loss=0.01675 lr=3.00e-05
+epoch=7 batch=19,000/50,374 loss=0.01670 lr=3.00e-05
+epoch=7 batch=19,500/50,374 loss=0.01670 lr=3.00e-05
+epoch=7 batch=20,000/50,374 loss=0.01676 lr=3.00e-05
+epoch=7 batch=20,500/50,374 loss=0.01670 lr=3.00e-05
+epoch=7 batch=21,000/50,374 loss=0.01674 lr=3.00e-05
+epoch=7 batch=21,500/50,374 loss=0.01668 lr=3.00e-05
+epoch=7 batch=22,000/50,374 loss=0.01668 lr=3.00e-05
+epoch=7 batch=22,500/50,374 loss=0.01670 lr=3.00e-05
+epoch=7 batch=23,000/50,374 loss=0.01669 lr=3.00e-05
+epoch=7 batch=23,500/50,374 loss=0.01667 lr=3.00e-05
+epoch=7 batch=24,000/50,374 loss=0.01672 lr=3.00e-05
+epoch=7 batch=24,500/50,374 loss=0.01673 lr=3.00e-05
+epoch=7 batch=25,000/50,374 loss=0.01672 lr=3.00e-05
+epoch=7 batch=25,500/50,374 loss=0.01668 lr=3.00e-05
+epoch=7 batch=26,000/50,374 loss=0.01666 lr=3.00e-05
+epoch=7 batch=26,500/50,374 loss=0.01665 lr=3.00e-05
+epoch=7 batch=27,000/50,374 loss=0.01668 lr=3.00e-05
+epoch=7 batch=27,500/50,374 loss=0.01668 lr=3.00e-05
+epoch=7 batch=28,000/50,374 loss=0.01666 lr=3.00e-05
+epoch=7 batch=28,500/50,374 loss=0.01665 lr=3.00e-05
+epoch=7 batch=29,000/50,374 loss=0.01664 lr=3.00e-05
+epoch=7 batch=29,500/50,374 loss=0.01661 lr=3.00e-05
+epoch=7 batch=30,000/50,374 loss=0.01665 lr=3.00e-05
+epoch=7 batch=30,500/50,374 loss=0.01666 lr=3.00e-05
+epoch=7 batch=31,000/50,374 loss=0.01662 lr=3.00e-05
+epoch=7 batch=31,500/50,374 loss=0.01662 lr=3.00e-05
+epoch=7 batch=32,000/50,374 loss=0.01661 lr=3.00e-05
+epoch=7 batch=32,500/50,374 loss=0.01666 lr=3.00e-05
+epoch=7 batch=33,000/50,374 loss=0.01661 lr=3.00e-05
+epoch=7 batch=33,500/50,374 loss=0.01662 lr=3.00e-05
+epoch=7 batch=34,000/50,374 loss=0.01660 lr=3.00e-05
+epoch=7 batch=34,500/50,374 loss=0.01663 lr=3.00e-05
+epoch=7 batch=35,000/50,374 loss=0.01663 lr=3.00e-05
+epoch=7 batch=35,500/50,374 loss=0.01660 lr=3.00e-05
+epoch=7 batch=36,000/50,374 loss=0.01660 lr=3.00e-05
+epoch=7 batch=36,500/50,374 loss=0.01658 lr=3.00e-05
+epoch=7 batch=37,000/50,374 loss=0.01658 lr=3.00e-05
+epoch=7 batch=37,500/50,374 loss=0.01658 lr=3.00e-05
+epoch=7 batch=38,000/50,374 loss=0.01656 lr=3.00e-05
+epoch=7 batch=38,500/50,374 loss=0.01656 lr=3.00e-05
+epoch=7 batch=39,000/50,374 loss=0.01657 lr=3.00e-05
+epoch=7 batch=39,500/50,374 loss=0.01660 lr=3.00e-05
+epoch=7 batch=40,000/50,374 loss=0.01661 lr=3.00e-05
+epoch=7 batch=40,500/50,374 loss=0.01664 lr=3.00e-05
+epoch=7 batch=41,000/50,374 loss=0.01665 lr=3.00e-05
+epoch=7 batch=41,500/50,374 loss=0.01663 lr=3.00e-05
+epoch=7 batch=42,000/50,374 loss=0.01662 lr=3.00e-05
+epoch=7 batch=42,500/50,374 loss=0.01665 lr=3.00e-05
+epoch=7 batch=43,000/50,374 loss=0.01663 lr=3.00e-05
+epoch=7 batch=43,500/50,374 loss=0.01661 lr=3.00e-05
+epoch=7 batch=44,000/50,374 loss=0.01659 lr=3.00e-05
+epoch=7 batch=44,500/50,374 loss=0.01658 lr=3.00e-05
+epoch=7 batch=45,000/50,374 loss=0.01658 lr=3.00e-05
+epoch=7 batch=45,500/50,374 loss=0.01657 lr=3.00e-05
+epoch=7 batch=46,000/50,374 loss=0.01657 lr=3.00e-05
+epoch=7 batch=46,500/50,374 loss=0.01656 lr=3.00e-05
+epoch=7 batch=47,000/50,374 loss=0.01655 lr=3.00e-05
+epoch=7 batch=47,500/50,374 loss=0.01654 lr=3.00e-05
+epoch=7 batch=48,000/50,374 loss=0.01656 lr=3.00e-05
+epoch=7 batch=48,500/50,374 loss=0.01656 lr=3.00e-05
+epoch=7 batch=49,000/50,374 loss=0.01657 lr=3.00e-05
+epoch=7 batch=49,500/50,374 loss=0.01661 lr=3.00e-05
+epoch=7 batch=50,000/50,374 loss=0.01664 lr=3.00e-05
+Epoch 7: train loss=0.01666; validation loss=0.02137; mean RefSeq AP=0.6767
+    donor    AP=0.9183 F1=0.8693 P=0.8881 R=0.8514 thr=0.6757 pos=39,588/17,166,339
+    acceptor AP=0.8848 F1=0.8396 P=0.8644 R=0.8162 thr=0.6796 pos=40,592/22,262,891
+    start    AP=0.4831 F1=0.4919 P=0.6275 R=0.4046 thr=0.3709 pos=7,512/5,597,802
+    stop     AP=0.4204 F1=0.4780 P=0.6529 R=0.3770 thr=0.3963 pos=6,870/16,453,028
+    Joint CDS AP=0.8372 F1=0.8760 P=0.8749 R=0.8771 thr=1.0000
+epoch=8 shared-backbone gradient norms (weighted): splice=0.0250175 start_stop=0.0525691 phase=0 cds=0 joint_frame=0.058423
+epoch=8 batch=500/50,374 loss=0.01602 lr=3.00e-05
+epoch=8 batch=1,000/50,374 loss=0.01586 lr=3.00e-05
+epoch=8 batch=1,500/50,374 loss=0.01599 lr=3.00e-05
+epoch=8 batch=2,000/50,374 loss=0.01572 lr=3.00e-05
+epoch=8 batch=2,500/50,374 loss=0.01590 lr=3.00e-05
+epoch=8 batch=3,000/50,374 loss=0.01597 lr=3.00e-05
+epoch=8 batch=3,500/50,374 loss=0.01601 lr=3.00e-05
+epoch=8 batch=4,000/50,374 loss=0.01601 lr=3.00e-05
+epoch=8 batch=4,500/50,374 loss=0.01620 lr=3.00e-05
+epoch=8 batch=5,000/50,374 loss=0.01618 lr=3.00e-05
+epoch=8 batch=5,500/50,374 loss=0.01610 lr=3.00e-05
+epoch=8 batch=6,000/50,374 loss=0.01641 lr=3.00e-05
+epoch=8 batch=6,500/50,374 loss=0.01640 lr=3.00e-05
+epoch=8 batch=7,000/50,374 loss=0.01634 lr=3.00e-05
+epoch=8 batch=7,500/50,374 loss=0.01642 lr=3.00e-05
+epoch=8 batch=8,000/50,374 loss=0.01649 lr=3.00e-05
+epoch=8 batch=8,500/50,374 loss=0.01636 lr=3.00e-05
+epoch=8 batch=9,000/50,374 loss=0.01632 lr=3.00e-05
+epoch=8 batch=9,500/50,374 loss=0.01637 lr=3.00e-05
+epoch=8 batch=10,000/50,374 loss=0.01650 lr=3.00e-05
+epoch=8 batch=10,500/50,374 loss=0.01655 lr=3.00e-05
+epoch=8 batch=11,000/50,374 loss=0.01652 lr=3.00e-05
+epoch=8 batch=11,500/50,374 loss=0.01660 lr=3.00e-05
+epoch=8 batch=12,000/50,374 loss=0.01660 lr=3.00e-05
+epoch=8 batch=12,500/50,374 loss=0.01660 lr=3.00e-05
+epoch=8 batch=13,000/50,374 loss=0.01650 lr=3.00e-05
+epoch=8 batch=13,500/50,374 loss=0.01648 lr=3.00e-05
+epoch=8 batch=14,000/50,374 loss=0.01641 lr=3.00e-05
+epoch=8 batch=14,500/50,374 loss=0.01635 lr=3.00e-05
+epoch=8 batch=15,000/50,374 loss=0.01639 lr=3.00e-05
+epoch=8 batch=15,500/50,374 loss=0.01640 lr=3.00e-05
+epoch=8 batch=16,000/50,374 loss=0.01642 lr=3.00e-05
+epoch=8 batch=16,500/50,374 loss=0.01640 lr=3.00e-05
+epoch=8 batch=17,000/50,374 loss=0.01635 lr=3.00e-05
+epoch=8 batch=17,500/50,374 loss=0.01632 lr=3.00e-05
+epoch=8 batch=18,000/50,374 loss=0.01630 lr=3.00e-05
+epoch=8 batch=18,500/50,374 loss=0.01632 lr=3.00e-05
+epoch=8 batch=19,000/50,374 loss=0.01633 lr=3.00e-05
+epoch=8 batch=19,500/50,374 loss=0.01633 lr=3.00e-05
+epoch=8 batch=20,000/50,374 loss=0.01633 lr=3.00e-05
+epoch=8 batch=20,500/50,374 loss=0.01641 lr=3.00e-05
+epoch=8 batch=21,000/50,374 loss=0.01642 lr=3.00e-05
+epoch=8 batch=21,500/50,374 loss=0.01641 lr=3.00e-05
+epoch=8 batch=22,000/50,374 loss=0.01638 lr=3.00e-05
+epoch=8 batch=22,500/50,374 loss=0.01641 lr=3.00e-05
+epoch=8 batch=23,000/50,374 loss=0.01642 lr=3.00e-05
+epoch=8 batch=23,500/50,374 loss=0.01639 lr=3.00e-05
+epoch=8 batch=24,000/50,374 loss=0.01643 lr=3.00e-05
+epoch=8 batch=24,500/50,374 loss=0.01641 lr=3.00e-05
+epoch=8 batch=25,000/50,374 loss=0.01637 lr=3.00e-05
+epoch=8 batch=25,500/50,374 loss=0.01633 lr=3.00e-05
+epoch=8 batch=26,000/50,374 loss=0.01634 lr=3.00e-05
+epoch=8 batch=26,500/50,374 loss=0.01632 lr=3.00e-05
+epoch=8 batch=27,000/50,374 loss=0.01631 lr=3.00e-05
+epoch=8 batch=27,500/50,374 loss=0.01631 lr=3.00e-05
+epoch=8 batch=28,000/50,374 loss=0.01634 lr=3.00e-05
+epoch=8 batch=28,500/50,374 loss=0.01630 lr=3.00e-05
+epoch=8 batch=29,000/50,374 loss=0.01633 lr=3.00e-05
+epoch=8 batch=29,500/50,374 loss=0.01629 lr=3.00e-05
+epoch=8 batch=30,000/50,374 loss=0.01625 lr=3.00e-05
+epoch=8 batch=30,500/50,374 loss=0.01627 lr=3.00e-05
+epoch=8 batch=31,000/50,374 loss=0.01628 lr=3.00e-05
+epoch=8 batch=31,500/50,374 loss=0.01627 lr=3.00e-05
+epoch=8 batch=32,000/50,374 loss=0.01627 lr=3.00e-05
+epoch=8 batch=32,500/50,374 loss=0.01624 lr=3.00e-05
+epoch=8 batch=33,000/50,374 loss=0.01622 lr=3.00e-05
+epoch=8 batch=33,500/50,374 loss=0.01619 lr=3.00e-05
+epoch=8 batch=34,000/50,374 loss=0.01622 lr=3.00e-05
+epoch=8 batch=34,500/50,374 loss=0.01620 lr=3.00e-05
+epoch=8 batch=35,000/50,374 loss=0.01620 lr=3.00e-05
+epoch=8 batch=35,500/50,374 loss=0.01619 lr=3.00e-05
+epoch=8 batch=36,000/50,374 loss=0.01620 lr=3.00e-05
+epoch=8 batch=36,500/50,374 loss=0.01621 lr=3.00e-05
+epoch=8 batch=37,000/50,374 loss=0.01621 lr=3.00e-05
+epoch=8 batch=37,500/50,374 loss=0.01626 lr=3.00e-05
+epoch=8 batch=38,000/50,374 loss=0.01624 lr=3.00e-05
+epoch=8 batch=38,500/50,374 loss=0.01622 lr=3.00e-05
+epoch=8 batch=39,000/50,374 loss=0.01621 lr=3.00e-05
+epoch=8 batch=39,500/50,374 loss=0.01621 lr=3.00e-05
+epoch=8 batch=40,000/50,374 loss=0.01620 lr=3.00e-05
+epoch=8 batch=40,500/50,374 loss=0.01623 lr=3.00e-05
+epoch=8 batch=41,000/50,374 loss=0.01621 lr=3.00e-05
+epoch=8 batch=41,500/50,374 loss=0.01622 lr=3.00e-05
+epoch=8 batch=42,000/50,374 loss=0.01621 lr=3.00e-05
+epoch=8 batch=42,500/50,374 loss=0.01622 lr=3.00e-05
+epoch=8 batch=43,000/50,374 loss=0.01623 lr=3.00e-05
+epoch=8 batch=43,500/50,374 loss=0.01624 lr=3.00e-05
+epoch=8 batch=44,000/50,374 loss=0.01625 lr=3.00e-05
+epoch=8 batch=44,500/50,374 loss=0.01624 lr=3.00e-05
+epoch=8 batch=45,000/50,374 loss=0.01627 lr=3.00e-05
+epoch=8 batch=45,500/50,374 loss=0.01628 lr=3.00e-05
+epoch=8 batch=46,000/50,374 loss=0.01627 lr=3.00e-05
+epoch=8 batch=46,500/50,374 loss=0.01629 lr=3.00e-05
+epoch=8 batch=47,000/50,374 loss=0.01629 lr=3.00e-05
+epoch=8 batch=47,500/50,374 loss=0.01633 lr=3.00e-05
+epoch=8 batch=48,000/50,374 loss=0.01634 lr=3.00e-05
+epoch=8 batch=48,500/50,374 loss=0.01634 lr=3.00e-05
+epoch=8 batch=49,000/50,374 loss=0.01634 lr=3.00e-05
+epoch=8 batch=49,500/50,374 loss=0.01635 lr=3.00e-05
+epoch=8 batch=50,000/50,374 loss=0.01641 lr=3.00e-05
+Epoch 8: train loss=0.01638; validation loss=0.02398; mean RefSeq AP=0.6791
+    donor    AP=0.9183 F1=0.8699 P=0.8964 R=0.8450 thr=0.8242 pos=39,588/17,166,339
+    acceptor AP=0.8846 F1=0.8409 P=0.8623 R=0.8204 thr=0.7499 pos=40,592/22,262,891
+    start    AP=0.4817 F1=0.4906 P=0.6342 R=0.4000 thr=0.2635 pos=7,512/5,597,802
+    stop     AP=0.4317 F1=0.4838 P=0.6443 R=0.3873 thr=0.3006 pos=6,870/16,453,028
+    Joint CDS AP=0.8238 F1=0.8700 P=0.8598 R=0.8805 thr=1.0000
+Early stopping at epoch 8: no validation mean-AP improvement > 0.0001 for 3 consecutive epochs; best=0.685056
+finished in 36.67 h
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.score_chromosome --checkpoint /home/bchen103/cnn-mamba/runs/human/human_rodentia_joint_frame_beta010_es5_bf16_homelab/chr1train/best_model.pt --fasta /home/bchen103/cnn-mamba/data/raw/human_grch38.fa --chrom NC_000001.11 --display-chrom chr1 --output-dir /home/bchen103/cnn-mamba/artifacts/scores/human/human_rodentia_joint_frame_beta010_es5_bf16_homelab/chr1train/chr1_plus --batch-size 8
+processed=504/49,792
+processed=1,000/49,792
+processed=1,504/49,792
+processed=2,000/49,792
+processed=2,504/49,792
+processed=3,000/49,792
+processed=3,504/49,792
+processed=4,000/49,792
+processed=4,504/49,792
+processed=5,000/49,792
+processed=5,504/49,792
+processed=6,000/49,792
+processed=6,504/49,792
+processed=7,000/49,792
+processed=7,504/49,792
+processed=8,000/49,792
+processed=8,504/49,792
+processed=9,000/49,792
+processed=9,504/49,792
+processed=10,000/49,792
+processed=10,504/49,792
+processed=11,000/49,792
+processed=11,504/49,792
+processed=12,000/49,792
+processed=12,504/49,792
+processed=13,000/49,792
+processed=13,504/49,792
+processed=14,000/49,792
+processed=14,504/49,792
+processed=15,000/49,792
+processed=15,504/49,792
+processed=16,000/49,792
+processed=16,504/49,792
+processed=17,000/49,792
+processed=17,504/49,792
+processed=18,000/49,792
+processed=18,504/49,792
+processed=19,000/49,792
+processed=19,504/49,792
+processed=20,000/49,792
+processed=20,504/49,792
+processed=21,000/49,792
+processed=21,504/49,792
+processed=22,000/49,792
+processed=22,504/49,792
+processed=23,000/49,792
+processed=23,504/49,792
+processed=24,000/49,792
+processed=24,504/49,792
+processed=25,000/49,792
+processed=25,504/49,792
+processed=26,000/49,792
+processed=26,504/49,792
+processed=27,000/49,792
+processed=27,504/49,792
+processed=28,000/49,792
+processed=28,504/49,792
+processed=29,000/49,792
+processed=29,504/49,792
+processed=30,000/49,792
+processed=30,504/49,792
+processed=31,000/49,792
+processed=31,504/49,792
+processed=32,000/49,792
+processed=32,504/49,792
+processed=33,000/49,792
+processed=33,504/49,792
+processed=34,000/49,792
+processed=34,504/49,792
+processed=35,000/49,792
+processed=35,504/49,792
+processed=36,000/49,792
+processed=36,504/49,792
+processed=37,000/49,792
+processed=37,504/49,792
+processed=38,000/49,792
+processed=38,504/49,792
+processed=39,000/49,792
+processed=39,504/49,792
+processed=40,000/49,792
+processed=40,504/49,792
+processed=41,000/49,792
+processed=41,504/49,792
+processed=42,000/49,792
+processed=42,504/49,792
+processed=43,000/49,792
+processed=43,504/49,792
+processed=44,000/49,792
+processed=44,504/49,792
+processed=45,000/49,792
+processed=45,504/49,792
+processed=46,000/49,792
+processed=46,504/49,792
+processed=47,000/49,792
+processed=47,504/49,792
+processed=48,000/49,792
+processed=48,504/49,792
+processed=49,000/49,792
+processed=49,504/49,792
+processed=49,792/49,792
+complete: /home/bchen103/cnn-mamba/artifacts/scores/human/human_rodentia_joint_frame_beta010_es5_bf16_homelab/chr1train/chr1_plus
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.evaluate_candidates --species human --score-dir /home/bchen103/cnn-mamba/artifacts/scores/human/human_rodentia_joint_frame_beta010_es5_bf16_homelab/chr1train/chr1_plus --reference-gtf /home/bchen103/cnn-mamba/data/raw/human_refseq_grch38_p14.gff.gz --fasta /home/bchen103/cnn-mamba/data/raw/human_grch38.fa --chrom NC_000001.11 --reference-chrom chr1 --output /home/bchen103/cnn-mamba/artifacts/scores/human/human_rodentia_joint_frame_beta010_es5_bf16_homelab/chr1train/chr1_plus/candidate_auprc.tsv
+donor: AUPRC=0.857534 positives=9,687/11,629,291
+acceptor: AUPRC=0.817306 positives=9,948/16,448,644
+start: AUPRC=0.392126 positives=1,950/4,110,209
+stop: AUPRC=0.374377 positives=1,817/12,025,506
+mean AUPRC=0.610336: /home/bchen103/cnn-mamba/artifacts/scores/human/human_rodentia_joint_frame_beta010_es5_bf16_homelab/chr1train/chr1_plus/candidate_auprc.tsv
+[2026-11-14T17:24:24-05:00] Human Rodentia-EviAnn chr1-included experiment complete

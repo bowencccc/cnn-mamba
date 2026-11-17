@@ -1,0 +1,49 @@
+{
+  "uniann_root": "/home/bchen103/UniAnn-latest",
+  "union_normalization": "each source normalized to GTF before concatenation",
+  "inputs": {
+    "fasta": "/zfs/bchen103/raw/uniann_ref/dmel_chrX.fa",
+    "coding_frame": "/home/bchen103/cnn-mamba/artifacts/joint_frame_predictions/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/chrX_plus_vector/chrX_plus_joint_frame_probabilities.tsv",
+    "scores": "/home/bchen103/cnn-mamba/artifacts/scores/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/chrX_plus_scores.tsv",
+    "reference_gtf": "/zfs/bchen103/raw/uniann_ref/NC_004354.4.p.CDS.uniq.gtf",
+    "eviann_gff": "/home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_v1/chrX_plus_EviAnn_CDS.gff"
+  },
+  "metrics": [
+    {
+      "method": "UniAnn",
+      "sn": 72.7,
+      "pr": 76.3,
+      "f1": 74.4565100671141,
+      "predicted_loci": 1019,
+      "matched_loci": 778,
+      "missed_loci": 84,
+      "novel_loci": 22
+    },
+    {
+      "method": "EviAnn+UniAnn",
+      "sn": 83.1,
+      "pr": 87.0,
+      "f1": 85.005291005291,
+      "predicted_loci": 1018,
+      "matched_loci": 889,
+      "missed_loci": 69,
+      "novel_loci": 25
+    }
+  ],
+  "coding_frame_input_contract": {
+    "contract": "cnn_mamba_joint_frame_tsv_header_v1",
+    "header_required": true,
+    "header_rows": 1,
+    "remove_header_before_uniann": false,
+    "model_phase_semantics": "codon nucleotide offset 0/1/2",
+    "uniann_position_column_parsed": false,
+    "uniann_header_placeholder_rows": 1,
+    "effective_row_counter_frame_mapping": "(zero_based_position - model_phase) mod 3",
+    "tested_uniann_commit": "2f5c0ab8fdb2e848f5538f3a1f741cb9c4c67e07",
+    "path": "/home/bchen103/cnn-mamba/artifacts/joint_frame_predictions/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/chrX_plus_vector/chrX_plus_joint_frame_probabilities.tsv",
+    "header": "chrom\tposition_1based\tstrand\tframe0_probability\tframe1_probability\tframe2_probability\tnoncoding_probability\tpredicted_state",
+    "first_position_1based": 1,
+    "sentinel": "/home/bchen103/cnn-mamba/artifacts/joint_frame_predictions/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/chrX_plus_vector/chrX_plus_joint_frame_probabilities.tsv.complete.json",
+    "rows": 23542271
+  }
+}

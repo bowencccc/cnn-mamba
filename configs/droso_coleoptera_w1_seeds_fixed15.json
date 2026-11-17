@@ -1,0 +1,20 @@
+{
+  "schema": "cnn_mamba_k7_droso_coleoptera_w1_seeds_fixed15_v1",
+  "seed": 42,
+  "epochs": 15,
+  "scheduler_epochs": 15,
+  "notes": "Same as droso_coleoptera_w1_seeds_dropout0.json (1 kb window, 500 bp stride, micro_batch 80 x grad_accum 1, bf16, dropout 0) but with a fixed 15-epoch budget, no early stopping, and the cosine schedule spanning those 15 epochs (lr 3e-4 -> 3e-5 floor). With early stopping on a 30-epoch cosine, runs stopped at epochs 7-16 with lr still 2.3-3.0e-4 and end-of-epoch weights fluctuated (training-set loss of the epoch-end weights jumped together with validation loss). The final-epoch checkpoint (last_model.pt) is the primary model, so 3L reference labels are not used for checkpoint selection; best_model.pt is evaluated for comparison.",
+  "cells": [
+    {
+      "id": "w1",
+      "window_bp": 1000,
+      "stride_bp": 500,
+      "micro_batch": 80,
+      "grad_accum": 1,
+      "score_batch": 64,
+      "amp": true,
+      "amp_dtype": "bf16",
+      "dropout": 0.0
+    }
+  ]
+}

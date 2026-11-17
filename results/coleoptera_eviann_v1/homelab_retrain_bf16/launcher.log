@@ -1,0 +1,439 @@
+[2026-11-12T17:07:11-05:00] run_cell stages=train,score,auprc,export
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.train --data-root /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_v1/w10 --mode baseline --architecture cnn_mamba --cnn-kernel-size 7 --epochs 30 --batch-size 4 --grad-accum 2 --window-size 10000 --stride 5000 --workers 4 --seed 42 --output-dir /home/bchen103/cnn-mamba/runs/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10 --reference-name FlyBase --test-name chrX --frame-dilation 3 --phase-aux-weight 0.0 --cds-aux-weight 0.0 --cds-boundary-radius 0 --cds-far-loss-weight 0.1 --joint-frame-aux-weight 0.1 --joint-noncoding-weight 0.1 --candidate-negative-weight 1.0 --backbone-lr-multiplier 1.0 --freeze-pretrained-layers 0 --freeze-pretrained-epochs 0 --early-stopping-patience 3 --early-stopping-min-delta 0.0001 --include-test-in-train --amp --amp-dtype bf16
+mode=baseline device=NVIDIA RTX A4500 train=19,555 val=5,056 test=0 epochs=30 scheduler_epochs=30 scheduler_steps=73320 start_epoch=1 early_stopping_patience=3 early_stopping_min_delta=0.0001 candidate_negative_weight=1 candidate_propensity_root=None candidate_propensity_negative_weight=1 use_start_stop_weights=False frame_dilation=3 phase_aux_weight=0 cds_aux_weight=0 cds_boundary_radius=0 cds_far_loss_weight=0.1 joint_frame_aux_weight=0.1 joint_noncoding_weight=0.1 backbone_lr_multiplier=1 freeze_pretrained_layers=0 freeze_pretrained_epochs=0 frozen_parameter_count=0 record_gradient_norms=False shared_backbone_parameters=4,404,416 gradient_probe=None
+epoch=1 batch=500/4,888 loss=0.37501 lr=3.00e-04
+epoch=1 batch=1,000/4,888 loss=0.23165 lr=3.00e-04
+epoch=1 batch=1,500/4,888 loss=0.17820 lr=3.00e-04
+epoch=1 batch=2,000/4,888 loss=0.14849 lr=3.00e-04
+epoch=1 batch=2,500/4,888 loss=0.12795 lr=3.00e-04
+epoch=1 batch=3,000/4,888 loss=0.11285 lr=3.00e-04
+epoch=1 batch=3,500/4,888 loss=0.10147 lr=3.00e-04
+epoch=1 batch=4,000/4,888 loss=0.09274 lr=3.00e-04
+epoch=1 batch=4,500/4,888 loss=0.08591 lr=2.99e-04
+Epoch 1: train loss=0.08153; validation loss=0.02789; mean FlyBase AP=0.7782
+    donor    AP=0.8788 F1=0.8182 P=0.8641 R=0.7769 thr=0.5585 pos=7,289/1,315,839
+    acceptor AP=0.8514 F1=0.8021 P=0.8338 R=0.7728 thr=0.4882 pos=7,399/1,402,090
+    start    AP=0.6353 F1=0.6187 P=0.6651 R=0.5783 thr=0.3768 pos=2,727/427,636
+    stop     AP=0.7472 F1=0.7168 P=0.8319 R=0.6297 thr=0.3358 pos=2,711/1,187,305
+    Joint CDS AP=0.9669 F1=0.9188 P=0.9292 R=0.9085 thr=0.9726
+epoch=2 batch=500/4,888 loss=0.02676 lr=2.99e-04
+epoch=2 batch=1,000/4,888 loss=0.02691 lr=2.99e-04
+epoch=2 batch=1,500/4,888 loss=0.02709 lr=2.99e-04
+epoch=2 batch=2,000/4,888 loss=0.02717 lr=2.99e-04
+epoch=2 batch=2,500/4,888 loss=0.02724 lr=2.98e-04
+epoch=2 batch=3,000/4,888 loss=0.02709 lr=2.98e-04
+epoch=2 batch=3,500/4,888 loss=0.02680 lr=2.98e-04
+epoch=2 batch=4,000/4,888 loss=0.02690 lr=2.98e-04
+epoch=2 batch=4,500/4,888 loss=0.02661 lr=2.97e-04
+Epoch 2: train loss=0.02656; validation loss=0.02821; mean FlyBase AP=0.7862
+    donor    AP=0.8893 F1=0.8315 P=0.8648 R=0.8007 thr=0.3436 pos=7,289/1,315,839
+    acceptor AP=0.8597 F1=0.8023 P=0.8530 R=0.7574 thr=0.1971 pos=7,399/1,402,090
+    start    AP=0.6493 F1=0.6227 P=0.6886 R=0.5684 thr=0.2400 pos=2,727/427,636
+    stop     AP=0.7464 F1=0.7252 P=0.7886 R=0.6713 thr=0.1043 pos=2,711/1,187,305
+    Joint CDS AP=0.9692 F1=0.9198 P=0.9263 R=0.9134 thr=0.9531
+epoch=3 batch=500/4,888 loss=0.02521 lr=2.97e-04
+epoch=3 batch=1,000/4,888 loss=0.02370 lr=2.97e-04
+epoch=3 batch=1,500/4,888 loss=0.02485 lr=2.96e-04
+epoch=3 batch=2,000/4,888 loss=0.02453 lr=2.96e-04
+epoch=3 batch=2,500/4,888 loss=0.02409 lr=2.96e-04
+epoch=3 batch=3,000/4,888 loss=0.02407 lr=2.95e-04
+epoch=3 batch=3,500/4,888 loss=0.02381 lr=2.95e-04
+epoch=3 batch=4,000/4,888 loss=0.02393 lr=2.94e-04
+epoch=3 batch=4,500/4,888 loss=0.02381 lr=2.94e-04
+Epoch 3: train loss=0.02356; validation loss=0.02127; mean FlyBase AP=0.8317
+    donor    AP=0.9135 F1=0.8575 P=0.8878 R=0.8292 thr=0.2352 pos=7,289/1,315,839
+    acceptor AP=0.8838 F1=0.8262 P=0.8583 R=0.7965 thr=0.1893 pos=7,399/1,402,090
+    start    AP=0.7317 F1=0.6965 P=0.7092 R=0.6843 thr=0.1853 pos=2,727/427,636
+    stop     AP=0.7978 F1=0.7730 P=0.8578 R=0.7034 thr=0.2205 pos=2,711/1,187,305
+    Joint CDS AP=0.9749 F1=0.9331 P=0.9383 R=0.9280 thr=0.9726
+epoch=4 batch=500/4,888 loss=0.02024 lr=2.93e-04
+epoch=4 batch=1,000/4,888 loss=0.02085 lr=2.93e-04
+epoch=4 batch=1,500/4,888 loss=0.02124 lr=2.92e-04
+epoch=4 batch=2,000/4,888 loss=0.02164 lr=2.92e-04
+epoch=4 batch=2,500/4,888 loss=0.02144 lr=2.91e-04
+epoch=4 batch=3,000/4,888 loss=0.02133 lr=2.91e-04
+epoch=4 batch=3,500/4,888 loss=0.02116 lr=2.90e-04
+epoch=4 batch=4,000/4,888 loss=0.02109 lr=2.90e-04
+epoch=4 batch=4,500/4,888 loss=0.02097 lr=2.89e-04
+Epoch 4: train loss=0.02103; validation loss=0.02354; mean FlyBase AP=0.8231
+    donor    AP=0.9191 F1=0.8620 P=0.8957 R=0.8307 thr=0.3866 pos=7,289/1,315,839
+    acceptor AP=0.8906 F1=0.8328 P=0.8773 R=0.7925 thr=0.3612 pos=7,399/1,402,090
+    start    AP=0.7036 F1=0.6731 P=0.7300 R=0.6245 thr=0.2654 pos=2,727/427,636
+    stop     AP=0.7791 F1=0.7505 P=0.8153 R=0.6953 thr=0.0586 pos=2,711/1,187,305
+    Joint CDS AP=0.9760 F1=0.9310 P=0.9346 R=0.9274 thr=0.9531
+epoch=5 batch=500/4,888 loss=0.02299 lr=2.88e-04
+epoch=5 batch=1,000/4,888 loss=0.02167 lr=2.88e-04
+epoch=5 batch=1,500/4,888 loss=0.02083 lr=2.87e-04
+epoch=5 batch=2,000/4,888 loss=0.01997 lr=2.86e-04
+epoch=5 batch=2,500/4,888 loss=0.01978 lr=2.86e-04
+epoch=5 batch=3,000/4,888 loss=0.01956 lr=2.85e-04
+epoch=5 batch=3,500/4,888 loss=0.01947 lr=2.84e-04
+epoch=5 batch=4,000/4,888 loss=0.01938 lr=2.84e-04
+epoch=5 batch=4,500/4,888 loss=0.01929 lr=2.83e-04
+Epoch 5: train loss=0.01916; validation loss=0.01780; mean FlyBase AP=0.8549
+    donor    AP=0.9317 F1=0.8773 P=0.8911 R=0.8640 thr=0.4061 pos=7,289/1,315,839
+    acceptor AP=0.9133 F1=0.8600 P=0.8800 R=0.8408 thr=0.4510 pos=7,399/1,402,090
+    start    AP=0.7701 F1=0.7256 P=0.7892 R=0.6714 thr=0.3690 pos=2,727/427,636
+    stop     AP=0.8044 F1=0.7731 P=0.8236 R=0.7285 thr=0.2400 pos=2,711/1,187,305
+    Joint CDS AP=0.9707 F1=0.9340 P=0.9298 R=0.9382 thr=0.9883
+epoch=6 batch=500/4,888 loss=0.01867 lr=2.82e-04
+epoch=6 batch=1,000/4,888 loss=0.02040 lr=2.81e-04
+epoch=6 batch=1,500/4,888 loss=0.01993 lr=2.80e-04
+epoch=6 batch=2,000/4,888 loss=0.01947 lr=2.79e-04
+epoch=6 batch=2,500/4,888 loss=0.01909 lr=2.79e-04
+epoch=6 batch=3,000/4,888 loss=0.01917 lr=2.78e-04
+epoch=6 batch=3,500/4,888 loss=0.01916 lr=2.77e-04
+epoch=6 batch=4,000/4,888 loss=0.01895 lr=2.76e-04
+epoch=6 batch=4,500/4,888 loss=0.01891 lr=2.75e-04
+Epoch 6: train loss=0.01890; validation loss=0.01956; mean FlyBase AP=0.8512
+    donor    AP=0.9339 F1=0.8799 P=0.9091 R=0.8525 thr=0.4100 pos=7,289/1,315,839
+    acceptor AP=0.9027 F1=0.8479 P=0.8773 R=0.8204 thr=0.4393 pos=7,399/1,402,090
+    start    AP=0.7586 F1=0.7127 P=0.7380 R=0.6890 thr=0.2518 pos=2,727/427,636
+    stop     AP=0.8095 F1=0.7762 P=0.8389 R=0.7222 thr=0.2518 pos=2,711/1,187,305
+    Joint CDS AP=0.9783 F1=0.9383 P=0.9388 R=0.9378 thr=0.9766
+epoch=7 batch=500/4,888 loss=0.01677 lr=2.74e-04
+epoch=7 batch=1,000/4,888 loss=0.01689 lr=2.73e-04
+epoch=7 batch=1,500/4,888 loss=0.01709 lr=2.72e-04
+epoch=7 batch=2,000/4,888 loss=0.01746 lr=2.71e-04
+epoch=7 batch=2,500/4,888 loss=0.01740 lr=2.70e-04
+epoch=7 batch=3,000/4,888 loss=0.01765 lr=2.69e-04
+epoch=7 batch=3,500/4,888 loss=0.01758 lr=2.69e-04
+epoch=7 batch=4,000/4,888 loss=0.01752 lr=2.68e-04
+epoch=7 batch=4,500/4,888 loss=0.01728 lr=2.67e-04
+Epoch 7: train loss=0.01727; validation loss=0.01681; mean FlyBase AP=0.8599
+    donor    AP=0.9370 F1=0.8836 P=0.9023 R=0.8656 thr=0.4608 pos=7,289/1,315,839
+    acceptor AP=0.9165 F1=0.8626 P=0.8989 R=0.8292 thr=0.4628 pos=7,399/1,402,090
+    start    AP=0.7796 F1=0.7250 P=0.7789 R=0.6780 thr=0.2674 pos=2,727/427,636
+    stop     AP=0.8067 F1=0.7753 P=0.8517 R=0.7115 thr=0.2068 pos=2,711/1,187,305
+    Joint CDS AP=0.9789 F1=0.9388 P=0.9377 R=0.9399 thr=0.9687
+epoch=8 batch=500/4,888 loss=0.01650 lr=2.65e-04
+epoch=8 batch=1,000/4,888 loss=0.01704 lr=2.64e-04
+epoch=8 batch=1,500/4,888 loss=0.01674 lr=2.63e-04
+epoch=8 batch=2,000/4,888 loss=0.01656 lr=2.62e-04
+epoch=8 batch=2,500/4,888 loss=0.01687 lr=2.61e-04
+epoch=8 batch=3,000/4,888 loss=0.01697 lr=2.60e-04
+epoch=8 batch=3,500/4,888 loss=0.01687 lr=2.59e-04
+epoch=8 batch=4,000/4,888 loss=0.01681 lr=2.58e-04
+epoch=8 batch=4,500/4,888 loss=0.01661 lr=2.57e-04
+Epoch 8: train loss=0.01658; validation loss=0.01766; mean FlyBase AP=0.8558
+    donor    AP=0.9314 F1=0.8776 P=0.9150 R=0.8432 thr=0.5702 pos=7,289/1,315,839
+    acceptor AP=0.8986 F1=0.8431 P=0.8679 R=0.8197 thr=0.4940 pos=7,399/1,402,090
+    start    AP=0.7833 F1=0.7301 P=0.7450 R=0.7158 thr=0.2342 pos=2,727/427,636
+    stop     AP=0.8101 F1=0.7781 P=0.8345 R=0.7289 thr=0.2654 pos=2,711/1,187,305
+    Joint CDS AP=0.9718 F1=0.9264 P=0.9284 R=0.9245 thr=0.9844
+epoch=9 batch=500/4,888 loss=0.01538 lr=2.55e-04
+epoch=9 batch=1,000/4,888 loss=0.01594 lr=2.54e-04
+epoch=9 batch=1,500/4,888 loss=0.01649 lr=2.53e-04
+epoch=9 batch=2,000/4,888 loss=0.01659 lr=2.52e-04
+epoch=9 batch=2,500/4,888 loss=0.01648 lr=2.50e-04
+epoch=9 batch=3,000/4,888 loss=0.01625 lr=2.49e-04
+epoch=9 batch=3,500/4,888 loss=0.01612 lr=2.48e-04
+epoch=9 batch=4,000/4,888 loss=0.01591 lr=2.47e-04
+epoch=9 batch=4,500/4,888 loss=0.01583 lr=2.46e-04
+Epoch 9: train loss=0.01580; validation loss=0.01856; mean FlyBase AP=0.8762
+    donor    AP=0.9447 F1=0.8933 P=0.9214 R=0.8668 thr=0.4217 pos=7,289/1,315,839
+    acceptor AP=0.9185 F1=0.8707 P=0.9070 R=0.8371 thr=0.3573 pos=7,399/1,402,090
+    start    AP=0.7998 F1=0.7475 P=0.7898 R=0.7096 thr=0.3592 pos=2,727/427,636
+    stop     AP=0.8417 F1=0.8075 P=0.8628 R=0.7588 thr=0.2283 pos=2,711/1,187,305
+    Joint CDS AP=0.9807 F1=0.9413 P=0.9411 R=0.9414 thr=0.9687
+epoch=10 batch=500/4,888 loss=0.01420 lr=2.44e-04
+epoch=10 batch=1,000/4,888 loss=0.01423 lr=2.43e-04
+epoch=10 batch=1,500/4,888 loss=0.01447 lr=2.41e-04
+epoch=10 batch=2,000/4,888 loss=0.01455 lr=2.40e-04
+epoch=10 batch=2,500/4,888 loss=0.01449 lr=2.39e-04
+epoch=10 batch=3,000/4,888 loss=0.01458 lr=2.38e-04
+epoch=10 batch=3,500/4,888 loss=0.01456 lr=2.37e-04
+epoch=10 batch=4,000/4,888 loss=0.01461 lr=2.35e-04
+epoch=10 batch=4,500/4,888 loss=0.01459 lr=2.34e-04
+Epoch 10: train loss=0.01450; validation loss=0.01587; mean FlyBase AP=0.8796
+    donor    AP=0.9433 F1=0.8955 P=0.9116 R=0.8800 thr=0.4413 pos=7,289/1,315,839
+    acceptor AP=0.9252 F1=0.8827 P=0.9101 R=0.8569 thr=0.4042 pos=7,399/1,402,090
+    start    AP=0.8059 F1=0.7462 P=0.8108 R=0.6912 thr=0.3553 pos=2,727/427,636
+    stop     AP=0.8442 F1=0.8135 P=0.8893 R=0.7495 thr=0.3631 pos=2,711/1,187,305
+    Joint CDS AP=0.9735 F1=0.9400 P=0.9412 R=0.9388 thr=0.9844
+epoch=11 batch=500/4,888 loss=0.01311 lr=2.32e-04
+epoch=11 batch=1,000/4,888 loss=0.01348 lr=2.31e-04
+epoch=11 batch=1,500/4,888 loss=0.01362 lr=2.29e-04
+epoch=11 batch=2,000/4,888 loss=0.01369 lr=2.28e-04
+epoch=11 batch=2,500/4,888 loss=0.01378 lr=2.27e-04
+epoch=11 batch=3,000/4,888 loss=0.01389 lr=2.26e-04
+epoch=11 batch=3,500/4,888 loss=0.01392 lr=2.24e-04
+epoch=11 batch=4,000/4,888 loss=0.01407 lr=2.23e-04
+epoch=11 batch=4,500/4,888 loss=0.01421 lr=2.22e-04
+Epoch 11: train loss=0.01426; validation loss=0.01372; mean FlyBase AP=0.8947
+    donor    AP=0.9527 F1=0.9044 P=0.9128 R=0.8961 thr=0.4745 pos=7,289/1,315,839
+    acceptor AP=0.9377 F1=0.8903 P=0.9056 R=0.8755 thr=0.3631 pos=7,399/1,402,090
+    start    AP=0.8308 F1=0.7732 P=0.8298 R=0.7239 thr=0.4237 pos=2,727/427,636
+    stop     AP=0.8578 F1=0.8316 P=0.9120 R=0.7643 thr=0.2654 pos=2,711/1,187,305
+    Joint CDS AP=0.9759 F1=0.9408 P=0.9349 R=0.9467 thr=0.9883
+epoch=12 batch=500/4,888 loss=0.01314 lr=2.19e-04
+epoch=12 batch=1,000/4,888 loss=0.01333 lr=2.18e-04
+epoch=12 batch=1,500/4,888 loss=0.01371 lr=2.17e-04
+epoch=12 batch=2,000/4,888 loss=0.01347 lr=2.15e-04
+epoch=12 batch=2,500/4,888 loss=0.01363 lr=2.14e-04
+epoch=12 batch=3,000/4,888 loss=0.01364 lr=2.13e-04
+epoch=12 batch=3,500/4,888 loss=0.01364 lr=2.11e-04
+epoch=12 batch=4,000/4,888 loss=0.01370 lr=2.10e-04
+epoch=12 batch=4,500/4,888 loss=0.01364 lr=2.08e-04
+Epoch 12: train loss=0.01356; validation loss=0.01671; mean FlyBase AP=0.8836
+    donor    AP=0.9485 F1=0.8951 P=0.9246 R=0.8675 thr=0.4882 pos=7,289/1,315,839
+    acceptor AP=0.9259 F1=0.8736 P=0.8871 R=0.8604 thr=0.4237 pos=7,399/1,402,090
+    start    AP=0.8159 F1=0.7654 P=0.7905 R=0.7418 thr=0.2371 pos=2,727/427,636
+    stop     AP=0.8441 F1=0.8232 P=0.9113 R=0.7506 thr=0.1785 pos=2,711/1,187,305
+    Joint CDS AP=0.9810 F1=0.9407 P=0.9347 R=0.9467 thr=0.9570
+epoch=13 batch=500/4,888 loss=0.01310 lr=2.06e-04
+epoch=13 batch=1,000/4,888 loss=0.01256 lr=2.05e-04
+epoch=13 batch=1,500/4,888 loss=0.01230 lr=2.03e-04
+epoch=13 batch=2,000/4,888 loss=0.01242 lr=2.02e-04
+epoch=13 batch=2,500/4,888 loss=0.01249 lr=2.00e-04
+epoch=13 batch=3,000/4,888 loss=0.01256 lr=1.99e-04
+epoch=13 batch=3,500/4,888 loss=0.01264 lr=1.98e-04
+epoch=13 batch=4,000/4,888 loss=0.01259 lr=1.96e-04
+epoch=13 batch=4,500/4,888 loss=0.01257 lr=1.95e-04
+Epoch 13: train loss=0.01259; validation loss=0.01712; mean FlyBase AP=0.8872
+    donor    AP=0.9532 F1=0.9068 P=0.9386 R=0.8771 thr=0.4393 pos=7,289/1,315,839
+    acceptor AP=0.9403 F1=0.8914 P=0.9029 R=0.8801 thr=0.3280 pos=7,399/1,402,090
+    start    AP=0.8171 F1=0.7667 P=0.8054 R=0.7316 thr=0.3045 pos=2,727/427,636
+    stop     AP=0.8379 F1=0.8130 P=0.8770 R=0.7577 thr=0.2410 pos=2,711/1,187,305
+    Joint CDS AP=0.9830 F1=0.9511 P=0.9551 R=0.9472 thr=0.9570
+epoch=14 batch=500/4,888 loss=0.01325 lr=1.92e-04
+epoch=14 batch=1,000/4,888 loss=0.01272 lr=1.91e-04
+epoch=14 batch=1,500/4,888 loss=0.01264 lr=1.89e-04
+epoch=14 batch=2,000/4,888 loss=0.01265 lr=1.88e-04
+epoch=14 batch=2,500/4,888 loss=0.01265 lr=1.87e-04
+epoch=14 batch=3,000/4,888 loss=0.01257 lr=1.85e-04
+epoch=14 batch=3,500/4,888 loss=0.01249 lr=1.84e-04
+epoch=14 batch=4,000/4,888 loss=0.01248 lr=1.82e-04
+epoch=14 batch=4,500/4,888 loss=0.01241 lr=1.81e-04
+Epoch 14: train loss=0.01250; validation loss=0.01418; mean FlyBase AP=0.8953
+    donor    AP=0.9580 F1=0.9141 P=0.9210 R=0.9073 thr=0.2381 pos=7,289/1,315,839
+    acceptor AP=0.9431 F1=0.8983 P=0.9186 R=0.8788 thr=0.2830 pos=7,399/1,402,090
+    start    AP=0.8291 F1=0.7866 P=0.8334 R=0.7448 thr=0.2020 pos=2,727/427,636
+    stop     AP=0.8508 F1=0.8260 P=0.8866 R=0.7731 thr=0.1932 pos=2,711/1,187,305
+    Joint CDS AP=0.9826 F1=0.9492 P=0.9427 R=0.9558 thr=0.9531
+epoch=15 batch=500/4,888 loss=0.01161 lr=1.78e-04
+epoch=15 batch=1,000/4,888 loss=0.01241 lr=1.77e-04
+epoch=15 batch=1,500/4,888 loss=0.01222 lr=1.75e-04
+epoch=15 batch=2,000/4,888 loss=0.01213 lr=1.74e-04
+epoch=15 batch=2,500/4,888 loss=0.01209 lr=1.73e-04
+epoch=15 batch=3,000/4,888 loss=0.01212 lr=1.71e-04
+epoch=15 batch=3,500/4,888 loss=0.01212 lr=1.70e-04
+epoch=15 batch=4,000/4,888 loss=0.01200 lr=1.68e-04
+epoch=15 batch=4,500/4,888 loss=0.01195 lr=1.67e-04
+Epoch 15: train loss=0.01191; validation loss=0.01881; mean FlyBase AP=0.8967
+    donor    AP=0.9623 F1=0.9209 P=0.9432 R=0.8997 thr=0.3201 pos=7,289/1,315,839
+    acceptor AP=0.9429 F1=0.8994 P=0.9239 R=0.8762 thr=0.3260 pos=7,399/1,402,090
+    start    AP=0.8306 F1=0.7854 P=0.8573 R=0.7246 thr=0.2117 pos=2,727/427,636
+    stop     AP=0.8510 F1=0.8284 P=0.8951 R=0.7709 thr=0.1570 pos=2,711/1,187,305
+    Joint CDS AP=0.9869 F1=0.9557 P=0.9537 R=0.9578 thr=0.8672
+epoch=16 batch=500/4,888 loss=0.01045 lr=1.64e-04
+epoch=16 batch=1,000/4,888 loss=0.01076 lr=1.63e-04
+epoch=16 batch=1,500/4,888 loss=0.01100 lr=1.61e-04
+epoch=16 batch=2,000/4,888 loss=0.01105 lr=1.60e-04
+epoch=16 batch=2,500/4,888 loss=0.01114 lr=1.58e-04
+epoch=16 batch=3,000/4,888 loss=0.01116 lr=1.57e-04
+epoch=16 batch=3,500/4,888 loss=0.01104 lr=1.55e-04
+epoch=16 batch=4,000/4,888 loss=0.01102 lr=1.54e-04
+epoch=16 batch=4,500/4,888 loss=0.01103 lr=1.53e-04
+Epoch 16: train loss=0.01109; validation loss=0.01554; mean FlyBase AP=0.9020
+    donor    AP=0.9620 F1=0.9184 P=0.9489 R=0.8897 thr=0.4354 pos=7,289/1,315,839
+    acceptor AP=0.9466 F1=0.8998 P=0.9216 R=0.8790 thr=0.4042 pos=7,399/1,402,090
+    start    AP=0.8373 F1=0.7925 P=0.8536 R=0.7396 thr=0.2459 pos=2,727/427,636
+    stop     AP=0.8622 F1=0.8385 P=0.9058 R=0.7805 thr=0.2010 pos=2,711/1,187,305
+    Joint CDS AP=0.9840 F1=0.9552 P=0.9470 R=0.9635 thr=0.9219
+epoch=17 batch=500/4,888 loss=0.01053 lr=1.50e-04
+epoch=17 batch=1,000/4,888 loss=0.01080 lr=1.49e-04
+epoch=17 batch=1,500/4,888 loss=0.01097 lr=1.47e-04
+epoch=17 batch=2,000/4,888 loss=0.01103 lr=1.46e-04
+epoch=17 batch=2,500/4,888 loss=0.01100 lr=1.44e-04
+epoch=17 batch=3,000/4,888 loss=0.01100 lr=1.43e-04
+epoch=17 batch=3,500/4,888 loss=0.01095 lr=1.41e-04
+epoch=17 batch=4,000/4,888 loss=0.01088 lr=1.40e-04
+epoch=17 batch=4,500/4,888 loss=0.01094 lr=1.39e-04
+Epoch 17: train loss=0.01097; validation loss=0.01449; mean FlyBase AP=0.8981
+    donor    AP=0.9597 F1=0.9168 P=0.9356 R=0.8988 thr=0.4315 pos=7,289/1,315,839
+    acceptor AP=0.9438 F1=0.8990 P=0.9252 R=0.8743 thr=0.4237 pos=7,399/1,402,090
+    start    AP=0.8345 F1=0.7817 P=0.8158 R=0.7503 thr=0.2694 pos=2,727/427,636
+    stop     AP=0.8545 F1=0.8261 P=0.8897 R=0.7709 thr=0.3045 pos=2,711/1,187,305
+    Joint CDS AP=0.9802 F1=0.9504 P=0.9383 R=0.9628 thr=0.9687
+epoch=18 batch=500/4,888 loss=0.01094 lr=1.36e-04
+epoch=18 batch=1,000/4,888 loss=0.01055 lr=1.35e-04
+epoch=18 batch=1,500/4,888 loss=0.01036 lr=1.33e-04
+epoch=18 batch=2,000/4,888 loss=0.01046 lr=1.32e-04
+epoch=18 batch=2,500/4,888 loss=0.01037 lr=1.30e-04
+epoch=18 batch=3,000/4,888 loss=0.01036 lr=1.29e-04
+epoch=18 batch=3,500/4,888 loss=0.01059 lr=1.28e-04
+epoch=18 batch=4,000/4,888 loss=0.01046 lr=1.26e-04
+epoch=18 batch=4,500/4,888 loss=0.01050 lr=1.25e-04
+Epoch 18: train loss=0.01045; validation loss=0.01661; mean FlyBase AP=0.8950
+    donor    AP=0.9566 F1=0.9120 P=0.9229 R=0.9014 thr=0.4139 pos=7,289/1,315,839
+    acceptor AP=0.9458 F1=0.8993 P=0.9316 R=0.8692 thr=0.3924 pos=7,399/1,402,090
+    start    AP=0.8278 F1=0.7751 P=0.8033 R=0.7488 thr=0.2772 pos=2,727/427,636
+    stop     AP=0.8498 F1=0.8283 P=0.8837 R=0.7794 thr=0.1707 pos=2,711/1,187,305
+    Joint CDS AP=0.9799 F1=0.9483 P=0.9474 R=0.9493 thr=0.9336
+epoch=19 batch=500/4,888 loss=0.00987 lr=1.22e-04
+epoch=19 batch=1,000/4,888 loss=0.00979 lr=1.21e-04
+epoch=19 batch=1,500/4,888 loss=0.01022 lr=1.20e-04
+epoch=19 batch=2,000/4,888 loss=0.01011 lr=1.18e-04
+epoch=19 batch=2,500/4,888 loss=0.01014 lr=1.17e-04
+epoch=19 batch=3,000/4,888 loss=0.01008 lr=1.16e-04
+epoch=19 batch=3,500/4,888 loss=0.01007 lr=1.14e-04
+epoch=19 batch=4,000/4,888 loss=0.01005 lr=1.13e-04
+epoch=19 batch=4,500/4,888 loss=0.00998 lr=1.12e-04
+Epoch 19: train loss=0.00994; validation loss=0.01689; mean FlyBase AP=0.9064
+    donor    AP=0.9640 F1=0.9258 P=0.9380 R=0.9138 thr=0.3377 pos=7,289/1,315,839
+    acceptor AP=0.9502 F1=0.9072 P=0.9287 R=0.8867 thr=0.3260 pos=7,399/1,402,090
+    start    AP=0.8438 F1=0.7980 P=0.8306 R=0.7679 thr=0.2947 pos=2,727/427,636
+    stop     AP=0.8677 F1=0.8400 P=0.8882 R=0.7968 thr=0.1814 pos=2,711/1,187,305
+    Joint CDS AP=0.9841 F1=0.9596 P=0.9553 R=0.9638 thr=0.9336
+epoch=20 batch=500/4,888 loss=0.00898 lr=1.09e-04
+epoch=20 batch=1,000/4,888 loss=0.00929 lr=1.08e-04
+epoch=20 batch=1,500/4,888 loss=0.00951 lr=1.07e-04
+epoch=20 batch=2,000/4,888 loss=0.00953 lr=1.05e-04
+epoch=20 batch=2,500/4,888 loss=0.00943 lr=1.04e-04
+epoch=20 batch=3,000/4,888 loss=0.00938 lr=1.03e-04
+epoch=20 batch=3,500/4,888 loss=0.00940 lr=1.01e-04
+epoch=20 batch=4,000/4,888 loss=0.00937 lr=1.00e-04
+epoch=20 batch=4,500/4,888 loss=0.00929 lr=9.88e-05
+Epoch 20: train loss=0.00927; validation loss=0.01582; mean FlyBase AP=0.9024
+    donor    AP=0.9649 F1=0.9248 P=0.9425 R=0.9078 thr=0.4198 pos=7,289/1,315,839
+    acceptor AP=0.9518 F1=0.9073 P=0.9225 R=0.8927 thr=0.3651 pos=7,399/1,402,090
+    start    AP=0.8383 F1=0.7866 P=0.8275 R=0.7495 thr=0.3065 pos=2,727/427,636
+    stop     AP=0.8548 F1=0.8367 P=0.9030 R=0.7794 thr=0.2596 pos=2,711/1,187,305
+    Joint CDS AP=0.9829 F1=0.9564 P=0.9495 R=0.9634 thr=0.9375
+epoch=21 batch=500/4,888 loss=0.00866 lr=9.66e-05
+epoch=21 batch=1,000/4,888 loss=0.00909 lr=9.53e-05
+epoch=21 batch=1,500/4,888 loss=0.00918 lr=9.41e-05
+epoch=21 batch=2,000/4,888 loss=0.00905 lr=9.29e-05
+epoch=21 batch=2,500/4,888 loss=0.00892 lr=9.17e-05
+epoch=21 batch=3,000/4,888 loss=0.00892 lr=9.04e-05
+epoch=21 batch=3,500/4,888 loss=0.00886 lr=8.92e-05
+epoch=21 batch=4,000/4,888 loss=0.00881 lr=8.80e-05
+epoch=21 batch=4,500/4,888 loss=0.00883 lr=8.69e-05
+Epoch 21: train loss=0.00882; validation loss=0.02052; mean FlyBase AP=0.8999
+    donor    AP=0.9615 F1=0.9199 P=0.9276 R=0.9123 thr=0.2987 pos=7,289/1,315,839
+    acceptor AP=0.9454 F1=0.9013 P=0.9182 R=0.8850 thr=0.3123 pos=7,399/1,402,090
+    start    AP=0.8353 F1=0.7870 P=0.8279 R=0.7499 thr=0.2928 pos=2,727/427,636
+    stop     AP=0.8572 F1=0.8359 P=0.9007 R=0.7798 thr=0.1990 pos=2,711/1,187,305
+    Joint CDS AP=0.9765 F1=0.9508 P=0.9528 R=0.9487 thr=0.9062
+epoch=22 batch=500/4,888 loss=0.00854 lr=8.48e-05
+epoch=22 batch=1,000/4,888 loss=0.00845 lr=8.36e-05
+epoch=22 batch=1,500/4,888 loss=0.00833 lr=8.25e-05
+epoch=22 batch=2,000/4,888 loss=0.00834 lr=8.13e-05
+epoch=22 batch=2,500/4,888 loss=0.00842 lr=8.02e-05
+epoch=22 batch=3,000/4,888 loss=0.00834 lr=7.91e-05
+epoch=22 batch=3,500/4,888 loss=0.00841 lr=7.79e-05
+epoch=22 batch=4,000/4,888 loss=0.00838 lr=7.68e-05
+epoch=22 batch=4,500/4,888 loss=0.00840 lr=7.57e-05
+Epoch 22: train loss=0.00835; validation loss=0.01913; mean FlyBase AP=0.9003
+    donor    AP=0.9635 F1=0.9231 P=0.9420 R=0.9049 thr=0.3397 pos=7,289/1,315,839
+    acceptor AP=0.9495 F1=0.9047 P=0.9180 R=0.8917 thr=0.2576 pos=7,399/1,402,090
+    start    AP=0.8318 F1=0.7876 P=0.8585 R=0.7275 thr=0.3358 pos=2,727/427,636
+    stop     AP=0.8562 F1=0.8350 P=0.9002 R=0.7787 thr=0.2694 pos=2,711/1,187,305
+    Joint CDS AP=0.9797 F1=0.9571 P=0.9528 R=0.9614 thr=0.9219
+Early stopping at epoch 22: no validation mean-AP improvement > 0.0001 for 3 consecutive epochs; best=0.906426
+finished in 6.51 h
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.score_chromosome --checkpoint /home/bchen103/cnn-mamba/runs/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/best_model.pt --output-dir /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10 --fasta /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa --chrom NC_004354.4 --display-chrom chrX --batch-size 8
+processed=504/4,709
+processed=1,000/4,709
+processed=1,504/4,709
+processed=2,000/4,709
+processed=2,504/4,709
+processed=3,000/4,709
+processed=3,504/4,709
+processed=4,000/4,709
+processed=4,504/4,709
+processed=4,709/4,709
+complete: /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.evaluate_candidates --score-dir /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10 --reference-gtf /home/bchen103/cnn-mamba/data/raw/dmel_reference.gtf --fasta /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa --chrom NC_004354.4 --output /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/candidate_auprc.tsv
+donor: AUPRC=0.959073 positives=3,403/1,236,362
+acceptor: AUPRC=0.953997 positives=3,438/1,245,749
+start: AUPRC=0.852449 positives=1,281/411,520
+stop: AUPRC=0.884729 positives=1,265/1,060,569
+mean AUPRC=0.912562: /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/candidate_auprc.tsv
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.export_uniann_scores --score-dir /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10 --output /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/chrX_plus_scores.tsv --chrom X --fasta /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa --accession NC_004354.4
+motif audit passed: {'donor': {'matches': 1236362, 'total': 1236362, 'fraction': 1.0}, 'acceptor': {'matches': 1245749, 'total': 1245749, 'fraction': 1.0}, 'start': {'matches': 411520, 'total': 411520, 'fraction': 1.0}, 'stop': {'matches': 1060569, 'total': 1060569, 'fraction': 1.0}}
+chrX_plus_scores.tsv: 3,954,200/3,954,200 rows, 246,048 rows/s
+finished in 0.3 min: /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/chrX_plus_scores.tsv
+[2026-11-12T23:40:26-05:00] annotation gap
+Traceback (most recent call last):
+  File "/home/bchen103/miniforge3/envs/cnn_mamba_k7/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/home/bchen103/miniforge3/envs/cnn_mamba_k7/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/home/bchen103/cnn-mamba/src/cnn_mamba/evaluate_annotation_gap.py", line 142, in <module>
+    main()
+  File "/home/bchen103/cnn-mamba/src/cnn_mamba/evaluate_annotation_gap.py", line 45, in main
+    eviann, eviann_rejected = site_sets(args.eviann_gff, "eviann", args.fasta)
+  File "/home/bchen103/cnn-mamba/src/cnn_mamba/evaluate_annotation_gap.py", line 30, in site_sets
+    sites, rejected = prepare_droso.extract_sites(meta, exons, cds, explicit)
+  File "/home/bchen103/cnn-mamba/src/cnn_mamba/prepare_droso.py", line 441, in extract_sites
+    for chrom, strand, position in explicit[name]:
+KeyError: 'start'
+[2026-11-12T23:42:22-05:00] relaunch after annotation-gap fix
+[2026-11-12T23:42:22-05:00] annotation gap
+donor: overall=0.959073 supported=0.981698 missed=0.810513 missed_sites=881
+acceptor: overall=0.953997 supported=0.975941 missed=0.787119 missed_sites=895
+start: overall=0.852449 supported=0.926716 missed=0.562223 missed_sites=516
+stop: overall=0.884729 supported=0.972035 missed=0.637534 missed_sites=494
+wrote /home/bchen103/cnn-mamba/results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/annotation_gap_metrics.tsv
+[2026-11-12T23:42:38-05:00] vector scaling (3L validation sample)
+batches=500/632 sampled=127,977
+batches=632/632 sampled=161,759
+{
+  "temperature": 1.1987864145578777,
+  "diagnostic_group_balanced_temperature": 1.2065646059653516,
+  "before": {
+    "nll": 0.06710588186979294,
+    "brier": 0.033525094389915466,
+    "ece": 0.007314997725188732,
+    "mean_max_probability": 0.9859433770179749,
+    "fraction_max_ge_0.99": 0.8816758394241333
+  },
+  "after": {
+    "nll": 0.06473599374294281,
+    "brier": 0.03309950232505798,
+    "ece": 0.0021518582943826914,
+    "mean_max_probability": 0.9805480241775513,
+    "fraction_max_ge_0.99": 0.8040170669555664
+  },
+  "argmax_changes": 0,
+  "output": "results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/vector_scaling/temperature.json"
+}
+results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/vector_scaling/vector_scaling.json
+processed=504/4,709
+processed=1,000/4,709
+processed=1,504/4,709
+processed=2,000/4,709
+processed=2,504/4,709
+processed=3,000/4,709
+processed=3,504/4,709
+processed=4,000/4,709
+processed=4,504/4,709
+processed=4,709/4,709
+complete: artifacts/joint_frame_predictions/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/chrX_plus_vector
+written=2,500,000/23,542,271
+written=5,000,000/23,542,271
+written=7,500,000/23,542,271
+written=10,000,000/23,542,271
+written=12,500,000/23,542,271
+written=15,000,000/23,542,271
+written=17,500,000/23,542,271
+written=20,000,000/23,542,271
+written=22,500,000/23,542,271
+written=23,542,271/23,542,271
+complete: artifacts/joint_frame_predictions/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/chrX_plus_vector/chrX_plus_joint_frame_probabilities.tsv
+[2026-11-12T23:50:10-05:00] UniAnn: /home/bchen103/UniAnn-latest @ 08eaf15 (fixed usage)
+[2026-11-12T23:50:10-05:00] UniAnn (built-in transform on vector-scaled TSV) + strict gffcompare
++ /home/bchen103/UniAnn-latest/bin/uniann.sh -f genome.fa -c coding.txt -s scores.txt -n
++ /home/bchen103/UniAnn-latest/bin/gffread -M /home/bchen103/cnn-mamba/results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/uniann_vector/genome.fa.uniann.gff -o /home/bchen103/cnn-mamba/results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/uniann_vector/uniann.merged.gff
++ /home/bchen103/UniAnn-latest/bin/gffcompare --strict-match -e 0 -r /zfs/bchen103/raw/uniann_ref/NC_004354.4.p.CDS.uniq.gtf /home/bchen103/cnn-mamba/results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/uniann_vector/uniann.merged.gff -o /home/bchen103/cnn-mamba/results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/uniann_vector/uniann
++ /home/bchen103/UniAnn-latest/bin/gffread -T /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_v1/chrX_plus_EviAnn_CDS.gff -o /home/bchen103/cnn-mamba/results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/uniann_vector/eviann.normalized.gtf
++ /home/bchen103/UniAnn-latest/bin/gffread -T /home/bchen103/cnn-mamba/results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/uniann_vector/genome.fa.uniann.gff -o /home/bchen103/cnn-mamba/results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/uniann_vector/uniann.normalized.gtf
++ /home/bchen103/UniAnn-latest/bin/gffread -M /home/bchen103/cnn-mamba/results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/uniann_vector/eviann_uniann.concat.gtf -o /home/bchen103/cnn-mamba/results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/uniann_vector/eviann_uniann.merged.gff
++ /home/bchen103/UniAnn-latest/bin/gffcompare --strict-match -e 0 -r /zfs/bchen103/raw/uniann_ref/NC_004354.4.p.CDS.uniq.gtf /home/bchen103/cnn-mamba/results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/uniann_vector/eviann_uniann.merged.gff -o /home/bchen103/cnn-mamba/results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/uniann_vector/eviann_uniann
+       method   sn   pr        f1  predicted_loci  matched_loci  missed_loci  novel_loci
+       UniAnn 72.7 76.3 74.456510            1019           778           84          22
+EviAnn+UniAnn 83.1 87.0 85.005291            1018           889           69          25
+results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/loss/chrxtrain_train_validation_loss.png
+[2026-11-12T23:55:55-05:00] w10 vector-scaling UniAnn evaluation complete

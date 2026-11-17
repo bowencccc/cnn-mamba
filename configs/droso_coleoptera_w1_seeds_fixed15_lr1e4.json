@@ -1,0 +1,21 @@
+{
+  "schema": "cnn_mamba_k7_droso_coleoptera_w1_seeds_fixed15_lr1e4_v1",
+  "seed": 42,
+  "epochs": 15,
+  "scheduler_epochs": 15,
+  "notes": "Same as droso_coleoptera_w1_seeds_fixed15.json (1 kb window, 500 bp stride, micro_batch 80 x grad_accum 1, bf16, dropout 0, fixed 15 epochs, no early stopping, cosine over 15 epochs with default 200-step linear warmup) except peak lr 1e-4 (floor 0.1x = 1e-5). Requested by A. Zimin after the 3e-4 and 1.5e-4 fixed-15 sweeps both overfit after epochs 4-7. last_model.pt is primary; best_model.pt evaluated for comparison.",
+  "cells": [
+    {
+      "id": "w1",
+      "window_bp": 1000,
+      "stride_bp": 500,
+      "micro_batch": 80,
+      "grad_accum": 1,
+      "score_batch": 64,
+      "amp": true,
+      "amp_dtype": "bf16",
+      "dropout": 0.0
+    }
+  ],
+  "lr": 0.0001
+}

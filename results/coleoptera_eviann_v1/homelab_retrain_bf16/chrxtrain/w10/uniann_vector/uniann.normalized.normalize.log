@@ -1,0 +1,1 @@
++ /home/bchen103/UniAnn-latest/bin/gffread -T /home/bchen103/cnn-mamba/results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/uniann_vector/genome.fa.uniann.gff -o /home/bchen103/cnn-mamba/results/coleoptera_eviann_v1/homelab_retrain_bf16/chrxtrain/w10/uniann_vector/uniann.normalized.gtf

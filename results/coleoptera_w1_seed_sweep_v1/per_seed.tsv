@@ -1,0 +1,5 @@
+seed	best_epoch	stopped_epoch	train_hours	val_mean_AP	chrX_AUPRC_donor	chrX_AUPRC_acceptor	chrX_AUPRC_start	chrX_AUPRC_stop	chrX_AUPRC_mean	uniann_commit	UniAnn_sn	UniAnn_pr	UniAnn_f1	UniAnn_predicted_loci	UniAnn_matched_loci	EviAnn+UniAnn_sn	EviAnn+UniAnn_pr	EviAnn+UniAnn_f1	EviAnn+UniAnn_predicted_loci	EviAnn+UniAnn_matched_loci
+42	14	17	2.7	0.91345	0.952587	0.944191	0.826168	0.86084	0.895947	08eaf15	76.5	78.2	77.3407	1047	819	85.4	86.9	86.1435	1045	914
+43	5	8	1.24	0.747516	0.888339	0.890042	0.611266	0.517796	0.726861	08eaf15	46.5	65.7	54.4572	758	498	73.4	87.3	79.7488	867	785
+44	2	5	0.78	0.740981	0.893495	0.879764	0.527391	0.544335	0.711246	08eaf15	42.4	64.8	51.2597	701	454	72.5	88.8	79.8264	824	776
+45																				

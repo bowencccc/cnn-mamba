@@ -1,0 +1,27 @@
+{
+  "schema": "cnn_mamba_k7_droso_coleoptera_w1_seeds_warmup_lr1e3_v1",
+  "seed": 42,
+  "epochs": 30,
+  "early_stopping": {
+    "monitor": "validation_mean_AP_donor_acceptor_start_stop",
+    "mode": "max",
+    "patience": 3,
+    "min_delta": 0.0001
+  },
+  "notes": "Same as droso_coleoptera_w1_seeds_dropout0.json (1 kb window, 500 bp stride, micro_batch 80 x grad_accum 1, bf16, dropout 0, 30-epoch cosine, early stopping patience 3 on 3L mean AP) except: linear warmup over the first N/100 optimizer steps (N = steps per epoch; 0.01 x 1558 -> 16 steps) up to a peak lr of 1e-3 (was 200 steps to 3e-4). Suggested by A. Zimin to reduce seed dependence.",
+  "cells": [
+    {
+      "id": "w1",
+      "window_bp": 1000,
+      "stride_bp": 500,
+      "micro_batch": 80,
+      "grad_accum": 1,
+      "score_batch": 64,
+      "amp": true,
+      "amp_dtype": "bf16",
+      "dropout": 0.0
+    }
+  ],
+  "lr": 0.001,
+  "warmup_epoch_fraction": 0.01
+}

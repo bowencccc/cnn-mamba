@@ -58,3 +58,9 @@ data/weights/
 
 # Curated result tables under results/ are intentionally versioned.
 !results/**/*.tsv.gz
+
+# UniAnn working inputs/emissions copied into result folders (regenerable, up to ~1 GB)
+results/**/uniann_vector/out.*.txt
+results/**/uniann_vector/genome.fa*
+results/**/uniann_vector/coding.txt
+results/**/uniann_vector/scores.txt

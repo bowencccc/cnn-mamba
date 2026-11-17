@@ -515,6 +515,14 @@ def main():
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument(
+        "--warmup-epoch-fraction", type=float,
+        help=(
+            "Linear warmup length as a fraction of one epoch's optimizer steps "
+            "(e.g. 0.01 = N/100 steps). Default: max(20, min(200, 10%% of the "
+            "scheduled steps))."
+        ),
+    )
+    parser.add_argument(
         "--backbone-lr-multiplier", type=float, default=1.0,
         help=(
             "Learning-rate multiplier for the transferred embedding, input "
@@ -1049,7 +1057,10 @@ def main():
     steps_per_epoch = math.ceil(len(train_loader) / args.grad_accum)
     scheduler_epochs = args.scheduler_epochs or args.epochs
     scheduler_steps = scheduler_epochs * steps_per_epoch
-    warmup = max(20, min(200, scheduler_steps // 10))
+    if args.warmup_epoch_fraction is not None:
+        warmup = max(1, math.ceil(args.warmup_epoch_fraction * steps_per_epoch))
+    else:
+        warmup = max(20, min(200, scheduler_steps // 10))
 
     def scheduled_lr(step):
         return cosine_learning_rate(step, args.lr, scheduler_steps, warmup)
@@ -1082,6 +1093,7 @@ def main():
         f"val={len(val_data) if val_data is not None else 0:,} "
         f"test={len(test_data) if test_data is not None else 0:,} epochs={args.epochs} "
         f"scheduler_epochs={scheduler_epochs} scheduler_steps={scheduler_steps} "
+        f"lr={args.lr:g} warmup_steps={warmup} "
         f"start_epoch={start_epoch} early_stopping_patience={args.early_stopping_patience} "
         f"early_stopping_min_delta={args.early_stopping_min_delta:g} "
         f"candidate_negative_weight={args.candidate_negative_weight:g} "

@@ -1,0 +1,21 @@
+{
+  "schema": "cnn_mamba_k7_droso_coleoptera_w1_seeds_fixed15_lr1p5e4_v1",
+  "seed": 42,
+  "epochs": 15,
+  "scheduler_epochs": 15,
+  "notes": "Same as droso_coleoptera_w1_seeds_fixed15.json (1 kb window, 500 bp stride, micro_batch 80 x grad_accum 1, bf16, dropout 0, fixed 15 epochs, no early stopping, cosine over 15 epochs with default 200-step warmup) except peak lr halved to 1.5e-4 (floor 0.1x = 1.5e-5), because the fixed-15 runs overfit early (best validation epoch well before 15; epoch-15 weights clearly worse). last_model.pt is primary; best_model.pt evaluated for comparison. Run concurrently on the GPU with the OpenSpliceAI Figure 1 retrain.",
+  "cells": [
+    {
+      "id": "w1",
+      "window_bp": 1000,
+      "stride_bp": 500,
+      "micro_batch": 80,
+      "grad_accum": 1,
+      "score_batch": 64,
+      "amp": true,
+      "amp_dtype": "bf16",
+      "dropout": 0.0
+    }
+  ],
+  "lr": 0.00015
+}

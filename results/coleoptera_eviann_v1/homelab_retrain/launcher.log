@@ -1,0 +1,23 @@
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.train --data-root /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_v1/w10 --mode baseline --architecture cnn_mamba --cnn-kernel-size 7 --epochs 30 --batch-size 4 --grad-accum 2 --window-size 10000 --stride 5000 --workers 4 --seed 42 --output-dir /home/bchen103/cnn-mamba/runs/coleoptera_eviann_v1/homelab_retrain/chrxtrain/w10 --reference-name FlyBase --test-name chrX --frame-dilation 3 --phase-aux-weight 0.0 --cds-aux-weight 0.0 --cds-boundary-radius 0 --cds-far-loss-weight 0.1 --joint-frame-aux-weight 0.1 --joint-noncoding-weight 0.1 --candidate-negative-weight 1.0 --backbone-lr-multiplier 1.0 --freeze-pretrained-layers 0 --freeze-pretrained-epochs 0 --early-stopping-patience 3 --early-stopping-min-delta 0.0001 --include-test-in-train
+mode=baseline device=NVIDIA RTX A4500 train=19,555 val=5,056 test=0 epochs=30 scheduler_epochs=30 scheduler_steps=73320 start_epoch=1 early_stopping_patience=3 early_stopping_min_delta=0.0001 candidate_negative_weight=1 candidate_propensity_root=None candidate_propensity_negative_weight=1 use_start_stop_weights=False frame_dilation=3 phase_aux_weight=0 cds_aux_weight=0 cds_boundary_radius=0 cds_far_loss_weight=0.1 joint_frame_aux_weight=0.1 joint_noncoding_weight=0.1 backbone_lr_multiplier=1 freeze_pretrained_layers=0 freeze_pretrained_epochs=0 frozen_parameter_count=0 record_gradient_norms=False shared_backbone_parameters=4,404,416 gradient_probe=None
+epoch=1 batch=500/4,888 loss=0.37488 lr=3.00e-04
+epoch=1 batch=1,000/4,888 loss=0.23165 lr=3.00e-04
+epoch=1 batch=1,500/4,888 loss=0.17766 lr=3.00e-04
+epoch=1 batch=2,000/4,888 loss=0.14806 lr=3.00e-04
+epoch=1 batch=2,500/4,888 loss=0.12785 lr=3.00e-04
+epoch=1 batch=3,000/4,888 loss=0.11301 lr=3.00e-04
+epoch=1 batch=3,500/4,888 loss=0.10162 lr=3.00e-04
+epoch=1 batch=4,000/4,888 loss=0.09292 lr=3.00e-04
+epoch=1 batch=4,500/4,888 loss=0.08598 lr=2.99e-04
+[2026-11-12T17:00:36-05:00] waiting for in-flight run_cell.py (coleoptera_eviann_v1/homelab_retrain)
+Epoch 1: train loss=0.08156; validation loss=0.02582; mean FlyBase AP=0.7854
+    donor    AP=0.8852 F1=0.8261 P=0.8467 R=0.8064 thr=0.5101 pos=7,289/1,315,839
+    acceptor AP=0.8509 F1=0.8071 P=0.8401 R=0.7766 thr=0.4852 pos=7,399/1,402,090
+    start    AP=0.6806 F1=0.6523 P=0.7006 R=0.6102 thr=0.3319 pos=2,727/427,636
+    stop     AP=0.7249 F1=0.6979 P=0.7761 R=0.6341 thr=0.3094 pos=2,711/1,187,305
+    Joint CDS AP=0.9671 F1=0.9172 P=0.9216 R=0.9129 thr=0.9841
+[2026-11-12T17:02:36-05:00] waiting for in-flight run_cell.py (coleoptera_eviann_v1/homelab_retrain)
+epoch=2 batch=500/4,888 loss=0.02534 lr=2.99e-04
+[2026-11-12T17:04:36-05:00] waiting for in-flight run_cell.py (coleoptera_eviann_v1/homelab_retrain)
+[2026-11-12T17:06:36-05:00] waiting for in-flight run_cell.py (coleoptera_eviann_v1/homelab_retrain)
+epoch=2 batch=1,000/4,888 loss=0.02542 lr=2.99e-04

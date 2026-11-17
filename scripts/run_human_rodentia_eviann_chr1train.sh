@@ -7,7 +7,7 @@ repo_dir="${CNN_MAMBA_REPO:-$(cd "$(dirname "$0")/.." && pwd)}"
 python_bin="${CNN_MAMBA_PYTHON:-python}"
 source_gff="$repo_dir/data/raw/GCF_000001405.40_GRCh38.p14_genomic.noalpsnopatches.fna.pseudo_label.rodentia.gff.gz"
 data_root="$repo_dir/data/processed/human_rodentia_joint_frame_w10_refseq_chr1held"
-tag="human_rodentia_joint_frame_beta010_es5_v1"
+tag="${CNN_MAMBA_TAG:-human_rodentia_joint_frame_beta010_es5_v1}"
 log_dir="$repo_dir/results/$tag"
 
 export PYTHONPATH="$repo_dir/src${PYTHONPATH:+:$PYTHONPATH}"

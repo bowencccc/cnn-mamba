@@ -1,0 +1,12 @@
+Parsing annotations once...
+[w10:train] 2L: 4,462
+[w10:train] 2R: 4,868
+[w10:train] 3R: 5,798
+[w10:train] 4: 267
+[w10:train] Y: 19
+[w10:val] 3L: 5,056
+[w10:test] X: 4,141
+complete: /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_v1
+wrote 11,200 mRNA/CDS records to /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_v1/chrX_plus_EviAnn_CDS.gff
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.train --data-root /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_v1/w10 --mode baseline --architecture cnn_mamba --cnn-kernel-size 7 --epochs 30 --batch-size 4 --grad-accum 2 --window-size 10000 --stride 5000 --workers 4 --seed 42 --output-dir /home/bchen103/cnn-mamba/runs/coleoptera_eviann_v1/retrained/chrxtrain/w10 --reference-name FlyBase --test-name chrX --frame-dilation 3 --phase-aux-weight 0.0 --cds-aux-weight 0.0 --cds-boundary-radius 0 --cds-far-loss-weight 0.1 --joint-frame-aux-weight 0.1 --joint-noncoding-weight 0.1 --candidate-negative-weight 1.0 --backbone-lr-multiplier 1.0 --freeze-pretrained-layers 0 --freeze-pretrained-epochs 0 --early-stopping-patience 3 --early-stopping-min-delta 0.0001 --include-test-in-train
+mode=baseline device=NVIDIA RTX A4500 train=19,555 val=5,056 test=0 epochs=30 scheduler_epochs=30 scheduler_steps=73320 start_epoch=1 early_stopping_patience=3 early_stopping_min_delta=0.0001 candidate_negative_weight=1 candidate_propensity_root=None candidate_propensity_negative_weight=1 use_start_stop_weights=False frame_dilation=3 phase_aux_weight=0 cds_aux_weight=0 cds_boundary_radius=0 cds_far_loss_weight=0.1 joint_frame_aux_weight=0.1 joint_noncoding_weight=0.1 backbone_lr_multiplier=1 freeze_pretrained_layers=0 freeze_pretrained_epochs=0 frozen_parameter_count=0 record_gradient_norms=False shared_backbone_parameters=4,404,416 gradient_probe=None
