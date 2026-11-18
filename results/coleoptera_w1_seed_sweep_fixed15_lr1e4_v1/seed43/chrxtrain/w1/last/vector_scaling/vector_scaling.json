@@ -1,0 +1,51 @@
+{
+  "schema": "joint_frame_vector_scaling_v1",
+  "method": "classwise positive scale and centered bias fitted by empirical multiclass NLL",
+  "checkpoint": "/home/bchen103/cnn-mamba/runs/coleoptera_w1_seed_sweep_fixed15_lr1e4_v1/seed43/chrxtrain/w1/last_model.pt",
+  "checkpoint_epoch": 15,
+  "data_root": "/home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_w1_v1/w1",
+  "split": "val",
+  "class_order": [
+    "non_CDS",
+    "frame_0",
+    "frame_1",
+    "frame_2"
+  ],
+  "source_sample": "/home/bchen103/cnn-mamba/results/coleoptera_w1_seed_sweep_fixed15_lr1e4_v1/seed43/chrxtrain/w1/last/calibration/calibration_sample.npz",
+  "sampled_bases": 1064899,
+  "class_counts": {
+    "non_CDS": 844554,
+    "frame_0": 73633,
+    "frame_1": 73398,
+    "frame_2": 73314
+  },
+  "objective": "empirical_multiclass_nll",
+  "vector_scale": {
+    "non_CDS": 0.5018891015083096,
+    "frame_0": 0.5872961447958774,
+    "frame_1": 0.5970553536286923,
+    "frame_2": 0.5808890487317454
+  },
+  "vector_bias": {
+    "non_CDS": 0.3728872973176047,
+    "frame_0": -0.10845145587095469,
+    "frame_1": -0.1314109144675201,
+    "frame_2": -0.13302492697912996
+  },
+  "vector_regularization": 0.0001,
+  "before": {
+    "samples": 1064899,
+    "accuracy": 0.9792947500185464,
+    "nll": 0.10447266486467578,
+    "brier": 0.03629535692767006,
+    "mean_max_probability": 0.99419265409146
+  },
+  "after": {
+    "samples": 1064899,
+    "accuracy": 0.9792534315460902,
+    "nll": 0.07560090138916563,
+    "brier": 0.034267318140806774,
+    "mean_max_probability": 0.9815362569130003
+  },
+  "argmax_changes": 1486
+}

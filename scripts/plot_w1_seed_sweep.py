@@ -285,6 +285,66 @@ def figure_fixed_results(base: pd.DataFrame, best: pd.DataFrame,
     plt.close(fig)
 
 
+def figure_lr_comparison(base: pd.DataFrame, sweeps, out: Path) -> None:
+    """Fixed-15 sweeps at several peak lrs: best-val and epoch-15 checkpoints,
+    with the early-stopping sweep as a reference. sweeps = [(label, best, last)]."""
+    panels = [("chrX_AUPRC_mean", "Mean AUPRC", "(a) chrX+ candidate AUPRC (mean of 4 sites)", 0.004),
+              ("UniAnn_f1", "Strict locus F1 (%)", "(b) UniAnn gene models", 0.35),
+              ("EviAnn+UniAnn_f1", "Strict locus F1 (%)", "(c) EviAnn+UniAnn gene models", 0.35)]
+    seeds = sorted(set(base.seed).intersection(*[set(b.seed) & set(l.seed) for _, b, l in sweeps]))
+    gap, step = 0.62, 1.55
+    centers = [1.2 + step * g for g in range(len(sweeps))]
+    fig, axes = plt.subplots(1, 3, figsize=(17, 5.0))
+    for ax, (col, ylab, title, pad) in zip(axes, panels):
+        def put(x, values, color, seed):
+            mean, sd = strip(ax, x, values, color, seed=seed)
+            ax.text(x + 0.24, mean + sd + pad,
+                    f"{mean:.3f}" if col.startswith("chrX") else f"{mean:.1f}",
+                    ha="center", va="bottom", fontsize=8.5, color=INK)
+        put(0, base.set_index("seed").loc[seeds, col].to_numpy(), MUTED, 0)
+        for g, (label, best, last) in enumerate(sweeps):
+            xb, xl = centers[g] - gap / 2, centers[g] + gap / 2
+            vb = best.set_index("seed").loc[seeds, col].to_numpy()
+            vl = last.set_index("seed").loc[seeds, col].to_numpy()
+            sb, sl = 10 + 2 * g, 11 + 2 * g
+            jb = xb + np.random.default_rng(sb).uniform(-0.09, 0.09, len(seeds))
+            jl = xl + np.random.default_rng(sl).uniform(-0.09, 0.09, len(seeds))
+            for k in range(len(seeds)):
+                ax.plot([jb[k], jl[k]], [vb[k], vl[k]], color=GRID, lw=1.2, zorder=1)
+            put(xb, vb, BLUE, sb)
+            put(xl, vl, ORANGE, sl)
+        if col != "chrX_AUPRC_mean":
+            ax.axhline(EVIANN_ONLY["f1"], color=MUTED, lw=1.2, ls=(0, (4, 3)), zorder=1)
+            ax.text(-0.4, EVIANN_ONLY["f1"] - 0.2, f"EviAnn only F1 {EVIANN_ONLY['f1']}",
+                    ha="left", va="top", fontsize=8.5, color=INK2)
+        ax.set_xticks([0] + centers, ["Early stopping\n3e-4, 30-ep cosine"]
+                      + [f"Fixed 15 ep\npeak lr {lab}" for lab, _, _ in sweeps], fontsize=9)
+        ax.set_xlim(-0.45, centers[-1] + 0.75)
+        ax.set_ylabel(ylab)
+        ax.set_title(title, loc="left", fontsize=11)
+    axes[0].set_ylim(0.80, 0.92)
+    axes[1].set_ylim(66, 80)
+    axes[2].set_ylim(72, 89)
+    handles = [plt.Line2D([], [], marker="o", ls="", color=c, label=l) for c, l in
+               ((MUTED, "early stopping (selected epoch)"), (BLUE, "fixed 15: best validation epoch"),
+                (ORANGE, "fixed 15: epoch 15"))]
+    fig.legend(handles=handles, frameon=False, ncol=3, fontsize=9.5,
+               loc="upper left", bbox_to_anchor=(0.005, 0.94))
+    fig.suptitle(
+        "Coleoptera EviAnn labels, 1 kb windows, chrX-included training, dropout 0: "
+        f"peak learning rate with a fixed 15-epoch budget (seeds {', '.join(map(str, seeds))})",
+        x=0.01, ha="left", fontsize=12.5, color=INK, y=0.995)
+    fig.text(0.01, 0.005,
+             "Points: individual seeds; marker with bar: mean ± SD; grey lines pair the same run's "
+             "best-validation and epoch-15 checkpoints. All runs: 200-step linear warmup, cosine to "
+             "0.1x peak. chrX is in the training set, so chrX+ values are not held-out.",
+             fontsize=8.5, color=INK2)
+    fig.tight_layout(rect=(0, 0.03, 1, 0.88))
+    for ext in ("png", "pdf"):
+        fig.savefig(out / f"fixed15_lr_comparison.{ext}", dpi=220)
+    plt.close(fig)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--sweep", default="coleoptera_w1_seed_sweep_dropout0_v1")
@@ -302,7 +362,25 @@ def main() -> None:
     parser.add_argument("--baseline-sweep", default="coleoptera_w1_seed_sweep_dropout0_v1")
     parser.add_argument("--lr", type=float, default=3e-4,
                         help="peak lr of the fixed-epoch sweep (labels only; floor is 0.1x)")
+    parser.add_argument(
+        "--lr-comparison", nargs="+", metavar="LABEL=SWEEP",
+        help="compare fixed-epoch sweeps at different peak lrs, e.g. "
+             "3e-4=coleoptera_w1_seed_sweep_fixed15_v1; written to --output-dir "
+             "(default results/coleoptera_w1_fixed15_lr_comparison)",
+    )
     args = parser.parse_args()
+    if args.lr_comparison:
+        read = lambda p: pd.read_csv(p, sep="\t").dropna(subset=["UniAnn_f1"])
+        sweeps = []
+        for item in args.lr_comparison:
+            label, sweep = item.split("=", 1)
+            res = ROOT / "results" / sweep
+            sweeps.append((label, read(res / "per_seed.tsv"), read(res / "last_epoch" / "per_seed.tsv")))
+        out = args.output_dir or ROOT / "results" / "coleoptera_w1_fixed15_lr_comparison"
+        out.mkdir(parents=True, exist_ok=True)
+        figure_lr_comparison(read(ROOT / "results" / args.baseline_sweep / "per_seed.tsv"), sweeps, out)
+        print(f"wrote figures to {out}")
+        return
     if args.fixed_epoch_results:
         res = ROOT / "results" / args.sweep
         out = args.output_dir or res / "figures"

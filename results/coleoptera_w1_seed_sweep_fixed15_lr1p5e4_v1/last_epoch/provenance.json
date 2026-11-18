@@ -1,0 +1,19 @@
+{
+  "sweep": "coleoptera_w1_seed_sweep_fixed15_lr1p5e4_v1",
+  "cell": "w1",
+  "regime": "chrxtrain",
+  "checkpoint": "last",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "uniann_commits": [
+    "08eaf15"
+  ],
+  "uniann_policy": "latest origin/main pulled before every seed's UniAnn step",
+  "uniann_scaling": "four-state vector scaling (fit on 3L validation), then UniAnn's own built-in coding-frame scaling (convert_coding_frame.pl)",
+  "caveat": "chrxtrain: chrX is in the training set, so chrX AUPRC and UniAnn locus metrics are not held-out estimates."
+}
