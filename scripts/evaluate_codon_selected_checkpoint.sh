@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Evaluate the post-hoc codon-centric checkpoint selected from an existing run.
+# Evaluate a checkpoint selected from an existing run.
 # This script does not retrain and writes to a separate namespace so the
 # original four-task-mean selected checkpoint and outputs remain untouched.
 
@@ -11,6 +11,8 @@ uniann_root="${UNIANN_ROOT:-$repo_dir/../UniAnn}"
 
 checkpoint="${CHECKPOINT:-$repo_dir/runs/coleoptera_w1_weight_decay_v1/wd1em3/seed44/chrxtrain/w1/epoch_checkpoints/epoch_004.pt}"
 tag="${OUTPUT_TAG:-coleoptera_w1_weight_decay_v1/wd1em3/seed44_codon_monitor_epoch4}"
+selection_label="${SELECTION_LABEL:-posthoc_epoch4_codon_monitor}"
+source_epochs="${SOURCE_EPOCHS:-4}"
 data_root="$repo_dir/data/processed/coleoptera_eviann_w1_v1/w1"
 fasta="$repo_dir/data/raw/dmel_genome.fa"
 chrx_fasta="$repo_dir/data/raw/dmel_chrX.fa"
@@ -81,7 +83,8 @@ fi
 
 git -C "$uniann_root" rev-parse HEAD > "$work_dir/uniann_commit.txt"
 printf 'checkpoint\t%s\n' "$checkpoint" > "$result_dir/selection.tsv"
-printf 'selection_metric\t0.7 * harmonic_mean(start_AP, stop_AP) + 0.15 * donor_AP + 0.15 * acceptor_AP\n' >> "$result_dir/selection.tsv"
-printf 'selected_epoch\t4\n' >> "$result_dir/selection.tsv"
+printf 'selection_label\t%s\n' "$selection_label" >> "$result_dir/selection.tsv"
+printf 'source_epochs\t%s\n' "$source_epochs" >> "$result_dir/selection.tsv"
 cat "$score_dir/candidate_auprc.tsv"
 cat "$work_dir/locus_metrics.tsv"
+cat "$work_dir/gap_locus_metrics.tsv"

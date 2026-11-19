@@ -33,14 +33,16 @@ def link(source, target):
 def parse_stats(path):
     text = Path(path).read_text()
     pair = re.search(r"Locus level:\s*([0-9.]+)\s*\|\s*([0-9.]+)", text)
+    reference = re.search(r"Reference mRNAs\s*:\s*\d+ in\s*(\d+) loci", text)
     query = re.search(r"Query mRNAs\s*:\s*\d+ in\s*(\d+) loci", text)
     matched = re.search(r"Matching loci:\s*(\d+)", text)
     missed = re.search(r"Missed loci:\s*(\d+)/", text)
     novel = re.search(r"Novel loci:\s*(\d+)/", text)
-    if not all((pair, query, matched, missed, novel)):
+    if not all((pair, reference, query, matched, missed, novel)):
         raise RuntimeError(f"could not parse locus metrics from {path}")
     sn, pr = map(float, pair.groups())
     return {"sn": sn, "pr": pr, "f1": 2 * sn * pr / (sn + pr),
+            "reference_loci": int(reference.group(1)),
             "predicted_loci": int(query.group(1)), "matched_loci": int(matched.group(1)),
             "missed_loci": int(missed.group(1)), "novel_loci": int(novel.group(1))}
 
@@ -51,7 +53,16 @@ def strict_compare(gffread, gffcompare, reference, query, prefix, cwd):
     output = Path(cwd) / prefix
     run([gffcompare, "--strict-match", "-e", "0", "-r", reference, merged,
          "-o", output], cwd, Path(cwd) / f"{prefix}.gffcompare.log")
-    return Path(str(output) + ".stats")
+    return Path(str(output) + ".stats"), Path(f"{output}.{merged.name}.refmap")
+
+
+def exact_reference_loci(refmap):
+    """Return reference locus IDs having at least one strict (=) transcript match."""
+    frame = pd.read_csv(refmap, sep="\t", dtype=str)
+    required = {"ref_gene", "class_code"}
+    if not required.issubset(frame.columns):
+        raise RuntimeError(f"missing {sorted(required - set(frame.columns))} in {refmap}")
+    return set(frame.loc[frame["class_code"] == "=", "ref_gene"].dropna())
 
 
 def normalize_gtf(gffread, source, destination, cwd):
@@ -138,9 +149,10 @@ def main():
     run([uniann, "-f", local_fasta.name, "-c", local_coding.name,
          "-s", local_scores.name, "-n"],
         work, work / "uniann.log")
-    alone_stats = strict_compare(gffread, gffcompare, args.reference_gtf.resolve(), raw,
-                                 "uniann", work)
-    rows = [{"method": "UniAnn", **parse_stats(alone_stats)}]
+    alone_stats, _ = strict_compare(gffread, gffcompare, args.reference_gtf.resolve(), raw,
+                                    "uniann", work)
+    alone_metrics = parse_stats(alone_stats)
+    rows = [{"method": "UniAnn", **alone_metrics}]
 
     if args.eviann_gff:
         # Do not concatenate GTF and GFF3 directly. gffread selects one parser
@@ -156,9 +168,58 @@ def main():
                     output.writelines(
                         line for line in source if not line.startswith("#")
                     )
-        stats = strict_compare(gffread, gffcompare, args.reference_gtf.resolve(), combined,
-                               "eviann_uniann", work)
-        rows.append({"method": "EviAnn+UniAnn", **parse_stats(stats)})
+        baseline_stats, baseline_refmap = strict_compare(
+            gffread, gffcompare, args.reference_gtf.resolve(), eviann_gtf,
+            "eviann", work
+        )
+        baseline_metrics = parse_stats(baseline_stats)
+        stats, union_refmap = strict_compare(
+            gffread, gffcompare, args.reference_gtf.resolve(), combined,
+            "eviann_uniann", work
+        )
+        union_metrics = parse_stats(stats)
+        rows.append({"method": "EviAnn+UniAnn", **union_metrics})
+
+        baseline_matches = exact_reference_loci(baseline_refmap)
+        union_matches = exact_reference_loci(union_refmap)
+        if len(baseline_matches) != baseline_metrics["matched_loci"]:
+            raise RuntimeError("EviAnn refmap exact loci disagree with gffcompare stats")
+        if len(union_matches) != union_metrics["matched_loci"]:
+            raise RuntimeError("union refmap exact loci disagree with gffcompare stats")
+        recovered = len(union_matches - baseline_matches)
+        available = baseline_metrics["reference_loci"] - len(baseline_matches)
+        # Use all UniAnn-predicted loci as the precision denominator.  A net
+        # union-locus count difference is not a valid denominator because
+        # gffread -M can merge an EviAnn locus with a UniAnn locus; in that
+        # case recovered exact loci can exceed the net count change.
+        uniann_predicted = alone_metrics["predicted_loci"]
+        net_union_loci_change = (
+            union_metrics["predicted_loci"] - baseline_metrics["predicted_loci"]
+        )
+        gap_precision = recovered / uniann_predicted if uniann_predicted else 0.0
+        gap_sensitivity = recovered / available if available else 0.0
+        gap_f1 = (
+            2 * gap_precision * gap_sensitivity / (gap_precision + gap_sensitivity)
+            if gap_precision + gap_sensitivity else 0.0
+        )
+        gap_metrics = {
+            "baseline_reference_loci": baseline_metrics["reference_loci"],
+            "baseline_predicted_loci": baseline_metrics["predicted_loci"],
+            "baseline_matched_loci": len(baseline_matches),
+            "union_predicted_loci": union_metrics["predicted_loci"],
+            "union_matched_loci": len(union_matches),
+            "retained_baseline_matches": len(union_matches & baseline_matches),
+            "available_gap_loci": available,
+            "uniann_predicted_loci": uniann_predicted,
+            "net_union_loci_change": net_union_loci_change,
+            "recovered_gap_loci": recovered,
+            "gap_precision": gap_precision,
+            "gap_sensitivity": gap_sensitivity,
+            "gap_f1": gap_f1,
+        }
+        pd.DataFrame([gap_metrics]).to_csv(
+            work / "gap_locus_metrics.tsv", sep="\t", index=False, float_format="%.9g"
+        )
 
     frame = pd.DataFrame(rows)
     frame.to_csv(work / "locus_metrics.tsv", sep="\t", index=False, float_format="%.9g")
@@ -172,6 +233,8 @@ def main():
                   "union_normalization": "each source normalized to GTF before concatenation",
                   "inputs": {key: str(value.resolve()) for key, value in inputs.items()},
                   "metrics": rows}
+    if args.eviann_gff:
+        provenance["gap_locus_metrics"] = gap_metrics
     if coding_frame_contract is not None:
         provenance["coding_frame_input_contract"] = coding_frame_contract
     (work / "provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")

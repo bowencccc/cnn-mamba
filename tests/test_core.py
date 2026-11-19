@@ -473,6 +473,7 @@ class CoreTests(unittest.TestCase):
 
     def test_stats_parser(self):
         text = (
+            "Reference mRNAs : 120 in 100 loci (90 multi-exon)\n"
             "Query mRNAs : 100 in 90 loci (80 multi-exon)\n"
             "Locus level:    75.0     |    80.0\n"
             "Matching loci: 72\nMissed loci: 10/100\nNovel loci: 3/90\n"
@@ -482,6 +483,7 @@ class CoreTests(unittest.TestCase):
             path.write_text(text)
             row = parse_stats(path)
         self.assertEqual(row["f1"], 77.41935483870968)
+        self.assertEqual(row["reference_loci"], 100)
         self.assertEqual(row["predicted_loci"], 90)
 
 

@@ -1,0 +1,28 @@
+{
+  "schema": "cnn_mamba_k7_droso_coleoptera_w1_dropout005_v1",
+  "seed": 44,
+  "epochs": 15,
+  "scheduler_epochs": 15,
+  "early_stopping": {
+    "monitor": "validation_mean_AP_donor_acceptor_start_stop",
+    "mode": "max",
+    "patience": 2,
+    "min_delta": 0.0001
+  },
+  "lr": 0.00015,
+  "weight_decay": 0.001,
+  "notes": "Single-factor regularization test against the WD=1e-3, candidate-negative-weight=1.0 seed-44 baseline. Only model dropout changes from 0.0 to 0.05. All epoch checkpoints are retained. The run early-stopped at epoch 5, so downstream selection evaluates the last three available checkpoints (epochs 3--5) and their arithmetic average rather than overriding early stopping to manufacture epoch 6.",
+  "cells": [
+    {
+      "id": "w1",
+      "window_bp": 1000,
+      "stride_bp": 500,
+      "micro_batch": 40,
+      "grad_accum": 2,
+      "score_batch": 64,
+      "amp": true,
+      "amp_dtype": "bf16",
+      "dropout": 0.05
+    }
+  ]
+}
