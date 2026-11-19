@@ -32,6 +32,13 @@ def main():
                         default=Path(os.environ.get("UNIANN_ROOT", root.parent / "UniAnn")))
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument(
+        "--weight-decay", type=float,
+        help=(
+            "Override AdamW weight decay; otherwise use the config value or "
+            "cnn_mamba.train's default (1e-4)."
+        ),
+    )
+    parser.add_argument(
         "--seed", type=int,
         help="Training random seed; defaults to the selected config's seed.",
     )
@@ -142,6 +149,13 @@ def main():
             ])
         if config.get("lr") is not None:
             command.extend(["--lr", str(config["lr"])])
+        weight_decay = (
+            args.weight_decay
+            if args.weight_decay is not None
+            else config.get("weight_decay")
+        )
+        if weight_decay is not None:
+            command.extend(["--weight-decay", str(weight_decay)])
         if config.get("warmup_epoch_fraction") is not None:
             command.extend(["--warmup-epoch-fraction",
                             str(config["warmup_epoch_fraction"])])

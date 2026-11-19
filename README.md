@@ -366,6 +366,15 @@ deployment model. Do not report that run as held-out chr1 performance.
 Always report the regime with the result. The two regimes answer different
 questions and should not be compared as if they were the same test.
 
+For the chrX-included EviAnn augmentation regime, overall four-task AUPRC is a
+diagnostic rather than the primary checkpoint-selection objective. The
+deployment-aligned evaluation measures exact RefSeq loci absent from EviAnn
+that are recovered by the EviAnn+UniAnn union, subject to retention of EviAnn's
+existing matches. See
+[`docs/DROSO_CHRX_DEPLOYMENT_SELECTION.md`](docs/DROSO_CHRX_DEPLOYMENT_SELECTION.md)
+for the gap-locus definition, weight-decay/seed results, and the observed
+five-to-six-epoch convergence behavior.
+
 ## 8. Current-best inputs for downstream Viterbi code
 
 Downstream structured-decoder experiments use two fixed evidence sources:

@@ -1,0 +1,3 @@
+selection	checkpoint_epoch	reference_loci	eviann_predicted_loci	eviann_matched_loci	available_gap_loci	union_predicted_loci	union_matched_loci	retained_eviann_matches	recovered_gap_loci	added_loci	gap_precision	gap_sensitivity	gap_f1	union_f1
+four_task_mean	6	1070	740	667	403	978	867	665	202	238	0.848739496	0.501240695	0.630265211	0.842630332
+codon_oriented_counterfactual	4	1070	740	667	403	1024	897	666	231	284	0.813380282	0.573200993	0.672489083	0.852253372

@@ -1,0 +1,3 @@
+selection	checkpoint_epoch	val_mean4_AP	val_codon_harmonic_AP	val_codon_weighted_score	chrX_donor_AP	chrX_acceptor_AP	chrX_start_AP	chrX_stop_AP	chrX_mean4_AP	UniAnn_sn	UniAnn_pr	UniAnn_f1	EviAnn+UniAnn_sn	EviAnn+UniAnn_pr	EviAnn+UniAnn_f1
+four_task_mean	6	0.881128746	0.812620105	0.853665699	0.941552716	0.942364783	0.819855114	0.851667564	0.888860044	70.0	77.5	73.5593220	81.0	87.8	84.2630332
+codon_centric	4	0.880884171	0.817053178	0.855341699	0.922013335	0.931928824	0.807254402	0.831995335	0.873297974	72.1	75.8	73.9037187	83.8	86.7	85.2253372
