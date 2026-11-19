@@ -13,6 +13,8 @@
 #      SWEEP_CONFIG (default configs/droso_coleoptera_w1_seeds.json),
 #      EVAL_CHECKPOINTS (default "best"; e.g. "last best" for fixed-epoch runs;
 #      "last" outputs go to .../w1/last/ subdirectories)
+#      PROCESSED_ROOT (default data/processed/coleoptera_eviann_w1_v1; must already be
+#      complete when not the default, e.g. the per-isoform windows)
 
 set -euo pipefail
 
@@ -23,7 +25,7 @@ uniann_branch="${UNIANN_BRANCH:-origin/main}"
 seeds="${SEEDS:-42 43 44 45 46}"
 config="$repo_dir/${SWEEP_CONFIG:-configs/droso_coleoptera_w1_seeds.json}"
 source_gff="$repo_dir/data/raw/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.pseudo_label.coleoptera.gff.gz"
-processed_root="$repo_dir/data/processed/coleoptera_eviann_w1_v1"
+processed_root="$repo_dir/${PROCESSED_ROOT:-data/processed/coleoptera_eviann_w1_v1}"
 data_root="$processed_root/w1"
 chrx_eviann="$repo_dir/data/processed/coleoptera_eviann_v1/chrX_plus_EviAnn_CDS.gff"
 fasta="$repo_dir/data/raw/dmel_genome.fa"

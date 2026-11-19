@@ -285,6 +285,22 @@ def figure_fixed_results(base: pd.DataFrame, best: pd.DataFrame,
     plt.close(fig)
 
 
+def _sweep_tick(label: str) -> str:
+    """Numeric labels are peak lrs; others are free text, with '+' as a line break."""
+    try:
+        float(label)
+        return f"peak lr {label}"
+    except ValueError:
+        return label.replace("+", "\n")
+
+
+def _comparison_subject(sweeps) -> str:
+    """'peak learning rate' when every label is a number, else 'training windows'."""
+    labels = [lab for lab, _, _ in sweeps]
+    return ("peak learning rate" if all(_sweep_tick(l).startswith("peak lr") for l in labels)
+            else "training windows")
+
+
 def figure_lr_comparison(base: pd.DataFrame, sweeps, out: Path) -> None:
     """Fixed-15 sweeps at several peak lrs: best-val and epoch-15 checkpoints,
     with the early-stopping sweep as a reference. sweeps = [(label, best, last)]."""
@@ -318,7 +334,7 @@ def figure_lr_comparison(base: pd.DataFrame, sweeps, out: Path) -> None:
             ax.text(-0.4, EVIANN_ONLY["f1"] - 0.2, f"EviAnn only F1 {EVIANN_ONLY['f1']}",
                     ha="left", va="top", fontsize=8.5, color=INK2)
         ax.set_xticks([0] + centers, ["Early stopping\n3e-4, 30-ep cosine"]
-                      + [f"Fixed 15 ep\npeak lr {lab}" for lab, _, _ in sweeps], fontsize=9)
+                      + [f"Fixed 15 ep\n{_sweep_tick(lab)}" for lab, _, _ in sweeps], fontsize=9)
         ax.set_xlim(-0.45, centers[-1] + 0.75)
         ax.set_ylabel(ylab)
         ax.set_title(title, loc="left", fontsize=11)
@@ -332,7 +348,7 @@ def figure_lr_comparison(base: pd.DataFrame, sweeps, out: Path) -> None:
                loc="upper left", bbox_to_anchor=(0.005, 0.94))
     fig.suptitle(
         "Coleoptera EviAnn labels, 1 kb windows, chrX-included training, dropout 0: "
-        f"peak learning rate with a fixed 15-epoch budget (seeds {', '.join(map(str, seeds))})",
+        f"{_comparison_subject(sweeps)} with a fixed 15-epoch budget (seeds {', '.join(map(str, seeds))})",
         x=0.01, ha="left", fontsize=12.5, color=INK, y=0.995)
     fig.text(0.01, 0.005,
              "Points: individual seeds; marker with bar: mean ± SD; grey lines pair the same run's "
@@ -400,7 +416,8 @@ def main() -> None:
             args.sweep, "w1", out,
             "loss_curves_fixed15" if args.lr == 3e-4 else f"loss_curves_fixed15_lr{lr}",
             "Training and validation curves, 1 kb, chrX-included, dropout 0, "
-            f"fixed 15 epochs, peak lr {lr} ({n} seeds)",
+            + ("per-isoform windows, " if "perisoform" in args.sweep else "")
+            + f"fixed 15 epochs, peak lr {lr} ({n} seeds)",
             note=("Filled dot: best validation epoch; open circle: final epoch "
                   f"(epoch 15). No early stopping; cosine lr {lr} decays to {floor} by epoch "
                   "15. Training loss is the epoch-mean weighted multi-task loss."),

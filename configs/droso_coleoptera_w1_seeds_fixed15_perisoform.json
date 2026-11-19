@@ -1,0 +1,20 @@
+{
+  "schema": "cnn_mamba_k7_droso_coleoptera_w1_seeds_fixed15_perisoform_v1",
+  "seed": 42,
+  "epochs": 15,
+  "scheduler_epochs": 15,
+  "notes": "Same as droso_coleoptera_w1_seeds_fixed15.json (1 kb window, 500 bp stride, micro_batch 80 x grad_accum 1, bf16, dropout 0, peak lr 3e-4, 200-step warmup, cosine over 15 epochs, fixed 15 epochs, no early stopping) but trained on per-isoform windows (data/processed/coleoptera_eviann_w1_perisoform_v1, cnn_mamba.prepare_droso_per_isoform): every EviAnn coding transcript tiled separately on the same grid, labels from that transcript plus other loci (alternative isoforms of the same locus excluded), exact duplicates removed. 3L validation windows are copied unchanged from the union dataset. Requested by A. Zimin. last_model.pt and best_model.pt are both evaluated.",
+  "cells": [
+    {
+      "id": "w1",
+      "window_bp": 1000,
+      "stride_bp": 500,
+      "micro_batch": 80,
+      "grad_accum": 1,
+      "score_batch": 64,
+      "amp": true,
+      "amp_dtype": "bf16",
+      "dropout": 0.0
+    }
+  ]
+}
