@@ -1,0 +1,27 @@
+{
+  "schema": "cnn_mamba_k7_droso_coleoptera_w1_weight_decay_v1",
+  "seed": 42,
+  "epochs": 15,
+  "scheduler_epochs": 15,
+  "early_stopping": {
+    "monitor": "validation_mean_AP_donor_acceptor_start_stop",
+    "mode": "max",
+    "patience": 2,
+    "min_delta": 0.0001
+  },
+  "lr": 0.00015,
+  "notes": "Weight-decay sweep: all settings match the 1 kb Coleoptera EviAnn chrX-included experiment except AdamW weight decay. Maximum 15 epochs; early stopping patience 2; select best validation mean-AP checkpoint. On the 12 GB RTX 4070, micro_batch 40 x grad_accum 2 preserves the original effective update size of 80 windows while avoiding the Triton Mamba3 autotuning OOM seen with micro_batch 80.",
+  "cells": [
+    {
+      "id": "w1",
+      "window_bp": 1000,
+      "stride_bp": 500,
+      "micro_batch": 40,
+      "grad_accum": 2,
+      "score_batch": 64,
+      "amp": true,
+      "amp_dtype": "bf16",
+      "dropout": 0.0
+    }
+  ]
+}

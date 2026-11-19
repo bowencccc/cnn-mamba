@@ -515,6 +515,13 @@ def main():
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument(
+        "--weight-decay", type=float, default=1e-4,
+        help=(
+            "AdamW weight decay applied to non-bias, non-normalization, and "
+            "non-embedding parameters. Default: 1e-4."
+        ),
+    )
+    parser.add_argument(
         "--warmup-epoch-fraction", type=float,
         help=(
             "Linear warmup length as a fraction of one epoch's optimizer steps "
@@ -1025,7 +1032,7 @@ def main():
         multiplier = args.backbone_lr_multiplier if is_backbone else 1.0
         optimizer_groups.append({
             "params": parameters,
-            "weight_decay": 1e-4 if use_decay else 0.0,
+            "weight_decay": args.weight_decay if use_decay else 0.0,
             "lr": args.lr * multiplier,
             "lr_multiplier": multiplier,
             "group_name": (
