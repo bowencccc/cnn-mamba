@@ -1,0 +1,2 @@
+baseline_reference_loci	baseline_predicted_loci	baseline_matched_loci	union_predicted_loci	union_matched_loci	retained_baseline_matches	available_gap_loci	uniann_predicted_loci	net_union_loci_change	recovered_gap_loci	gap_precision	gap_sensitivity	gap_f1
+1351	915	822	1228	1061	817	529	1173	313	244	0.20801364	0.461247637	0.286721504

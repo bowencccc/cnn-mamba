@@ -1,0 +1,22 @@
+batches=500/521 sampled=1,023,745
+batches=521/521 sampled=1,064,899
+{
+  "temperature": 0.9638676158233895,
+  "diagnostic_group_balanced_temperature": 0.8497245341652528,
+  "before": {
+    "nll": 0.113052599132061,
+    "brier": 0.05832395330071449,
+    "ece": 0.002740125637501478,
+    "mean_max_probability": 0.963330864906311,
+    "fraction_max_ge_0.99": 0.6363720893859863
+  },
+  "after": {
+    "nll": 0.11287176609039307,
+    "brier": 0.05840389430522919,
+    "ece": 0.003673739265650511,
+    "mean_max_probability": 0.9657959938049316,
+    "fraction_max_ge_0.99": 0.6812373995780945
+  },
+  "argmax_changes": 0,
+  "output": "artifacts/joint_frame_predictions/coleoptera_w1_gap_selection_perisoform_v1/seed46/epoch004/calibration/temperature.json"
+}

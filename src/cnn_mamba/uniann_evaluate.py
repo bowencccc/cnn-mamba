@@ -56,13 +56,56 @@ def strict_compare(gffread, gffcompare, reference, query, prefix, cwd):
     return Path(str(output) + ".stats"), Path(f"{output}.{merged.name}.refmap")
 
 
-def exact_reference_loci(refmap):
-    """Return reference locus IDs having at least one strict (=) transcript match."""
+def reference_locus_map(reference_gtf):
+    """Map reference transcript ID -> reference locus, clustering transcripts whose
+    exons overlap on the same chromosome and strand. This reproduces gffcompare's
+    reference locus count ("Reference mRNAs : N in M loci"); gene names do not,
+    e.g. on 3L+ two genes can share one gffcompare locus (tipE / CG18675)."""
+    exons = {}
+    for line in Path(reference_gtf).read_text().splitlines():
+        fields = line.split("\t")
+        if len(fields) < 9 or fields[2] != "exon":
+            continue
+        tid = re.search(r'transcript_id "([^"]+)"', fields[8]).group(1)
+        exons.setdefault((fields[0], fields[6], tid), []).append(
+            (int(fields[3]), int(fields[4])))
+    parent = {key: key for key in exons}
+
+    def find(key):
+        while parent[key] != key:
+            parent[key] = parent[parent[key]]
+            key = parent[key]
+        return key
+
+    by_strand = {}
+    for key, intervals in exons.items():
+        by_strand.setdefault(key[:2], []).extend((s, e, key) for s, e in intervals)
+    for intervals in by_strand.values():
+        intervals.sort()
+        end, current = -1, None
+        for start, stop, key in intervals:
+            if start <= end:
+                parent[find(key)] = find(current)
+            if stop > end:
+                end, current = stop, key
+    return {key[2]: find(key) for key in exons}
+
+
+def exact_reference_loci(refmap, reference_gtf=None):
+    """Return reference loci having at least one strict (=) transcript match.
+
+    With reference_gtf, loci are gffcompare-style exon-overlap clusters (matches
+    the "Matching loci" count in .stats); without it, the refmap ref_gene name,
+    which agrees on chrX+ but not on every chromosome."""
     frame = pd.read_csv(refmap, sep="\t", dtype=str)
-    required = {"ref_gene", "class_code"}
+    required = {"ref_gene", "ref_id", "class_code"}
     if not required.issubset(frame.columns):
         raise RuntimeError(f"missing {sorted(required - set(frame.columns))} in {refmap}")
-    return set(frame.loc[frame["class_code"] == "=", "ref_gene"].dropna())
+    exact = frame.loc[frame["class_code"] == "="]
+    if reference_gtf is None:
+        return set(exact["ref_gene"].dropna())
+    loci = reference_locus_map(reference_gtf)
+    return {loci[tid] for tid in exact["ref_id"].dropna()}
 
 
 def normalize_gtf(gffread, source, destination, cwd):
@@ -180,8 +223,8 @@ def main():
         union_metrics = parse_stats(stats)
         rows.append({"method": "EviAnn+UniAnn", **union_metrics})
 
-        baseline_matches = exact_reference_loci(baseline_refmap)
-        union_matches = exact_reference_loci(union_refmap)
+        baseline_matches = exact_reference_loci(baseline_refmap, args.reference_gtf)
+        union_matches = exact_reference_loci(union_refmap, args.reference_gtf)
         if len(baseline_matches) != baseline_metrics["matched_loci"]:
             raise RuntimeError("EviAnn refmap exact loci disagree with gffcompare stats")
         if len(union_matches) != union_metrics["matched_loci"]:

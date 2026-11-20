@@ -1,0 +1,6 @@
+rule	epochs	X_gap_f1_mean	X_gap_f1_sd	X_EU_f1_mean	X_EU_f1_sd	X_UniAnn_f1_mean	X_UniAnn_f1_sd
+3L mean AP	7,6,5,8,5	0.3230	0.0145	85.0284	0.6064	75.7857	0.5491
+3L Gap F1	5,6,8,9,5	0.3199	0.0254	84.8378	1.4433	76.0162	1.0173
+3L EviAnn+UniAnn F1	10,6,8,9,5	0.3161	0.0230	84.7516	1.3874	76.4405	1.4916
+oracle: chrX Gap F1	5,7,5,9,3	0.3316	0.0118	85.4825	0.6709	75.5558	2.0384
+oracle: chrX EviAnn+UniAnn F1	8,7,5,9,3	0.3302	0.0110	85.4868	0.6730	75.7475	2.1658

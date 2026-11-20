@@ -1,0 +1,10 @@
+[2026-11-19T15:56:51-05:00] seed 44 epoch 5: vector scaling (3L validation windows)
+[2026-11-19T15:58:58-05:00] seed 44 epoch 5 chrX: site scores
+[2026-11-19T16:01:57-05:00] seed 44 epoch 5 chrX: joint-frame scores
+[2026-11-19T16:08:15-05:00] seed 44 epoch 5 chrX: UniAnn (background)
+[2026-11-19T16:08:15-05:00] seed 44 epoch 5 chr3L: site scores
+[2026-11-19T16:11:19-05:00] seed 44 epoch 5 chr3L: joint-frame scores
+[2026-11-19T16:16:16-05:00] seed 44 epoch 5 chrX: UniAnn done
+[2026-11-19T16:19:31-05:00] seed 44 epoch 5 chr3L: UniAnn (background)
+[2026-11-19T16:29:05-05:00] seed 44 epoch 5 chr3L: UniAnn FAILED (see results/coleoptera_w1_gap_selection_perisoform_v1/seed44/epoch005/uniann_chr3L.log)
+[2026-11-19T16:29:05-05:00] gap selection evaluation complete

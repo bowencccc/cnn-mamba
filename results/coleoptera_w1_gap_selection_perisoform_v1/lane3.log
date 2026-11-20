@@ -1,0 +1,66 @@
+[2026-11-19T16:31:12-05:00] seed 44 epoch 3: vector scaling (3L validation windows)
+[2026-11-19T16:36:01-05:00] seed 44 epoch 3 chrX: site scores
+[2026-11-19T16:42:01-05:00] seed 44 epoch 3 chrX: joint-frame scores
+[2026-11-19T16:51:22-05:00] seed 44 epoch 3 chrX: UniAnn (background)
+[2026-11-19T16:51:22-05:00] seed 44 epoch 3 chr3L: site scores
+[2026-11-19T16:57:12-05:00] seed 44 epoch 3 chr3L: joint-frame scores
+[2026-11-19T16:59:37-05:00] seed 44 epoch 3 chrX: UniAnn done
+[2026-11-19T17:06:29-05:00] seed 44 epoch 3 chr3L: UniAnn (background)
+[2026-11-19T17:06:29-05:00] seed 44 epoch 4: vector scaling (3L validation windows)
+[2026-11-19T17:08:50-05:00] seed 44 epoch 4 chrX: site scores
+[2026-11-19T17:12:46-05:00] seed 44 epoch 4 chrX: joint-frame scores
+[2026-11-19T17:17:13-05:00] seed 44 epoch 3 chr3L: UniAnn done
+[2026-11-19T17:21:08-05:00] seed 44 epoch 4 chrX: UniAnn (background)
+[2026-11-19T17:21:08-05:00] seed 44 epoch 4 chr3L: site scores
+[2026-11-19T17:25:57-05:00] seed 44 epoch 4 chr3L: joint-frame scores
+[2026-11-19T17:29:39-05:00] seed 44 epoch 4 chrX: UniAnn done
+[2026-11-19T17:34:56-05:00] seed 44 epoch 4 chr3L: UniAnn (background)
+[2026-11-19T17:34:56-05:00] seed 44 epoch 5 chr3L: UniAnn (background)
+[2026-11-19T17:34:56-05:00] seed 44 epoch 6: vector scaling (3L validation windows)
+[2026-11-19T17:38:54-05:00] seed 44 epoch 5 chr3L: UniAnn done
+[2026-11-19T17:39:22-05:00] seed 44 epoch 6 chrX: site scores
+[2026-11-19T17:42:21-05:00] seed 44 epoch 6 chrX: joint-frame scores
+[2026-11-19T17:45:31-05:00] seed 44 epoch 4 chr3L: UniAnn done
+[2026-11-19T17:50:09-05:00] seed 44 epoch 6 chrX: UniAnn (background)
+[2026-11-19T17:50:09-05:00] seed 44 epoch 6 chr3L: site scores
+[2026-11-19T17:56:43-05:00] seed 44 epoch 6 chr3L: joint-frame scores
+[2026-11-19T17:58:50-05:00] seed 44 epoch 6 chrX: UniAnn done
+[2026-11-19T18:05:26-05:00] seed 44 epoch 6 chr3L: UniAnn (background)
+[2026-11-19T18:05:26-05:00] seed 44 epoch 7: vector scaling (3L validation windows)
+[2026-11-19T18:09:44-05:00] seed 44 epoch 7 chrX: site scores
+[2026-11-19T18:12:39-05:00] seed 44 epoch 7 chrX: joint-frame scores
+[2026-11-19T18:15:35-05:00] seed 44 epoch 6 chr3L: UniAnn done
+[2026-11-19T18:19:45-05:00] seed 44 epoch 7 chrX: UniAnn (background)
+[2026-11-19T18:19:45-05:00] seed 44 epoch 7 chr3L: site scores
+[2026-11-19T18:25:59-05:00] seed 44 epoch 7 chr3L: joint-frame scores
+[2026-11-19T18:28:20-05:00] seed 44 epoch 7 chrX: UniAnn done
+[2026-11-19T18:34:43-05:00] seed 44 epoch 7 chr3L: UniAnn (background)
+[2026-11-19T18:34:43-05:00] seed 44 epoch 8: vector scaling (3L validation windows)
+[2026-11-19T18:38:50-05:00] seed 44 epoch 8 chrX: site scores
+[2026-11-19T18:43:14-05:00] seed 44 epoch 8 chrX: joint-frame scores
+[2026-11-19T18:45:04-05:00] seed 44 epoch 7 chr3L: UniAnn done
+[2026-11-19T18:50:46-05:00] seed 44 epoch 8 chrX: UniAnn (background)
+[2026-11-19T18:50:46-05:00] seed 44 epoch 8 chr3L: site scores
+[2026-11-19T18:57:43-05:00] seed 44 epoch 8 chr3L: joint-frame scores
+[2026-11-19T18:59:50-05:00] seed 44 epoch 8 chrX: UniAnn done
+[2026-11-19T19:07:51-05:00] seed 44 epoch 8 chr3L: UniAnn (background)
+[2026-11-19T19:07:51-05:00] seed 44 epoch 9: vector scaling (3L validation windows)
+[2026-11-19T19:11:18-05:00] seed 44 epoch 9 chrX: site scores
+[2026-11-19T19:15:33-05:00] seed 44 epoch 9 chrX: joint-frame scores
+[2026-11-19T19:18:32-05:00] seed 44 epoch 8 chr3L: UniAnn done
+[2026-11-19T19:23:59-05:00] seed 44 epoch 9 chrX: UniAnn (background)
+[2026-11-19T19:23:59-05:00] seed 44 epoch 9 chr3L: site scores
+[2026-11-19T19:29:00-05:00] seed 44 epoch 9 chr3L: joint-frame scores
+[2026-11-19T19:33:16-05:00] seed 44 epoch 9 chrX: UniAnn done
+[2026-11-19T19:39:42-05:00] seed 44 epoch 9 chr3L: UniAnn (background)
+[2026-11-19T19:39:43-05:00] seed 44 epoch 10: vector scaling (3L validation windows)
+[2026-11-19T19:42:45-05:00] seed 44 epoch 10 chrX: site scores
+[2026-11-19T19:46:25-05:00] seed 44 epoch 10 chrX: joint-frame scores
+[2026-11-19T19:49:41-05:00] seed 44 epoch 9 chr3L: UniAnn done
+[2026-11-19T19:56:53-05:00] seed 44 epoch 10 chrX: UniAnn (background)
+[2026-11-19T19:56:53-05:00] seed 44 epoch 10 chr3L: site scores
+[2026-11-19T20:01:38-05:00] seed 44 epoch 10 chr3L: joint-frame scores
+[2026-11-19T20:05:43-05:00] seed 44 epoch 10 chrX: UniAnn done
+[2026-11-19T20:12:44-05:00] seed 44 epoch 10 chr3L: UniAnn (background)
+[2026-11-19T20:22:39-05:00] seed 44 epoch 10 chr3L: UniAnn done
+[2026-11-19T20:22:39-05:00] gap selection evaluation complete
