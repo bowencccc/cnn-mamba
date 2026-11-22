@@ -1,0 +1,21 @@
+{
+  "schema": "cnn_mamba_k7_droso_coleoptera_w1_seeds_fixed15_perisoform_lr1e4_v1",
+  "seed": 42,
+  "epochs": 15,
+  "scheduler_epochs": 15,
+  "notes": "Same as droso_coleoptera_w1_seeds_fixed15_perisoform.json (per-isoform windows, fixed 15 epochs, no early stopping, 200-step warmup, cosine over 15 epochs) except peak lr 1e-4 (floor 1e-5), to compare with the union 1e-4 sweep (droso_coleoptera_w1_seeds_fixed15_lr1e4.json). Requested by A. Zimin. last_model.pt and best_model.pt are both evaluated.",
+  "cells": [
+    {
+      "id": "w1",
+      "window_bp": 1000,
+      "stride_bp": 500,
+      "micro_batch": 80,
+      "grad_accum": 1,
+      "score_batch": 64,
+      "amp": true,
+      "amp_dtype": "bf16",
+      "dropout": 0.0
+    }
+  ],
+  "lr": 0.0001
+}

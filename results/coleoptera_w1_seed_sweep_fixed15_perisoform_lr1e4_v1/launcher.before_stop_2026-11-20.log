@@ -1,0 +1,836 @@
++ set -euo pipefail
++++ dirname scripts/run_coleoptera_w1_seed_sweep.sh
+++ cd scripts/..
+++ pwd
++ repo_dir=/home/bchen103/cnn-mamba
++ python_bin=/home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python
++ uniann_root=/home/bchen103/UniAnn-latest
++ uniann_branch=origin/main
++ seeds='42 43 44 45 46'
++ config=/home/bchen103/cnn-mamba/configs/droso_coleoptera_w1_seeds_fixed15_perisoform_lr1e4.json
++ source_gff=/home/bchen103/cnn-mamba/data/raw/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.pseudo_label.coleoptera.gff.gz
++ processed_root=/home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_w1_perisoform_v1
++ data_root=/home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_w1_perisoform_v1/w1
++ chrx_eviann=/home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_v1/chrX_plus_EviAnn_CDS.gff
++ fasta=/home/bchen103/cnn-mamba/data/raw/dmel_genome.fa
++ chrx_fasta=/home/bchen103/cnn-mamba/data/raw/dmel_chrX.fa
++ reference=/home/bchen103/cnn-mamba/data/raw/dmel_chrX_plus_CDS_reference.gtf
++ sweep=coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1
++ eval_checkpoints='last best'
++ cell=w1
++ batch_size=64
++ export PYTHONPATH=/home/bchen103/cnn-mamba/src
++ PYTHONPATH=/home/bchen103/cnn-mamba/src
++ cd /home/bchen103/cnn-mamba
++ mkdir -p results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1
++ pgrep -f 'run_cell.py.*--experiment-tag coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/'
+++ awk '$1 == "NC_004354.4" {print $2}' /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa.fai
++ chrom_len=23542271
++ [[ -n 23542271 ]]
++ [[ ! -f /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_w1_perisoform_v1/.complete.json ]]
++ [[ ! -s /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_v1/chrX_plus_EviAnn_CDS.gff ]]
++ for seed in $seeds
++ tag=coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42
++ run_dir=runs/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1
++ [[ ! -s runs/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/results.json ]]
++ log 'seed 42: training'
+++ date -Is
++ echo '[2026-11-20T06:27:16-05:00] seed 42: training'
+[2026-11-20T06:27:16-05:00] seed 42: training
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python scripts/run_cell.py --config /home/bchen103/cnn-mamba/configs/droso_coleoptera_w1_seeds_fixed15_perisoform_lr1e4.json --experiment-tag coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42 --cell w1 --regime chrxtrain --seed 42 --stages train --workers 4 --data-root /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_w1_perisoform_v1/w1 --frame-dilation 3 --joint-frame-aux-weight 0.1 --joint-noncoding-weight 0.1 --candidate-negative-weight 1.0
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.train --data-root /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_w1_perisoform_v1/w1 --mode baseline --architecture cnn_mamba --cnn-kernel-size 7 --epochs 15 --batch-size 80 --grad-accum 1 --window-size 1000 --stride 500 --workers 4 --seed 42 --output-dir /home/bchen103/cnn-mamba/runs/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1 --reference-name FlyBase --test-name chrX --frame-dilation 3 --phase-aux-weight 0.0 --cds-aux-weight 0.0 --cds-boundary-radius 0 --cds-far-loss-weight 0.1 --joint-frame-aux-weight 0.1 --joint-noncoding-weight 0.1 --candidate-negative-weight 1.0 --backbone-lr-multiplier 1.0 --freeze-pretrained-layers 0 --freeze-pretrained-epochs 0 --lr 0.0001 --scheduler-epochs 15 --include-test-in-train --amp --amp-dtype bf16 --dropout 0.0
+mode=baseline device=NVIDIA RTX A4500 train=139,195 val=33,287 test=0 epochs=15 scheduler_epochs=15 scheduler_steps=26085 lr=0.0001 warmup_steps=200 start_epoch=1 early_stopping_patience=0 early_stopping_min_delta=0 candidate_negative_weight=1 candidate_propensity_root=None candidate_propensity_negative_weight=1 use_start_stop_weights=False frame_dilation=3 phase_aux_weight=0 cds_aux_weight=0 cds_boundary_radius=0 cds_far_loss_weight=0.1 joint_frame_aux_weight=0.1 joint_noncoding_weight=0.1 backbone_lr_multiplier=1 freeze_pretrained_layers=0 freeze_pretrained_epochs=0 frozen_parameter_count=0 record_gradient_norms=False shared_backbone_parameters=4,404,416 gradient_probe=None
+epoch=1 batch=500/1,739 loss=0.32220 lr=1.00e-04
+epoch=1 batch=1,000/1,739 loss=0.19711 lr=9.98e-05
+epoch=1 batch=1,500/1,739 loss=0.15040 lr=9.94e-05
+Epoch 1: train loss=0.13696; validation loss=0.04844; mean FlyBase AP=0.7404
+    donor    AP=0.8846 F1=0.8177 P=0.8748 R=0.7676 thr=0.3612 pos=6,673/856,417
+    acceptor AP=0.8747 F1=0.8146 P=0.8334 R=0.7968 thr=0.3201 pos=6,785/932,536
+    start    AP=0.5953 F1=0.5749 P=0.6389 R=0.5226 thr=0.2420 pos=2,367/280,522
+    stop     AP=0.6069 F1=0.6008 P=0.6689 R=0.5453 thr=0.1570 pos=2,342/780,975
+    Joint CDS AP=0.9618 F1=0.9047 P=0.9054 R=0.9039 thr=0.9492
+epoch=2 batch=500/1,739 loss=0.04720 lr=9.86e-05
+epoch=2 batch=1,000/1,739 loss=0.04583 lr=9.79e-05
+epoch=2 batch=1,500/1,739 loss=0.04409 lr=9.70e-05
+Epoch 2: train loss=0.04322; validation loss=0.02789; mean FlyBase AP=0.8273
+    donor    AP=0.9133 F1=0.8524 P=0.8917 R=0.8164 thr=0.2830 pos=6,673/856,417
+    acceptor AP=0.9079 F1=0.8526 P=0.8811 R=0.8259 thr=0.4100 pos=6,785/932,536
+    start    AP=0.7017 F1=0.6668 P=0.7105 R=0.6282 thr=0.2987 pos=2,367/280,522
+    stop     AP=0.7864 F1=0.7527 P=0.8393 R=0.6823 thr=0.2654 pos=2,342/780,975
+    Joint CDS AP=0.9715 F1=0.9270 P=0.9265 R=0.9275 thr=0.9726
+epoch=3 batch=500/1,739 loss=0.03368 lr=9.54e-05
+epoch=3 batch=1,000/1,739 loss=0.03354 lr=9.41e-05
+epoch=3 batch=1,500/1,739 loss=0.03265 lr=9.26e-05
+Epoch 3: train loss=0.03210; validation loss=0.02828; mean FlyBase AP=0.8355
+    donor    AP=0.9290 F1=0.8726 P=0.9040 R=0.8434 thr=0.4432 pos=6,673/856,417
+    acceptor AP=0.9126 F1=0.8531 P=0.8806 R=0.8273 thr=0.2967 pos=6,785/932,536
+    start    AP=0.7178 F1=0.6704 P=0.7577 R=0.6012 thr=0.2537 pos=2,367/280,522
+    stop     AP=0.7827 F1=0.7528 P=0.8313 R=0.6879 thr=0.2459 pos=2,342/780,975
+    Joint CDS AP=0.9776 F1=0.9348 P=0.9352 R=0.9343 thr=0.9648
+epoch=4 batch=500/1,739 loss=0.02669 lr=9.03e-05
+epoch=4 batch=1,000/1,739 loss=0.02622 lr=8.85e-05
+epoch=4 batch=1,500/1,739 loss=0.02636 lr=8.66e-05
+Epoch 4: train loss=0.02635; validation loss=0.05300; mean FlyBase AP=0.7828
+    donor    AP=0.9188 F1=0.8577 P=0.8800 R=0.8365 thr=0.1443 pos=6,673/856,417
+    acceptor AP=0.9080 F1=0.8509 P=0.8861 R=0.8184 thr=0.2615 pos=6,785/932,536
+    start    AP=0.6716 F1=0.6506 P=0.6969 R=0.6101 thr=0.1385 pos=2,367/280,522
+    stop     AP=0.6328 F1=0.6072 P=0.7173 R=0.5265 thr=0.1004 pos=2,342/780,975
+    Joint CDS AP=0.9786 F1=0.9297 P=0.9343 R=0.9252 thr=0.6366
+epoch=5 batch=500/1,739 loss=0.02356 lr=8.37e-05
+epoch=5 batch=1,000/1,739 loss=0.02316 lr=8.15e-05
+epoch=5 batch=1,500/1,739 loss=0.02295 lr=7.92e-05
+Epoch 5: train loss=0.02257; validation loss=0.02134; mean FlyBase AP=0.8923
+    donor    AP=0.9556 F1=0.9126 P=0.9418 R=0.8852 thr=0.1521 pos=6,673/856,417
+    acceptor AP=0.9437 F1=0.8962 P=0.9102 R=0.8827 thr=0.1844 pos=6,785/932,536
+    start    AP=0.8102 F1=0.7639 P=0.8202 R=0.7148 thr=0.1922 pos=2,367/280,522
+    stop     AP=0.8595 F1=0.8345 P=0.9302 R=0.7566 thr=0.2694 pos=2,342/780,975
+    Joint CDS AP=0.9889 F1=0.9578 P=0.9580 R=0.9576 thr=0.9179
+epoch=6 batch=500/1,739 loss=0.02017 lr=7.57e-05
+epoch=6 batch=1,000/1,739 loss=0.01975 lr=7.33e-05
+epoch=6 batch=1,500/1,739 loss=0.02027 lr=7.08e-05
+Epoch 6: train loss=0.02019; validation loss=0.02308; mean FlyBase AP=0.8921
+    donor    AP=0.9545 F1=0.9088 P=0.9311 R=0.8875 thr=0.3123 pos=6,673/856,417
+    acceptor AP=0.9435 F1=0.8962 P=0.9211 R=0.8727 thr=0.2811 pos=6,785/932,536
+    start    AP=0.8144 F1=0.7625 P=0.7905 R=0.7364 thr=0.2908 pos=2,367/280,522
+    stop     AP=0.8559 F1=0.8392 P=0.9114 R=0.7775 thr=0.1687 pos=2,342/780,975
+    Joint CDS AP=0.9890 F1=0.9610 P=0.9604 R=0.9616 thr=0.9297
+epoch=7 batch=500/1,739 loss=0.01781 lr=6.69e-05
+epoch=7 batch=1,000/1,739 loss=0.01753 lr=6.43e-05
+epoch=7 batch=1,500/1,739 loss=0.01732 lr=6.16e-05
+Epoch 7: train loss=0.01719; validation loss=0.02416; mean FlyBase AP=0.8895
+    donor    AP=0.9564 F1=0.9142 P=0.9438 R=0.8864 thr=0.2733 pos=6,673/856,417
+    acceptor AP=0.9484 F1=0.9006 P=0.9110 R=0.8905 thr=0.2352 pos=6,785/932,536
+    start    AP=0.7987 F1=0.7589 P=0.8221 R=0.7047 thr=0.3905 pos=2,367/280,522
+    stop     AP=0.8544 F1=0.8267 P=0.9050 R=0.7609 thr=0.2811 pos=2,342/780,975
+    Joint CDS AP=0.9879 F1=0.9604 P=0.9605 R=0.9603 thr=0.9062
+epoch=8 batch=500/1,739 loss=0.01585 lr=5.76e-05
+epoch=8 batch=1,000/1,739 loss=0.01542 lr=5.48e-05
+epoch=8 batch=1,500/1,739 loss=0.01525 lr=5.21e-05
+Epoch 8: train loss=0.01527; validation loss=0.03563; mean FlyBase AP=0.8649
+    donor    AP=0.9470 F1=0.8984 P=0.9275 R=0.8710 thr=0.1922 pos=6,673/856,417
+    acceptor AP=0.9413 F1=0.8907 P=0.9059 R=0.8759 thr=0.2147 pos=6,785/932,536
+    start    AP=0.7591 F1=0.7200 P=0.8016 R=0.6536 thr=0.2254 pos=2,367/280,522
+    stop     AP=0.8121 F1=0.7844 P=0.8834 R=0.7054 thr=0.2713 pos=2,342/780,975
+    Joint CDS AP=0.9850 F1=0.9502 P=0.9567 R=0.9438 thr=0.8437
+epoch=9 batch=500/1,739 loss=0.01311 lr=4.81e-05
+epoch=9 batch=1,000/1,739 loss=0.01323 lr=4.54e-05
+epoch=9 batch=1,500/1,739 loss=0.01325 lr=4.28e-05
+Epoch 9: train loss=0.01328; validation loss=0.02768; mean FlyBase AP=0.8813
+    donor    AP=0.9567 F1=0.9178 P=0.9401 R=0.8966 thr=0.2449 pos=6,673/856,417
+    acceptor AP=0.9472 F1=0.9051 P=0.9244 R=0.8865 thr=0.1746 pos=6,785/932,536
+    start    AP=0.7805 F1=0.7555 P=0.8087 R=0.7089 thr=0.2635 pos=2,367/280,522
+    stop     AP=0.8409 F1=0.8310 P=0.9092 R=0.7652 thr=0.2264 pos=2,342/780,975
+    Joint CDS AP=0.9838 F1=0.9620 P=0.9575 R=0.9666 thr=0.8789
+epoch=10 batch=500/1,739 loss=0.01236 lr=3.89e-05
+epoch=10 batch=1,000/1,739 loss=0.01204 lr=3.64e-05
+epoch=10 batch=1,500/1,739 loss=0.01194 lr=3.40e-05
+Epoch 10: train loss=0.01193; validation loss=0.02635; mean FlyBase AP=0.8834
+    donor    AP=0.9570 F1=0.9176 P=0.9479 R=0.8891 thr=0.3299 pos=6,673/856,417
+    acceptor AP=0.9512 F1=0.9070 P=0.9211 R=0.8933 thr=0.2537 pos=6,785/932,536
+    start    AP=0.7888 F1=0.7535 P=0.7849 R=0.7245 thr=0.2430 pos=2,367/280,522
+    stop     AP=0.8366 F1=0.8258 P=0.8848 R=0.7741 thr=0.2322 pos=2,342/780,975
+    Joint CDS AP=0.9818 F1=0.9598 P=0.9543 R=0.9653 thr=0.9179
+epoch=11 batch=500/1,739 loss=0.01038 lr=3.05e-05
+epoch=11 batch=1,000/1,739 loss=0.01039 lr=2.82e-05
+epoch=11 batch=1,500/1,739 loss=0.01037 lr=2.61e-05
+Epoch 11: train loss=0.01038; validation loss=0.04019; mean FlyBase AP=0.8658
+    donor    AP=0.9496 F1=0.9115 P=0.9324 R=0.8915 thr=0.2078 pos=6,673/856,417
+    acceptor AP=0.9450 F1=0.9026 P=0.9224 R=0.8836 thr=0.2254 pos=6,785/932,536
+    start    AP=0.7492 F1=0.7289 P=0.8173 R=0.6578 thr=0.3690 pos=2,367/280,522
+    stop     AP=0.8195 F1=0.8094 P=0.8817 R=0.7481 thr=0.2557 pos=2,342/780,975
+    Joint CDS AP=0.9808 F1=0.9555 P=0.9543 R=0.9568 thr=0.6991
+epoch=12 batch=500/1,739 loss=0.00929 lr=2.31e-05
+epoch=12 batch=1,000/1,739 loss=0.00929 lr=2.13e-05
+epoch=12 batch=1,500/1,739 loss=0.00941 lr=1.95e-05
+Epoch 12: train loss=0.00941; validation loss=0.05721; mean FlyBase AP=0.8428
+    donor    AP=0.9420 F1=0.9054 P=0.9426 R=0.8710 thr=0.2195 pos=6,673/856,417
+    acceptor AP=0.9361 F1=0.8959 P=0.9166 R=0.8761 thr=0.1941 pos=6,785/932,536
+    start    AP=0.7084 F1=0.7082 P=0.7882 R=0.6430 thr=0.3026 pos=2,367/280,522
+    stop     AP=0.7846 F1=0.7898 P=0.8766 R=0.7186 thr=0.1893 pos=2,342/780,975
+    Joint CDS AP=0.9770 F1=0.9502 P=0.9545 R=0.9460 thr=0.5038
+epoch=13 batch=500/1,739 loss=0.00829 lr=1.72e-05
+epoch=13 batch=1,000/1,739 loss=0.00842 lr=1.58e-05
+epoch=13 batch=1,500/1,739 loss=0.00852 lr=1.45e-05
+Epoch 13: train loss=0.00853; validation loss=0.04580; mean FlyBase AP=0.8540
+    donor    AP=0.9483 F1=0.9141 P=0.9352 R=0.8939 thr=0.1590 pos=6,673/856,417
+    acceptor AP=0.9376 F1=0.9008 P=0.9205 R=0.8819 thr=0.1346 pos=6,785/932,536
+    start    AP=0.7265 F1=0.7114 P=0.8033 R=0.6384 thr=0.3495 pos=2,367/280,522
+    stop     AP=0.8035 F1=0.8068 P=0.9081 R=0.7259 thr=0.3026 pos=2,342/780,975
+    Joint CDS AP=0.9781 F1=0.9567 P=0.9577 R=0.9558 thr=0.6835
+epoch=14 batch=500/1,739 loss=0.00772 lr=1.29e-05
+epoch=14 batch=1,000/1,739 loss=0.00777 lr=1.20e-05
+epoch=14 batch=1,500/1,739 loss=0.00787 lr=1.13e-05
+Epoch 14: train loss=0.00788; validation loss=0.05584; mean FlyBase AP=0.8438
+    donor    AP=0.9421 F1=0.9095 P=0.9456 R=0.8761 thr=0.2029 pos=6,673/856,417
+    acceptor AP=0.9349 F1=0.8987 P=0.9188 R=0.8794 thr=0.1531 pos=6,785/932,536
+    start    AP=0.7039 F1=0.6992 P=0.7736 R=0.6379 thr=0.2352 pos=2,367/280,522
+    stop     AP=0.7944 F1=0.8036 P=0.9135 R=0.7173 thr=0.3026 pos=2,342/780,975
+    Joint CDS AP=0.9730 F1=0.9533 P=0.9543 R=0.9524 thr=0.4530
+epoch=15 batch=500/1,739 loss=0.00725 lr=1.05e-05
+epoch=15 batch=1,000/1,739 loss=0.00742 lr=1.02e-05
+epoch=15 batch=1,500/1,739 loss=0.00746 lr=1.00e-05
+Epoch 15: train loss=0.00747; validation loss=0.05797; mean FlyBase AP=0.8443
+    donor    AP=0.9425 F1=0.9106 P=0.9380 R=0.8848 thr=0.1775 pos=6,673/856,417
+    acceptor AP=0.9328 F1=0.8984 P=0.9199 R=0.8780 thr=0.1570 pos=6,785/932,536
+    start    AP=0.7101 F1=0.7042 P=0.7924 R=0.6337 thr=0.3338 pos=2,367/280,522
+    stop     AP=0.7920 F1=0.8033 P=0.9052 R=0.7220 thr=0.2791 pos=2,342/780,975
+    Joint CDS AP=0.9716 F1=0.9553 P=0.9563 R=0.9543 thr=0.4921
+finished in 2.57 h
++ for ckpt in $eval_checkpoints
++ sub=
++ [[ last == last ]]
++ sub=/last
++ checkpoint=runs/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last_model.pt
++ score_dir=artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last
++ result_dir=results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last
++ calibration_dir=results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/calibration
++ vector_dir=results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_scaling
++ prediction_dir=artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_vector_scaled
++ coding_tsv=artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_vector_scaled/chrX_plus_joint_frame_probabilities_vector.tsv
++ work_dir=work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header
++ [[ -s work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/locus_metrics.tsv ]]
++ [[ ! -s artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_scores.tsv ]]
++ log 'seed 42 (last): score, AUPRC, site export'
+++ date -Is
++ echo '[2026-11-20T09:01:58-05:00] seed 42 (last): score, AUPRC, site export'
+[2026-11-20T09:01:58-05:00] seed 42 (last): score, AUPRC, site export
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python scripts/run_cell.py --config /home/bchen103/cnn-mamba/configs/droso_coleoptera_w1_seeds_fixed15_perisoform_lr1e4.json --experiment-tag coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42 --cell w1 --regime chrxtrain --seed 42 --stages score,auprc,export --eval-checkpoint last --workers 4 --data-root /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_w1_perisoform_v1/w1
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.score_chromosome --checkpoint /home/bchen103/cnn-mamba/runs/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last_model.pt --output-dir /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last --fasta /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa --chrom NC_004354.4 --display-chrom chrX --batch-size 64
+processed=512/47,085
+processed=1,024/47,085
+processed=1,536/47,085
+processed=2,048/47,085
+processed=2,560/47,085
+processed=3,008/47,085
+processed=3,520/47,085
+processed=4,032/47,085
+processed=4,544/47,085
+processed=5,056/47,085
+processed=5,504/47,085
+processed=6,016/47,085
+processed=6,528/47,085
+processed=7,040/47,085
+processed=7,552/47,085
+processed=8,000/47,085
+processed=8,512/47,085
+processed=9,024/47,085
+processed=9,536/47,085
+processed=10,048/47,085
+processed=10,560/47,085
+processed=11,008/47,085
+processed=11,520/47,085
+processed=12,032/47,085
+processed=12,544/47,085
+processed=13,056/47,085
+processed=13,504/47,085
+processed=14,016/47,085
+processed=14,528/47,085
+processed=15,040/47,085
+processed=15,552/47,085
+processed=16,000/47,085
+processed=16,512/47,085
+processed=17,024/47,085
+processed=17,536/47,085
+processed=18,048/47,085
+processed=18,560/47,085
+processed=19,008/47,085
+processed=19,520/47,085
+processed=20,032/47,085
+processed=20,544/47,085
+processed=21,056/47,085
+processed=21,504/47,085
+processed=22,016/47,085
+processed=22,528/47,085
+processed=23,040/47,085
+processed=23,552/47,085
+processed=24,000/47,085
+processed=24,512/47,085
+processed=25,024/47,085
+processed=25,536/47,085
+processed=26,048/47,085
+processed=26,560/47,085
+processed=27,008/47,085
+processed=27,520/47,085
+processed=28,032/47,085
+processed=28,544/47,085
+processed=29,056/47,085
+processed=29,504/47,085
+processed=30,016/47,085
+processed=30,528/47,085
+processed=31,040/47,085
+processed=31,552/47,085
+processed=32,000/47,085
+processed=32,512/47,085
+processed=33,024/47,085
+processed=33,536/47,085
+processed=34,048/47,085
+processed=34,560/47,085
+processed=35,008/47,085
+processed=35,520/47,085
+processed=36,032/47,085
+processed=36,544/47,085
+processed=37,056/47,085
+processed=37,504/47,085
+processed=38,016/47,085
+processed=38,528/47,085
+processed=39,040/47,085
+processed=39,552/47,085
+processed=40,000/47,085
+processed=40,512/47,085
+processed=41,024/47,085
+processed=41,536/47,085
+processed=42,048/47,085
+processed=42,560/47,085
+processed=43,008/47,085
+processed=43,520/47,085
+processed=44,032/47,085
+processed=44,544/47,085
+processed=45,056/47,085
+processed=45,504/47,085
+processed=46,016/47,085
+processed=46,528/47,085
+processed=47,040/47,085
+processed=47,085/47,085
+complete: /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.evaluate_candidates --score-dir /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last --reference-gtf /home/bchen103/cnn-mamba/data/raw/dmel_reference.gtf --fasta /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa --chrom NC_004354.4 --output /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/candidate_auprc.tsv
+donor: AUPRC=0.954362 positives=3,403/1,236,362
+acceptor: AUPRC=0.953372 positives=3,438/1,245,749
+start: AUPRC=0.788991 positives=1,281/411,520
+stop: AUPRC=0.845475 positives=1,265/1,060,569
+mean AUPRC=0.885550: /zfs/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/candidate_auprc.tsv
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.export_uniann_scores --score-dir /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last --output /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_scores.tsv --chrom X --fasta /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa --accession NC_004354.4
+motif audit passed: {'donor': {'matches': 1236362, 'total': 1236362, 'fraction': 1.0}, 'acceptor': {'matches': 1245749, 'total': 1245749, 'fraction': 1.0}, 'start': {'matches': 411520, 'total': 411520, 'fraction': 1.0}, 'stop': {'matches': 1060569, 'total': 1060569, 'fraction': 1.0}}
+chrX_plus_scores.tsv: 3,954,200/3,954,200 rows, 110,393 rows/s
+finished in 0.6 min: /zfs/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_scores.tsv
++ log 'seed 42 (last): vector scaling (fit on validation split)'
+++ date -Is
++ echo '[2026-11-20T09:05:15-05:00] seed 42 (last): vector scaling (fit on validation split)'
+[2026-11-20T09:05:15-05:00] seed 42 (last): vector scaling (fit on validation split)
++ [[ ! -s results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/calibration/calibration_sample.npz ]]
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.calibrate_joint_frame --checkpoint runs/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last_model.pt --data-root /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_w1_perisoform_v1/w1 --split val --output-dir results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/calibration --batch-size 64 --workers 4 --samples-per-window 32 --seed 42 --bins 20 --save-sample
+batches=500/521 sampled=1,023,745
+batches=521/521 sampled=1,064,899
+{
+  "temperature": 1.5878132979864081,
+  "diagnostic_group_balanced_temperature": 1.709268982880122,
+  "before": {
+    "nll": 0.08852586150169373,
+    "brier": 0.03347624093294144,
+    "ece": 0.012600554153323174,
+    "mean_max_probability": 0.9933395981788635,
+    "fraction_max_ge_0.99": 0.9430931806564331
+  },
+  "after": {
+    "nll": 0.0708574429154396,
+    "brier": 0.03217698261141777,
+    "ece": 0.0015534153208136559,
+    "mean_max_probability": 0.9821469187736511,
+    "fraction_max_ge_0.99": 0.7503669261932373
+  },
+  "argmax_changes": 0,
+  "output": "results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/calibration/temperature.json"
+}
++ [[ ! -s results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_scaling/vector_scaling.json ]]
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.fit_vector_scaling --sample results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/calibration/calibration_sample.npz --metadata-json results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/calibration/temperature.json --output-dir results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_scaling --regularization 0.0001
+results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_scaling/vector_scaling.json
++ [[ ! -s artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_vector_scaled/joint_frame_probabilities.npy ]]
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.score_joint_frame_chromosome --checkpoint runs/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last_model.pt --fasta /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa --chrom NC_004354.4 --display-chrom chrX --output-dir artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_vector_scaled --batch-size 64 --vector-calibration-json results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_scaling/vector_scaling.json
+processed=512/47,085
+processed=1,024/47,085
+processed=1,536/47,085
+processed=2,048/47,085
+processed=2,560/47,085
+processed=3,008/47,085
+processed=3,520/47,085
+processed=4,032/47,085
+processed=4,544/47,085
+processed=5,056/47,085
+processed=5,504/47,085
+processed=6,016/47,085
+processed=6,528/47,085
+processed=7,040/47,085
+processed=7,552/47,085
+processed=8,000/47,085
+processed=8,512/47,085
+processed=9,024/47,085
+processed=9,536/47,085
+processed=10,048/47,085
+processed=10,560/47,085
+processed=11,008/47,085
+processed=11,520/47,085
+processed=12,032/47,085
+processed=12,544/47,085
+processed=13,056/47,085
+processed=13,504/47,085
+processed=14,016/47,085
+processed=14,528/47,085
+processed=15,040/47,085
+processed=15,552/47,085
+processed=16,000/47,085
+processed=16,512/47,085
+processed=17,024/47,085
+processed=17,536/47,085
+processed=18,048/47,085
+processed=18,560/47,085
+processed=19,008/47,085
+processed=19,520/47,085
+processed=20,032/47,085
+processed=20,544/47,085
+processed=21,056/47,085
+processed=21,504/47,085
+processed=22,016/47,085
+processed=22,528/47,085
+processed=23,040/47,085
+processed=23,552/47,085
+processed=24,000/47,085
+processed=24,512/47,085
+processed=25,024/47,085
+processed=25,536/47,085
+processed=26,048/47,085
+processed=26,560/47,085
+processed=27,008/47,085
+processed=27,520/47,085
+processed=28,032/47,085
+processed=28,544/47,085
+processed=29,056/47,085
+processed=29,504/47,085
+processed=30,016/47,085
+processed=30,528/47,085
+processed=31,040/47,085
+processed=31,552/47,085
+processed=32,000/47,085
+processed=32,512/47,085
+processed=33,024/47,085
+processed=33,536/47,085
+processed=34,048/47,085
+processed=34,560/47,085
+processed=35,008/47,085
+processed=35,520/47,085
+processed=36,032/47,085
+processed=36,544/47,085
+processed=37,056/47,085
+processed=37,504/47,085
+processed=38,016/47,085
+processed=38,528/47,085
+processed=39,040/47,085
+processed=39,552/47,085
+processed=40,000/47,085
+processed=40,512/47,085
+processed=41,024/47,085
+processed=41,536/47,085
+processed=42,048/47,085
+processed=42,560/47,085
+processed=43,008/47,085
+processed=43,520/47,085
+processed=44,032/47,085
+processed=44,544/47,085
+processed=45,056/47,085
+processed=45,504/47,085
+processed=46,016/47,085
+processed=46,528/47,085
+processed=47,040/47,085
+processed=47,085/47,085
+complete: artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_vector_scaled
++ [[ ! -s artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_vector_scaled/chrX_plus_joint_frame_probabilities_vector.tsv.complete.json ]]
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.export_joint_frame_tsv --probabilities artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_vector_scaled/joint_frame_probabilities.npy --argmax artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_vector_scaled/joint_frame_argmax.npy --output artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_vector_scaled/chrX_plus_joint_frame_probabilities_vector.tsv --chrom chrX --strand +
+written=2,500,000/23,542,271
+written=5,000,000/23,542,271
+written=7,500,000/23,542,271
+written=10,000,000/23,542,271
+written=12,500,000/23,542,271
+written=15,000,000/23,542,271
+written=17,500,000/23,542,271
+written=20,000,000/23,542,271
+written=22,500,000/23,542,271
+written=23,542,271/23,542,271
+complete: artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_vector_scaled/chrX_plus_joint_frame_probabilities_vector.tsv
++ refresh_uniann
++ git -C /home/bchen103/UniAnn-latest fetch -q origin
++ git -C /home/bchen103/UniAnn-latest checkout -q --detach origin/main
++ local head built=
+++ git -C /home/bchen103/UniAnn-latest rev-parse HEAD
++ head=08eaf1595faf469069b9fd28a42973b84ce1e27e
++ [[ -f /home/bchen103/UniAnn-latest/bin/.built_commit ]]
+++ cat /home/bchen103/UniAnn-latest/bin/.built_commit
++ built=08eaf1595faf469069b9fd28a42973b84ce1e27e
++ [[ 08eaf1595faf469069b9fd28a42973b84ce1e27e != \0\8\e\a\f\1\5\9\5\f\a\f\4\6\9\0\6\9\b\9\f\d\2\8\a\4\2\9\7\3\b\8\4\c\e\1\e\2\7\e ]]
++ uniann_commit=08eaf1595faf469069b9fd28a42973b84ce1e27e
+++ git -C /home/bchen103/UniAnn-latest log -1 --format=%s
++ log 'UniAnn: /home/bchen103/UniAnn-latest @ 08eaf15 (fixed usage)'
+++ date -Is
++ echo '[2026-11-20T09:14:18-05:00] UniAnn: /home/bchen103/UniAnn-latest @ 08eaf15 (fixed usage)'
+[2026-11-20T09:14:18-05:00] UniAnn: /home/bchen103/UniAnn-latest @ 08eaf15 (fixed usage)
++ log 'seed 42 (last): UniAnn (built-in coding-frame scaling) + strict gffcompare'
+++ date -Is
++ echo '[2026-11-20T09:14:18-05:00] seed 42 (last): UniAnn (built-in coding-frame scaling) + strict gffcompare'
+[2026-11-20T09:14:18-05:00] seed 42 (last): UniAnn (built-in coding-frame scaling) + strict gffcompare
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.uniann_evaluate --uniann-root /home/bchen103/UniAnn-latest --fasta /home/bchen103/cnn-mamba/data/raw/dmel_chrX.fa --coding-frame artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_vector_scaled/chrX_plus_joint_frame_probabilities_vector.tsv --require-cnn-mamba-tsv-header --scores artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/chrX_plus_scores.tsv --reference-gtf /home/bchen103/cnn-mamba/data/raw/dmel_chrX_plus_CDS_reference.gtf --eviann-gff /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_v1/chrX_plus_EviAnn_CDS.gff --output-dir work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header
++ /home/bchen103/UniAnn-latest/bin/uniann.sh -f genome.fa -c coding.txt -s scores.txt -n
++ /home/bchen103/UniAnn-latest/bin/gffread -M /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/genome.fa.uniann.gff -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/uniann.merged.gff
++ /home/bchen103/UniAnn-latest/bin/gffcompare --strict-match -e 0 -r /zfs/bchen103/raw/uniann_ref/NC_004354.4.p.CDS.uniq.gtf /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/uniann.merged.gff -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/uniann
++ /home/bchen103/UniAnn-latest/bin/gffread -T /zfs/bchen103/cnn-mamba/data/processed/coleoptera_eviann_v1/chrX_plus_EviAnn_CDS.gff -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/eviann.normalized.gtf
++ /home/bchen103/UniAnn-latest/bin/gffread -T /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/genome.fa.uniann.gff -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/uniann.normalized.gtf
++ /home/bchen103/UniAnn-latest/bin/gffread -M /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/eviann.normalized.gtf -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/eviann.merged.gff
++ /home/bchen103/UniAnn-latest/bin/gffcompare --strict-match -e 0 -r /zfs/bchen103/raw/uniann_ref/NC_004354.4.p.CDS.uniq.gtf /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/eviann.merged.gff -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/eviann
++ /home/bchen103/UniAnn-latest/bin/gffread -M /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/eviann_uniann.concat.gtf -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/eviann_uniann.merged.gff
++ /home/bchen103/UniAnn-latest/bin/gffcompare --strict-match -e 0 -r /zfs/bchen103/raw/uniann_ref/NC_004354.4.p.CDS.uniq.gtf /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/eviann_uniann.merged.gff -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/last/vector_uniann_builtin_header/eviann_uniann
+       method   sn   pr        f1  reference_loci  predicted_loci  matched_loci  missed_loci  novel_loci
+       UniAnn 69.1 76.8 72.746813            1070             962           739          122          23
+EviAnn+UniAnn 76.1 83.9 79.809875            1070             967           814          111          24
++ echo 08eaf1595faf469069b9fd28a42973b84ce1e27e
++ log 'seed 42 (last) complete (UniAnn 08eaf15)'
+++ date -Is
++ echo '[2026-11-20T09:23:48-05:00] seed 42 (last) complete (UniAnn 08eaf15)'
+[2026-11-20T09:23:48-05:00] seed 42 (last) complete (UniAnn 08eaf15)
++ for ckpt in $eval_checkpoints
++ sub=
++ [[ best == last ]]
++ checkpoint=runs/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/best_model.pt
++ score_dir=artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1
++ result_dir=results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1
++ calibration_dir=results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/calibration
++ vector_dir=results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_scaling
++ prediction_dir=artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_vector_scaled
++ coding_tsv=artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_vector_scaled/chrX_plus_joint_frame_probabilities_vector.tsv
++ work_dir=work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header
++ [[ -s work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/locus_metrics.tsv ]]
++ [[ ! -s artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_scores.tsv ]]
++ log 'seed 42 (best): score, AUPRC, site export'
+++ date -Is
++ echo '[2026-11-20T09:23:48-05:00] seed 42 (best): score, AUPRC, site export'
+[2026-11-20T09:23:48-05:00] seed 42 (best): score, AUPRC, site export
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python scripts/run_cell.py --config /home/bchen103/cnn-mamba/configs/droso_coleoptera_w1_seeds_fixed15_perisoform_lr1e4.json --experiment-tag coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42 --cell w1 --regime chrxtrain --seed 42 --stages score,auprc,export --eval-checkpoint best --workers 4 --data-root /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_w1_perisoform_v1/w1
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.score_chromosome --checkpoint /home/bchen103/cnn-mamba/runs/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/best_model.pt --output-dir /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1 --fasta /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa --chrom NC_004354.4 --display-chrom chrX --batch-size 64
+processed=512/47,085
+processed=1,024/47,085
+processed=1,536/47,085
+processed=2,048/47,085
+processed=2,560/47,085
+processed=3,008/47,085
+processed=3,520/47,085
+processed=4,032/47,085
+processed=4,544/47,085
+processed=5,056/47,085
+processed=5,504/47,085
+processed=6,016/47,085
+processed=6,528/47,085
+processed=7,040/47,085
+processed=7,552/47,085
+processed=8,000/47,085
+processed=8,512/47,085
+processed=9,024/47,085
+processed=9,536/47,085
+processed=10,048/47,085
+processed=10,560/47,085
+processed=11,008/47,085
+processed=11,520/47,085
+processed=12,032/47,085
+processed=12,544/47,085
+processed=13,056/47,085
+processed=13,504/47,085
+processed=14,016/47,085
+processed=14,528/47,085
+processed=15,040/47,085
+processed=15,552/47,085
+processed=16,000/47,085
+processed=16,512/47,085
+processed=17,024/47,085
+processed=17,536/47,085
+processed=18,048/47,085
+processed=18,560/47,085
+processed=19,008/47,085
+processed=19,520/47,085
+processed=20,032/47,085
+processed=20,544/47,085
+processed=21,056/47,085
+processed=21,504/47,085
+processed=22,016/47,085
+processed=22,528/47,085
+processed=23,040/47,085
+processed=23,552/47,085
+processed=24,000/47,085
+processed=24,512/47,085
+processed=25,024/47,085
+processed=25,536/47,085
+processed=26,048/47,085
+processed=26,560/47,085
+processed=27,008/47,085
+processed=27,520/47,085
+processed=28,032/47,085
+processed=28,544/47,085
+processed=29,056/47,085
+processed=29,504/47,085
+processed=30,016/47,085
+processed=30,528/47,085
+processed=31,040/47,085
+processed=31,552/47,085
+processed=32,000/47,085
+processed=32,512/47,085
+processed=33,024/47,085
+processed=33,536/47,085
+processed=34,048/47,085
+processed=34,560/47,085
+processed=35,008/47,085
+processed=35,520/47,085
+processed=36,032/47,085
+processed=36,544/47,085
+processed=37,056/47,085
+processed=37,504/47,085
+processed=38,016/47,085
+processed=38,528/47,085
+processed=39,040/47,085
+processed=39,552/47,085
+processed=40,000/47,085
+processed=40,512/47,085
+processed=41,024/47,085
+processed=41,536/47,085
+processed=42,048/47,085
+processed=42,560/47,085
+processed=43,008/47,085
+processed=43,520/47,085
+processed=44,032/47,085
+processed=44,544/47,085
+processed=45,056/47,085
+processed=45,504/47,085
+processed=46,016/47,085
+processed=46,528/47,085
+processed=47,040/47,085
+processed=47,085/47,085
+complete: /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.evaluate_candidates --score-dir /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1 --reference-gtf /home/bchen103/cnn-mamba/data/raw/dmel_reference.gtf --fasta /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa --chrom NC_004354.4 --output /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/candidate_auprc.tsv
+donor: AUPRC=0.944945 positives=3,403/1,236,362
+acceptor: AUPRC=0.936320 positives=3,438/1,245,749
+start: AUPRC=0.819206 positives=1,281/411,520
+stop: AUPRC=0.869479 positives=1,265/1,060,569
+mean AUPRC=0.892487: /zfs/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/candidate_auprc.tsv
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.export_uniann_scores --score-dir /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1 --output /home/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_scores.tsv --chrom X --fasta /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa --accession NC_004354.4
+motif audit passed: {'donor': {'matches': 1236362, 'total': 1236362, 'fraction': 1.0}, 'acceptor': {'matches': 1245749, 'total': 1245749, 'fraction': 1.0}, 'start': {'matches': 411520, 'total': 411520, 'fraction': 1.0}, 'stop': {'matches': 1060569, 'total': 1060569, 'fraction': 1.0}}
+chrX_plus_scores.tsv: 3,954,200/3,954,200 rows, 109,110 rows/s
+finished in 0.6 min: /zfs/bchen103/cnn-mamba/artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_scores.tsv
++ log 'seed 42 (best): vector scaling (fit on validation split)'
+++ date -Is
++ echo '[2026-11-20T09:27:06-05:00] seed 42 (best): vector scaling (fit on validation split)'
+[2026-11-20T09:27:06-05:00] seed 42 (best): vector scaling (fit on validation split)
++ [[ ! -s results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/calibration/calibration_sample.npz ]]
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.calibrate_joint_frame --checkpoint runs/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/best_model.pt --data-root /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_w1_perisoform_v1/w1 --split val --output-dir results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/calibration --batch-size 64 --workers 4 --samples-per-window 32 --seed 42 --bins 20 --save-sample
+batches=500/521 sampled=1,023,745
+batches=521/521 sampled=1,064,899
+{
+  "temperature": 0.9673361102093304,
+  "diagnostic_group_balanced_temperature": 0.9489339530754481,
+  "before": {
+    "nll": 0.09315835684537888,
+    "brier": 0.04893120005726814,
+    "ece": 0.0035081496462225914,
+    "mean_max_probability": 0.970239520072937,
+    "fraction_max_ge_0.99": 0.7192785143852234
+  },
+  "after": {
+    "nll": 0.09302974492311478,
+    "brier": 0.049005769193172455,
+    "ece": 0.0045600649900734425,
+    "mean_max_probability": 0.9721084833145142,
+    "fraction_max_ge_0.99": 0.7506749629974365
+  },
+  "argmax_changes": 0,
+  "output": "results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/calibration/temperature.json"
+}
++ [[ ! -s results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_scaling/vector_scaling.json ]]
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.fit_vector_scaling --sample results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/calibration/calibration_sample.npz --metadata-json results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/calibration/temperature.json --output-dir results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_scaling --regularization 0.0001
+results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_scaling/vector_scaling.json
++ [[ ! -s artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_vector_scaled/joint_frame_probabilities.npy ]]
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.score_joint_frame_chromosome --checkpoint runs/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/best_model.pt --fasta /home/bchen103/cnn-mamba/data/raw/dmel_genome.fa --chrom NC_004354.4 --display-chrom chrX --output-dir artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_vector_scaled --batch-size 64 --vector-calibration-json results/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_scaling/vector_scaling.json
+processed=512/47,085
+processed=1,024/47,085
+processed=1,536/47,085
+processed=2,048/47,085
+processed=2,560/47,085
+processed=3,008/47,085
+processed=3,520/47,085
+processed=4,032/47,085
+processed=4,544/47,085
+processed=5,056/47,085
+processed=5,504/47,085
+processed=6,016/47,085
+processed=6,528/47,085
+processed=7,040/47,085
+processed=7,552/47,085
+processed=8,000/47,085
+processed=8,512/47,085
+processed=9,024/47,085
+processed=9,536/47,085
+processed=10,048/47,085
+processed=10,560/47,085
+processed=11,008/47,085
+processed=11,520/47,085
+processed=12,032/47,085
+processed=12,544/47,085
+processed=13,056/47,085
+processed=13,504/47,085
+processed=14,016/47,085
+processed=14,528/47,085
+processed=15,040/47,085
+processed=15,552/47,085
+processed=16,000/47,085
+processed=16,512/47,085
+processed=17,024/47,085
+processed=17,536/47,085
+processed=18,048/47,085
+processed=18,560/47,085
+processed=19,008/47,085
+processed=19,520/47,085
+processed=20,032/47,085
+processed=20,544/47,085
+processed=21,056/47,085
+processed=21,504/47,085
+processed=22,016/47,085
+processed=22,528/47,085
+processed=23,040/47,085
+processed=23,552/47,085
+processed=24,000/47,085
+processed=24,512/47,085
+processed=25,024/47,085
+processed=25,536/47,085
+processed=26,048/47,085
+processed=26,560/47,085
+processed=27,008/47,085
+processed=27,520/47,085
+processed=28,032/47,085
+processed=28,544/47,085
+processed=29,056/47,085
+processed=29,504/47,085
+processed=30,016/47,085
+processed=30,528/47,085
+processed=31,040/47,085
+processed=31,552/47,085
+processed=32,000/47,085
+processed=32,512/47,085
+processed=33,024/47,085
+processed=33,536/47,085
+processed=34,048/47,085
+processed=34,560/47,085
+processed=35,008/47,085
+processed=35,520/47,085
+processed=36,032/47,085
+processed=36,544/47,085
+processed=37,056/47,085
+processed=37,504/47,085
+processed=38,016/47,085
+processed=38,528/47,085
+processed=39,040/47,085
+processed=39,552/47,085
+processed=40,000/47,085
+processed=40,512/47,085
+processed=41,024/47,085
+processed=41,536/47,085
+processed=42,048/47,085
+processed=42,560/47,085
+processed=43,008/47,085
+processed=43,520/47,085
+processed=44,032/47,085
+processed=44,544/47,085
+processed=45,056/47,085
+processed=45,504/47,085
+processed=46,016/47,085
+processed=46,528/47,085
+processed=47,040/47,085
+processed=47,085/47,085
+complete: artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_vector_scaled
++ [[ ! -s artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_vector_scaled/chrX_plus_joint_frame_probabilities_vector.tsv.complete.json ]]
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.export_joint_frame_tsv --probabilities artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_vector_scaled/joint_frame_probabilities.npy --argmax artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_vector_scaled/joint_frame_argmax.npy --output artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_vector_scaled/chrX_plus_joint_frame_probabilities_vector.tsv --chrom chrX --strand +
+written=2,500,000/23,542,271
+written=5,000,000/23,542,271
+written=7,500,000/23,542,271
+written=10,000,000/23,542,271
+written=12,500,000/23,542,271
+written=15,000,000/23,542,271
+written=17,500,000/23,542,271
+written=20,000,000/23,542,271
+written=22,500,000/23,542,271
+written=23,542,271/23,542,271
+complete: artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_vector_scaled/chrX_plus_joint_frame_probabilities_vector.tsv
++ refresh_uniann
++ git -C /home/bchen103/UniAnn-latest fetch -q origin
++ git -C /home/bchen103/UniAnn-latest checkout -q --detach origin/main
++ local head built=
+++ git -C /home/bchen103/UniAnn-latest rev-parse HEAD
++ head=08eaf1595faf469069b9fd28a42973b84ce1e27e
++ [[ -f /home/bchen103/UniAnn-latest/bin/.built_commit ]]
+++ cat /home/bchen103/UniAnn-latest/bin/.built_commit
++ built=08eaf1595faf469069b9fd28a42973b84ce1e27e
++ [[ 08eaf1595faf469069b9fd28a42973b84ce1e27e != \0\8\e\a\f\1\5\9\5\f\a\f\4\6\9\0\6\9\b\9\f\d\2\8\a\4\2\9\7\3\b\8\4\c\e\1\e\2\7\e ]]
++ uniann_commit=08eaf1595faf469069b9fd28a42973b84ce1e27e
+++ git -C /home/bchen103/UniAnn-latest log -1 --format=%s
++ log 'UniAnn: /home/bchen103/UniAnn-latest @ 08eaf15 (fixed usage)'
+++ date -Is
++ echo '[2026-11-20T09:37:50-05:00] UniAnn: /home/bchen103/UniAnn-latest @ 08eaf15 (fixed usage)'
+[2026-11-20T09:37:50-05:00] UniAnn: /home/bchen103/UniAnn-latest @ 08eaf15 (fixed usage)
++ log 'seed 42 (best): UniAnn (built-in coding-frame scaling) + strict gffcompare'
+++ date -Is
++ echo '[2026-11-20T09:37:50-05:00] seed 42 (best): UniAnn (built-in coding-frame scaling) + strict gffcompare'
+[2026-11-20T09:37:50-05:00] seed 42 (best): UniAnn (built-in coding-frame scaling) + strict gffcompare
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.uniann_evaluate --uniann-root /home/bchen103/UniAnn-latest --fasta /home/bchen103/cnn-mamba/data/raw/dmel_chrX.fa --coding-frame artifacts/joint_frame_predictions/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_vector_scaled/chrX_plus_joint_frame_probabilities_vector.tsv --require-cnn-mamba-tsv-header --scores artifacts/scores/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/chrX_plus_scores.tsv --reference-gtf /home/bchen103/cnn-mamba/data/raw/dmel_chrX_plus_CDS_reference.gtf --eviann-gff /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_v1/chrX_plus_EviAnn_CDS.gff --output-dir work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header
++ /home/bchen103/UniAnn-latest/bin/uniann.sh -f genome.fa -c coding.txt -s scores.txt -n
++ /home/bchen103/UniAnn-latest/bin/gffread -M /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/genome.fa.uniann.gff -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/uniann.merged.gff
++ /home/bchen103/UniAnn-latest/bin/gffcompare --strict-match -e 0 -r /zfs/bchen103/raw/uniann_ref/NC_004354.4.p.CDS.uniq.gtf /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/uniann.merged.gff -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/uniann
++ /home/bchen103/UniAnn-latest/bin/gffread -T /zfs/bchen103/cnn-mamba/data/processed/coleoptera_eviann_v1/chrX_plus_EviAnn_CDS.gff -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/eviann.normalized.gtf
++ /home/bchen103/UniAnn-latest/bin/gffread -T /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/genome.fa.uniann.gff -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/uniann.normalized.gtf
++ /home/bchen103/UniAnn-latest/bin/gffread -M /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/eviann.normalized.gtf -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/eviann.merged.gff
++ /home/bchen103/UniAnn-latest/bin/gffcompare --strict-match -e 0 -r /zfs/bchen103/raw/uniann_ref/NC_004354.4.p.CDS.uniq.gtf /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/eviann.merged.gff -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/eviann
++ /home/bchen103/UniAnn-latest/bin/gffread -M /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/eviann_uniann.concat.gtf -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/eviann_uniann.merged.gff
++ /home/bchen103/UniAnn-latest/bin/gffcompare --strict-match -e 0 -r /zfs/bchen103/raw/uniann_ref/NC_004354.4.p.CDS.uniq.gtf /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/eviann_uniann.merged.gff -o /zfs/bchen103/cnn-mamba/work/uniann/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed42/chrxtrain/w1/vector_uniann_builtin_header/eviann_uniann
+       method   sn   pr        f1  reference_loci  predicted_loci  matched_loci  missed_loci  novel_loci
+       UniAnn 72.0 77.8 74.787717            1070             990           770           93          20
+EviAnn+UniAnn 82.5 87.3 84.832155            1070            1001           883           71          24
++ echo 08eaf1595faf469069b9fd28a42973b84ce1e27e
++ log 'seed 42 (best) complete (UniAnn 08eaf15)'
+++ date -Is
++ echo '[2026-11-20T09:46:00-05:00] seed 42 (best) complete (UniAnn 08eaf15)'
+[2026-11-20T09:46:00-05:00] seed 42 (best) complete (UniAnn 08eaf15)
++ for seed in $seeds
++ tag=coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed43
++ run_dir=runs/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed43/chrxtrain/w1
++ [[ ! -s runs/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed43/chrxtrain/w1/results.json ]]
++ log 'seed 43: training'
+++ date -Is
++ echo '[2026-11-20T09:46:00-05:00] seed 43: training'
+[2026-11-20T09:46:00-05:00] seed 43: training
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python scripts/run_cell.py --config /home/bchen103/cnn-mamba/configs/droso_coleoptera_w1_seeds_fixed15_perisoform_lr1e4.json --experiment-tag coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed43 --cell w1 --regime chrxtrain --seed 43 --stages train --workers 4 --data-root /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_w1_perisoform_v1/w1 --frame-dilation 3 --joint-frame-aux-weight 0.1 --joint-noncoding-weight 0.1 --candidate-negative-weight 1.0
++ /home/bchen103/miniforge3/envs/cnn_mamba_k7/bin/python -m cnn_mamba.train --data-root /home/bchen103/cnn-mamba/data/processed/coleoptera_eviann_w1_perisoform_v1/w1 --mode baseline --architecture cnn_mamba --cnn-kernel-size 7 --epochs 15 --batch-size 80 --grad-accum 1 --window-size 1000 --stride 500 --workers 4 --seed 43 --output-dir /home/bchen103/cnn-mamba/runs/coleoptera_w1_seed_sweep_fixed15_perisoform_lr1e4_v1/seed43/chrxtrain/w1 --reference-name FlyBase --test-name chrX --frame-dilation 3 --phase-aux-weight 0.0 --cds-aux-weight 0.0 --cds-boundary-radius 0 --cds-far-loss-weight 0.1 --joint-frame-aux-weight 0.1 --joint-noncoding-weight 0.1 --candidate-negative-weight 1.0 --backbone-lr-multiplier 1.0 --freeze-pretrained-layers 0 --freeze-pretrained-epochs 0 --lr 0.0001 --scheduler-epochs 15 --include-test-in-train --amp --amp-dtype bf16 --dropout 0.0
+mode=baseline device=NVIDIA RTX A4500 train=139,195 val=33,287 test=0 epochs=15 scheduler_epochs=15 scheduler_steps=26085 lr=0.0001 warmup_steps=200 start_epoch=1 early_stopping_patience=0 early_stopping_min_delta=0 candidate_negative_weight=1 candidate_propensity_root=None candidate_propensity_negative_weight=1 use_start_stop_weights=False frame_dilation=3 phase_aux_weight=0 cds_aux_weight=0 cds_boundary_radius=0 cds_far_loss_weight=0.1 joint_frame_aux_weight=0.1 joint_noncoding_weight=0.1 backbone_lr_multiplier=1 freeze_pretrained_layers=0 freeze_pretrained_epochs=0 frozen_parameter_count=0 record_gradient_norms=False shared_backbone_parameters=4,404,416 gradient_probe=None
+epoch=1 batch=500/1,739 loss=0.31678 lr=1.00e-04
+epoch=1 batch=1,000/1,739 loss=0.19495 lr=9.98e-05
+epoch=1 batch=1,500/1,739 loss=0.14990 lr=9.94e-05
+Epoch 1: train loss=0.13613; validation loss=0.05710; mean FlyBase AP=0.7262
+    donor    AP=0.8710 F1=0.8131 P=0.8444 R=0.7841 thr=0.7343 pos=6,673/856,417
+    acceptor AP=0.8484 F1=0.7972 P=0.8040 R=0.7906 thr=0.5233 pos=6,785/932,536
+    start    AP=0.5645 F1=0.5574 P=0.5939 R=0.5251 thr=0.5507 pos=2,367/280,522
+    stop     AP=0.6210 F1=0.6169 P=0.6607 R=0.5786 thr=0.1853 pos=2,342/780,975
+    Joint CDS AP=0.9403 F1=0.8876 P=0.8980 R=0.8775 thr=0.9922
+epoch=2 batch=500/1,739 loss=0.04622 lr=9.86e-05
+epoch=2 batch=1,000/1,739 loss=0.04486 lr=9.79e-05
+epoch=2 batch=1,500/1,739 loss=0.04257 lr=9.70e-05
+Epoch 2: train loss=0.04137; validation loss=0.06064; mean FlyBase AP=0.7389
+    donor    AP=0.9019 F1=0.8387 P=0.8563 R=0.8218 thr=0.2244 pos=6,673/856,417
+    acceptor AP=0.8908 F1=0.8362 P=0.8696 R=0.8052 thr=0.3065 pos=6,785/932,536
+    start    AP=0.6351 F1=0.6140 P=0.6975 R=0.5484 thr=0.1902 pos=2,367/280,522
+    stop     AP=0.5280 F1=0.5342 P=0.5852 R=0.4915 thr=0.1223 pos=2,342/780,975
+    Joint CDS AP=0.9681 F1=0.9126 P=0.9097 R=0.9156 thr=0.8632
+epoch=3 batch=500/1,739 loss=0.03657 lr=9.54e-05
+epoch=3 batch=1,000/1,739 loss=0.03409 lr=9.41e-05
+epoch=3 batch=1,500/1,739 loss=0.03249 lr=9.26e-05
+Epoch 3: train loss=0.03204; validation loss=0.02635; mean FlyBase AP=0.8622
+    donor    AP=0.9423 F1=0.8918 P=0.9226 R=0.8630 thr=0.5546 pos=6,673/856,417
+    acceptor AP=0.9272 F1=0.8741 P=0.8968 R=0.8526 thr=0.4999 pos=6,785/932,536
+    start    AP=0.7602 F1=0.7162 P=0.7595 R=0.6777 thr=0.2000 pos=2,367/280,522
+    stop     AP=0.8193 F1=0.7940 P=0.8937 R=0.7143 thr=0.3416 pos=2,342/780,975
+    Joint CDS AP=0.9793 F1=0.9400 P=0.9409 R=0.9392 thr=0.9805
+epoch=4 batch=500/1,739 loss=0.02951 lr=9.03e-05
+epoch=4 batch=1,000/1,739 loss=0.02949 lr=8.85e-05
+epoch=4 batch=1,500/1,739 loss=0.02832 lr=8.66e-05
+Epoch 4: train loss=0.02831; validation loss=0.02265; mean FlyBase AP=0.8875
+    donor    AP=0.9519 F1=0.9054 P=0.9413 R=0.8722 thr=0.3143 pos=6,673/856,417
+    acceptor AP=0.9411 F1=0.8935 P=0.9202 R=0.8682 thr=0.3690 pos=6,785/932,536
+    start    AP=0.7990 F1=0.7523 P=0.8313 R=0.6869 thr=0.1155 pos=2,367/280,522
+    stop     AP=0.8582 F1=0.8332 P=0.8975 R=0.7775 thr=0.3573 pos=2,342/780,975
+    Joint CDS AP=0.9847 F1=0.9553 P=0.9542 R=0.9565 thr=0.9570
