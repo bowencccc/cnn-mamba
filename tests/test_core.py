@@ -23,7 +23,8 @@ from cnn_mamba.prepare_droso import (
 )
 from cnn_mamba.score_chromosome import keep_bounds
 from cnn_mamba.train import (
-    PUDataset, boundary_weighted_cds_loss, candidate_loss,
+    PUDataset, accumulation_groups, boundary_weighted_cds_loss,
+    candidate_count, candidate_loss,
     cosine_learning_rate, masked_phase_loss, group_balanced_joint_frame_loss,
     shared_backbone_gradient_norm,
 )
@@ -237,6 +238,68 @@ class CoreTests(unittest.TestCase):
         loss.backward()
         self.assertIsNotNone(logits.grad)
 
+    def test_accumulated_candidate_loss_matches_one_large_batch(self):
+        rng = torch.Generator().manual_seed(0)
+
+        def sample(high, shape=(2, 400)):
+            return torch.randint(0, high, shape, generator=rng)
+
+        # Unequal candidate counts; the last group is incomplete.
+        batches = []
+        for base_count in (4, 2, 4, 1, 4):
+            sequence = sample(base_count)
+            labels = torch.where(sample(50) == 0, sample(3), 0)
+            batches.append((
+                sequence, labels, sample(2), sample(2),
+                torch.rand(2, 400, generator=rng),
+            ))
+        for task in ("splice", "start_stop"):
+            for options in (
+                {}, {"negative_weight": 0.25},
+                {"negative_weight": 0.5, "ignore": 2, "propensity": 3,
+                 "propensity_negative_weight": 0.1, "candidate_weights": 4},
+            ):
+                def arguments(batch):
+                    return {
+                        name: batch[value] if name in (
+                            "ignore", "propensity", "candidate_weights"
+                        ) else value
+                        for name, value in options.items()
+                    }
+
+                def counts(batch):
+                    return {"x": candidate_count(
+                        batch[1], batch[0], task, **arguments(batch)
+                    )}
+
+                groups = list(accumulation_groups(batches, 2, counts))
+                self.assertEqual(len(groups), len(batches))
+                for start in (0, 2, 4):
+                    group = groups[start:start + 2]
+                    merged = tuple(
+                        torch.cat(parts) for parts in zip(*(b for b, _ in group))
+                    )
+                    logits = torch.randn(
+                        2 * len(group), 400, 3, generator=rng,
+                        requires_grad=True,
+                    )
+                    large = candidate_loss(
+                        logits, merged[1], merged[0], task, **arguments(merged)
+                    )
+                    accumulated = sum(
+                        scales["x"] * candidate_loss(
+                            part, batch[1], batch[0], task, **arguments(batch)
+                        )
+                        for part, (batch, scales) in zip(logits.split(2), group)
+                    ) / len(group)
+                    torch.testing.assert_close(accumulated, large)
+                    torch.testing.assert_close(
+                        torch.autograd.grad(accumulated, logits),
+                        torch.autograd.grad(large, logits),
+                    )
+                for _, scales in accumulation_groups(batches, 1, counts):
+                    self.assertEqual(scales["x"], 1.0)
+
     def test_model_shapes_without_mamba_layers(self):
         model = SpliceMamba(d_model=16, d_state=8, n_layers=0, dropout=0.0,
                             architecture="cnn_mamba", cnn_kernel_size=7)
@@ -329,6 +392,40 @@ class CoreTests(unittest.TestCase):
         loss.backward()
         self.assertTrue(torch.equal(logits.grad[0, 1], torch.zeros(4)))
         self.assertTrue(torch.equal(logits.grad[0, 4], torch.zeros(4)))
+
+    def test_accumulated_joint_frame_loss_matches_one_large_batch(self):
+        # Coding bases: 5 in one micro-batch, 0 in the other.
+        phase = torch.tensor([[0, 1, 2, 0, 1, 0], [0] * 6])
+        cds = torch.tensor([[1, 1, 1, 1, 1, 0], [0] * 6])
+        valid = torch.tensor([[1] * 6, [1, 1, 1, 0, 0, 0]])
+        batches = list(zip(phase.split(1), cds.split(1), valid.split(1)))
+        logits = torch.randn(
+            2, 6, 4, generator=torch.Generator().manual_seed(0),
+            requires_grad=True,
+        )
+        large = group_balanced_joint_frame_loss(
+            logits, phase, cds, cds, 0.1, valid
+        )
+
+        def counts(batch):
+            return {
+                "coding": (batch[1] & batch[2]).sum().item(),
+                "noncoding": ((1 - batch[1]) & batch[2]).sum().item(),
+            }
+
+        accumulated = sum(
+            group_balanced_joint_frame_loss(
+                part, p, c, c, 0.1 * scales["noncoding"], v, scales["coding"]
+            )
+            for part, ((p, c, v), scales) in zip(
+                logits.split(1), accumulation_groups(batches, 2, counts)
+            )
+        ) / 2
+        torch.testing.assert_close(accumulated, large)
+        torch.testing.assert_close(
+            torch.autograd.grad(accumulated, logits),
+            torch.autograd.grad(large, logits),
+        )
 
     def test_joint_frame_targets_exclude_ambiguous_cds(self):
         phase = torch.tensor([[0, 1, 2, 0, 0]])

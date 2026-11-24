@@ -2,6 +2,7 @@
 """Train the reproducible CNN--Mamba-k7 candidate classifier."""
 
 import argparse
+import itertools
 import json
 import logging
 import math
@@ -281,6 +282,47 @@ def candidate_loss(
     return (per_candidate * weights).sum() / weights.sum().clamp_min(1.0)
 
 
+def candidate_count(
+    labels, sequence, task, ignore=None, negative_weight=1.0,
+    propensity=None, propensity_negative_weight=1.0,
+    candidate_weights=None,
+):
+    """Return the denominator that ``candidate_loss`` uses, without logits."""
+    masks = (
+        splice_candidate_masks if task == "splice"
+        else start_stop_candidate_masks
+    )
+    first, second = masks(sequence)
+    positive = labels != 0
+    mask = first | second | positive
+    if ignore is not None:
+        mask &= (~ignore.bool()) | positive
+    weights = torch.where(positive, 1.0, float(negative_weight))
+    if candidate_weights is not None:
+        weights = weights * candidate_weights
+    if propensity is not None and propensity_negative_weight != 1.0:
+        weights[~positive & propensity.bool()] = propensity_negative_weight
+    return weights[mask].sum().item()
+
+
+def accumulation_groups(loader, grad_accum, count_fn):
+    """Yield ``(batch, scales)`` so micro-batches accumulate like one batch.
+
+    Each loss is a mean over its own positions, and their number differs
+    between micro-batches. A scale is this micro-batch's count divided by the
+    mean count of its accumulation group (exactly 1 when ``grad_accum == 1``).
+    """
+    iterator = iter(loader)
+    while group := list(itertools.islice(iterator, grad_accum)):
+        counts = [count_fn(batch) for batch in group]
+        for batch, count in zip(group, counts):
+            yield batch, {
+                name: max(value, 1.0) * len(group)
+                / max(sum(row[name] for row in counts), 1.0)
+                for name, value in count.items()
+            }
+
+
 def masked_phase_loss(logits, labels, mask):
     mask = mask.bool()
     if not mask.any():
@@ -290,7 +332,7 @@ def masked_phase_loss(logits, labels, mask):
 
 def group_balanced_joint_frame_loss(
     logits, phase_labels, phase_mask, cds_labels, noncoding_weight=0.1,
-    valid_mask=None,
+    valid_mask=None, coding_weight=1.0,
 ):
     """Four-state CE: non-CDS=0 and valid CDS phases=1/2/3.
 
@@ -308,7 +350,7 @@ def group_balanced_joint_frame_loss(
     noncoding_mask = (~cds_mask) & valid_mask
     loss = logits.sum() * 0.0
     if coding_mask.any():
-        loss = loss + F.cross_entropy(
+        loss = loss + coding_weight * F.cross_entropy(
             logits[coding_mask], phase_labels[coding_mask] + 1
         )
     if noncoding_weight and noncoding_mask.any():
@@ -1192,6 +1234,33 @@ def main():
                 }
         return norms
 
+    def batch_counts(batch):
+        use_ignore = args.mode == "ignore"
+        use_propensity = args.candidate_propensity_root is not None
+        counts = {
+            "splice": candidate_count(
+                batch[1], batch[0], "splice",
+                batch[3] if use_ignore else None,
+                args.candidate_negative_weight,
+                batch[-2] if use_propensity else None,
+                args.candidate_propensity_negative_weight,
+            ),
+            "start_stop": candidate_count(
+                batch[2], batch[0], "start_stop",
+                batch[4] if use_ignore else None,
+                args.candidate_negative_weight,
+                batch[-1] if use_propensity else None,
+                args.candidate_propensity_negative_weight,
+                batch[-3 if use_propensity else -1]
+                if args.use_start_stop_weights else None,
+            ),
+        }
+        if args.joint_frame_aux_weight > 0:
+            cds, valid = batch[11].bool(), batch[13].bool()
+            counts["coding"] = (cds & batch[8].bool() & valid).sum().item()
+            counts["noncoding"] = (~cds & valid).sum().item()
+        return counts
+
     run_start = time.time()
     early_stopped = (
         args.early_stopping_patience > 0
@@ -1222,7 +1291,9 @@ def main():
         accumulated = 0
         epoch_gradient_norms = None
         epoch_start = time.time()
-        for batch_index, batch in enumerate(train_loader, 1):
+        for batch_index, (batch, scales) in enumerate(accumulation_groups(
+            train_loader, args.grad_accum, batch_counts
+        ), 1):
             sequence, splice_labels, ss_labels, splice_ignore, ss_ignore = (
                 tensor.to(device, non_blocking=True) for tensor in batch[:5]
             )
@@ -1303,19 +1374,20 @@ def main():
                         batch[7].to(device, non_blocking=True),
                         batch[8].to(device, non_blocking=True),
                         batch[11].to(device, non_blocking=True),
-                        args.joint_noncoding_weight,
+                        args.joint_noncoding_weight * scales["noncoding"],
                         batch[13].to(device, non_blocking=True),
+                        scales["coding"],
                     )
                 else:
                     joint_frame_loss = splice_logits.sum() * 0.0
-                splice_loss = candidate_loss(
+                splice_loss = scales["splice"] * candidate_loss(
                     splice_logits, splice_labels, sequence, "splice",
                     splice_ignore if use_ignore else None,
                     args.candidate_negative_weight,
                     splice_propensity,
                     args.candidate_propensity_negative_weight,
                 )
-                ss_loss = candidate_loss(
+                ss_loss = scales["start_stop"] * candidate_loss(
                     ss_logits, ss_labels, sequence, "start_stop",
                     ss_ignore if use_ignore else None,
                     args.candidate_negative_weight,
